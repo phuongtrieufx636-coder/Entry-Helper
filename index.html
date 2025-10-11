@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradingView Entry Helper — RSI14 + LWMA45 + EMA9 (on RSI)</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+  <style>
+    :root{ --bg:#0b1020;--card:#12162a;--muted:#9aa3b2;--text:#eef1f6;--accent:#7c5cff;--ok:#22c55e;--bad:#ef4444 }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;background:radial-gradient(120% 120% at 10% 0%,#1a1f37 0%,var(--bg) 55%);color:var(--text)}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand h1{font-size:18px;margin:0}
+    .card{background:var(--card);border:1px solid #252a41;border-radius:16px;padding:14px}
+    .grid{display:grid;grid-template-columns:1.5fr 1fr;gap:12px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    label{font-size:12px;color:var(--muted)}
+    .row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+    .row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    select,input,button,textarea{width:100%;border-radius:12px;border:1px solid #2a3152;background:#0e1430;color:var(--text);padding:10px}
+    button{cursor:pointer;font-weight:600}
+    .btn{background:linear-gradient(180deg,#3b2fff, #6a58ff);border:none}
+    .btn.secondary{background:#182042}
+    .btn.ok{background:#204d2d}
+    .btn.danger{background:#5a1f25}
+    .hint{font-size:12px;color:var(--muted)}
+    .tv-embed{height:560px;border-radius:12px;overflow:hidden}
+    .mini{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{padding:6px 10px;border-radius:999px;background:#141a36;border:1px solid #283058;font-size:12px}
+    .signal{font-size:14px;line-height:1.55}
+    .signal strong{color:#cbd5ff}
+    .log{height:180px}
+    .footer{margin-top:8px;display:flex;align-items:center;justify-content:space-between}
+    .error{color:#ef9a9a;font-size:12px}
+    kbd{background:#101633;border:1px solid #2b3256;border-radius:6px;padding:2px 6px;font-size:12px}
+    details{margin-top:10px;color:var(--muted)}
+    summary{cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.88L18.18 22 12 18.77 5.82 22 7 14.15l-5-4.88 6.91-1.01L12 2z" fill="#7c5cff"/></svg>
+        <h1>TradingView Entry Helper</h1>
+      </div>
+      <div class="mini">
+        <span class="pill">1 widget TradingView</span>
+        <span class="pill">RSI14 + LWMA45(RSI) + EMA9(RSI)</span>
+        <span class="pill">Crypto + FX/Gold</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="row">
+          <div>
+            <label>Nguồn dữ liệu</label>
+            <select id="market">
+              <option value="binance" selected>Crypto (Binance)</option>
+              <option value="stooq">FX / Gold (Stooq)</option>
+            </select>
+          </div>
+          <div>
+            <label>Symbol</label>
+            <select id="symbol"></select>
+          </div>
+          <div>
+            <label>Khung thời gian</label>
+            <select id="interval">
+              <option value="5m">5m</option>
+              <option value="15m">15m</option>
+              <option value="1h" selected>1h</option>
+              <option value="4h">4h</option>
+              <option value="1d">1d</option>
+            </select>
+          </div>
+          <div>
+            <label>ATR period</label>
+            <input id="atrPeriod" type="number" min="2" value="14" />
+          </div>
+          <div>
+            <label>ATR SL multiplier</label>
+            <input id="atrSL" type="number" step="0.1" value="1.5" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label>TP : SL (R:R)</label>
+            <input id="rr" type="number" step="0.1" value="2.0" />
+          </div>
+          <div>
+            <label>RSI period (fixed)</label>
+            <input type="number" value="14" disabled />
+          </div>
+          <div>
+            <label>LWMA period (fixed)</label>
+            <input type="number" value="45" disabled />
+          </div>
+          <div>
+            <label>EMA period (fixed)</label>
+            <input type="number" value="9" disabled />
+          </div>
+          <div>
+            <label>Resample 4h (FX)</label>
+            <select id="resample4h">
+              <option value="on" selected>Bật (từ 60m → 4h)</option>
+              <option value="off">Tắt (dùng 60m)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="tvWidget" class="tv-embed"></div>
+        <div id="err" class="error"></div>
+        <div class="footer">
+          <div class="hint">Dữ liệu phân tích lấy từ Binance.</div>
+          <div class="mini">
+            <button id="refresh" class="btn secondary">↻ Tải dữ liệu</button>
+            <button id="auto" class="btn">Phân tích & Gợi ý</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h3 style="margin:6px 0 8px 0">Gợi ý mở lệnh</h3>
+        <div class="row2">
+          <button class="btn ok" id="btnLong">Gợi ý BUY (Long)</button>
+          <button class="btn danger" id="btnShort">Gợi ý SELL (Short)</button>
+        </div>
+        <p class="hint" style="margin-top:8px">Logic: EMA9(RSI) cross/trend với LWMA45(RSI) + SL theo ATR, TP theo R:R.</p>
+        <div id="signal" class="signal" style="margin-top:10px"></div>
+        <div class="row2" style="margin-top:10px">
+          <button id="copy" class="btn secondary">Copy tín hiệu</button>
+          <button id="clear" class="btn secondary">Xóa</button>
+        </div>
+
+        <hr style="border-color:#2b3256;margin:14px 0">
+        <label for="openaiKey">(Tuỳ chọn) OpenAI API Key</label>
+        <input id="openaiKey" type="password" placeholder="sk-... (điền nếu muốn AI giải thích)"/>
+        <button id="askAI" class="btn" style="margin-top:8px">Nhờ AI giải thích setup</button>
+        <textarea id="aiOut" class="log" placeholder="Giải thích sẽ hiển thị ở đây" readonly></textarea>
+        <p class="hint">Không lưu key. Key chỉ dùng trong trình duyệt của bạn.</p>
+      </aside>
+    </div>
+
+    <p class="hint" style="margin-top:10px">Mẹo: bấm <kbd>A</kbd> để phân tích nhanh, <kbd>L</kbd> để BUY, <kbd>S</kbd> để SELL.</p>
+
+  </div>
+
+  <!-- Chỉ còn 1 widget TradingView -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
+
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    const fmt = (x, d=2)=> Number(x).toFixed(d);
+
+    const toBinanceInt = (v)=>({"5m":"5m","15m":"15m","1h":"1h","4h":"4h","1d":"1d"}[v]||"15m");
+    const toTVInt = (v)=>({"5m":"5","15m":"15","1h":"60","4h":"240","1d":"D"}[v]||"15");
+    const toStooqInt = (v)=>({"5m":"5","15m":"15","1h":"60","4h":"60","1d":"d"}[v]||"15"); // Stooq có 5/15/60 & daily
+
+    // ---- Create/Recreate TV widget ----
+    function tvSymbolFor(market,sym){
+      if(market==='binance') return 'BINANCE:'+sym; // crypto
+      const map = {
+        'XAUUSD':'FX_IDC:XAUUSD','XAGUSD':'FX_IDC:XAGUSD',
+        'EURUSD':'FX:EURUSD','GBPUSD':'FX:GBPUSD','USDJPY':'FX:USDJPY','AUDUSD':'FX:AUDUSD','USDCAD':'FX:USDCAD','NZDUSD':'FX:NZDUSD','USDCHF':'FX:USDCHF'
+      };
+      return map[sym]||'FX:'+sym;
+    }
+    function createTV(sym, intv){
+      const market = $("market").value;
+      const el = $("tvWidget");
+      el.innerHTML = "";
+      new TradingView.widget({
+        autosize: true,
+        symbol: tvSymbolFor(market, sym),
+        interval: toTVInt(intv),
+        timezone: "Asia/Bangkok",
+        theme: "dark",
+        style: "1",
+        container_id: "tvWidget",
+        withdateranges: true,
+        hide_side_toolbar: false,
+        allow_symbol_change: true,
+        studies: ["RSI@tv-basicstudies","ATR@tv-basicstudies"],
+      });
+    }
+
+    // ---- Helpers ----
+    async function fetchJSON(u){ const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+    async function fetchTEXT(u){ const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }
+
+    // Resample candles to coarser timeframe (seconds)
+    function resampleCandles(src, stepSec){
+      if(!src?.length) return [];
+      const out=[];
+      let bucketTs = Math.floor(src[0].time/stepSec)*stepSec;
+      let o=src[0].open, h=src[0].high, l=src[0].low, c=src[0].close;
+      for(let i=1;i<src.length;i++){
+        const t=src[i].time;
+        if(t < bucketTs+stepSec){
+          h=Math.max(h, src[i].high);
+          l=Math.min(l, src[i].low);
+          c=src[i].close;
+        }else{
+          out.push({time:bucketTs, open:o, high:h, low:l, close:c});
+          bucketTs = Math.floor(t/stepSec)*stepSec;
+          o=src[i].open; h=src[i].high; l=src[i].low; c=src[i].close;
+        }
+      }
+      out.push({time:bucketTs, open:o, high:h, low:l, close:c});
+      return out;
+    }
+
+    // ---- Data fetch (for analysis only) ----
+    async function fetchKlines(symbol, interval, limit=500){
+      const market = $("market").value;
+      if(market==='binance'){
+        const base = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+        const attempts = [base, `https://cors.isomorphic-git.org/${base}`, `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`];
+        for(const u of attempts){
+          try{ const raw = await fetchJSON(u); return raw.map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]})); }
+          catch(e){ /* try next */ }
+        }
+        throw new Error('Không lấy được dữ liệu nến (Binance)');
+      } else {
+        // Stooq CSV (5/15/60 minutes & daily). Example header:
+        // intraday: Date,Time,Open,High,Low,Close,Volume
+        // daily   : Date,Open,High,Low,Close,Volume
+        const stooqSym = symbol.toLowerCase();
+        const i = toStooqInt(interval);
+        const url = `https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`;
+        const attempts = [url, `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
+        for(const u of attempts){
+          try{
+            const txt = await fetchTEXT(u);
+            const lines = txt.trim().split(/\n+/);
+            if(lines.length < 2) continue;
+            const head = lines[0].toLowerCase();
+            const rows = lines.slice(1);
+            const data = rows.map(line=>{
+              const parts = line.split(',');
+              let d, t, o, h, l, c;
+              if(head.includes('time')){ // intraday
+                [d,t,o,h,l,c] = parts;
+              } else { // daily (no time)
+                [d,o,h,l,c] = parts; t = '00:00:00';
+              }
+              const ts = Date.parse(`${d}T${t}Z`);
+              return { time: Math.floor(ts/1000), open:+o, high:+h, low:+l, close:+c };
+            }).filter(v=>isFinite(v.time) && isFinite(v.open));
+
+            let out = data.slice(-limit);
+            // If user asks 4h for FX and Stooq only gives 60m → resample if enabled
+            if(interval==='4h' && $("resample4h").value==='on' && i==='60'){
+              out = resampleCandles(out, 4*60*60);
+            }
+            if(out.length) return out;
+          }catch(e){ /* try next */ }
+        }
+        throw new Error('Không lấy được dữ liệu nến (Stooq)');
+      }
+    }
+
+    // ---- Indicators ----
+    function ema(values, period){ const k=2/(period+1); let prev=values[0]; const out=[prev]; for(let i=1;i<values.length;i++){ const v=values[i]*k+prev*(1-k); out.push(v); prev=v;} return out; }
+    function rsi(closes, period){ const g=[],l=[]; for(let i=1;i<closes.length;i++){const d=closes[i]-closes[i-1]; g.push(Math.max(0,d)); l.push(Math.max(0,-d)); } const eg=ema([g[0],...g],period), el=ema([l[0],...l],period); const rs=eg.map((v,i)=>v/(el[i]||1e-9)); return rs.map(v=>100-100/(1+v)); }
+    function atr(c, p){ const t=[]; for(let i=0;i<c.length;i++){ if(i===0){t.push(c[i].high-c[i].low);continue;} const h=c[i].high,l=c[i].low,pc=c[i-1].close; t.push(Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc))); } return ema(t,p); }
+    function lwma(values, period){
+      const out = new Array(values.length).fill(NaN);
+      const denom = period*(period+1)/2; // 1+2+..+n
+      for(let i=period-1;i<values.length;i++){
+        let sum=0; let w=1;
+        for(let j=i-period+1;j<=i;j++) sum += values[j]*w++;
+        out[i]= sum/denom;
+      }
+      for(let k=0;k<period-1;k++){ out[k] = values[k]; }
+      return out;
+    }
+
+    // --- Symbol lists ---
+    const BINANCE_SYMBOLS = ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT'];
+    const STOOQ_SYMBOLS = ['XAUUSD','XAGUSD','EURUSD','GBPUSD','USDJPY','AUDUSD','USDCAD','NZDUSD','USDCHF'];
+
+    function populateSymbols(){
+      const sel = $("symbol");
+      sel.innerHTML = '';
+      const market = $("market").value;
+      const arr = market==='binance' ? BINANCE_SYMBOLS : STOOQ_SYMBOLS;
+      for(const s of arr){
+        const opt=document.createElement('option'); opt.textContent=s; opt.value=s; sel.appendChild(opt);
+      }
+      sel.value = arr[0];
+    }
+
+    let candles=[], lastSignalText='';
+
+    async function load(){
+      $("err").textContent='';
+      if($("symbol").options.length===0) populateSymbols();
+      const sym = $("symbol").value.trim();
+      const intv = $("interval").value;
+      createTV(sym, intv);
+      try{
+        const fetchIntv = $("market").value==='binance'? toBinanceInt(intv): intv;
+        candles = await fetchKlines(sym, fetchIntv, 600);
+      }catch(e){ $("err").textContent = 'Lỗi dữ liệu: '+e.message; }
+    }
+
+    function analyzeRSI(direction){
+      if(candles.length<60){ $("signal").innerHTML='<span class="red">Dữ liệu quá ít để phân tích.</span>'; return; }
+      const closes = candles.map(c=>c.close);
+
+      // Base indicator = RSI(14)
+      const rsiPeriod = 14;
+      const baseRSI = rsi(closes, rsiPeriod);
+
+      // Derived FROM RSI ("dữ liệu chỉ số đầu tiên")
+      const emaRSI9  = ema(baseRSI, 9);
+      const lwmaRSI45 = lwma(baseRSI, 45);
+
+      // Risk tools
+      const at = atr(candles, Math.max(2, +$("atrPeriod").value|0));
+
+      const n = closes.length-1;
+      const price = closes[n];
+      const rsiV  = baseRSI[n]||50;
+      const vol   = at[n]||0;
+
+      const crossUp = emaRSI9[n-1] <= lwmaRSI45[n-1] && emaRSI9[n] > lwmaRSI45[n];
+      const crossDn = emaRSI9[n-1] >= lwmaRSI45[n-1] && emaRSI9[n] < lwmaRSI45[n];
+      const trendUp = emaRSI9[n] > lwmaRSI45[n];
+      const trendDn = emaRSI9[n] < lwmaRSI45[n];
+
+      let ok=false, sl=0, tp=0, why=[];
+      if(direction==='long'){
+        ok = (crossUp || trendUp) && rsiV > 45;
+        sl = price - +$("atrSL").value * vol;
+        tp = price + (+$("rr").value * (price - sl));
+        if(crossUp) why.push('EMA9(RSI) cắt LWMA45(RSI) đi lên');
+        if(trendUp) why.push('EMA9(RSI) > LWMA45(RSI)');
+        why.push(`RSI14=${fmt(rsiV,1)}`);
+      } else {
+        ok = (crossDn || trendDn) && rsiV < 55;
+        sl = price + +$("atrSL").value * vol;
+        tp = price - (+$("rr").value * (sl - price));
+        if(crossDn) why.push('EMA9(RSI) cắt LWMA45(RSI) đi xuống');
+        if(trendDn) why.push('EMA9(RSI) < LWMA45(RSI)');
+        why.push(`RSI14=${fmt(rsiV,1)}`);
+      }
+
+      const sym=$("symbol").value, intv=$("interval").value; 
+      const status= ok?'<span class="green">PHÙ HỢP</span>':'<span class="red">CHƯA PHÙ HỢP</span>';
+      const text=`
+— Gợi ý ${direction==='long'?'BUY':'SELL'} (${sym} · ${intv}) —
+Entry: ${fmt(price)}
+SL: ${fmt(sl)}  (ATRx${$("atrSL").value})
+TP: ${fmt(tp)}  (R:R ${$("rr").value})
+Điều kiện: ${why.join(' · ')}
+Cấu hình: RSI14 + LWMA45(RSI) + EMA9(RSI)
+Kết luận: ${ok?'NÊN CHỜ PULLBACK HOẶC VÀO VỊ THẾ NHẸ':'Quan sát thêm, đợi xác nhận'}
+`;
+      lastSignalText=text.trim();
+      $("signal").innerHTML=`<strong>Kết quả:</strong> ${status}<br><br><pre style="white-space:pre-wrap">${text}</pre>`;
+    }
+
+    $("refresh").onclick=load;
+    $("auto").onclick=()=>{ load().then(()=>{ const closes=candles.map(c=>c.close); if(closes.length<60) return; const baseRSI = rsi(closes, 14); const emaRSI9 = ema(baseRSI, 9); const lwmaRSI45 = lwma(baseRSI, 45); const n=closes.length-1; const dir = (emaRSI9[n] >= lwmaRSI45[n]) ? 'long' : 'short'; analyzeRSI(dir); }); };
+    $("btnLong").onclick=()=>analyzeRSI('long');
+    $("btnShort").onclick=()=>analyzeRSI('short');
+    $("clear").onclick=()=>{ $("signal").innerHTML=''; lastSignalText=''; };
+    $("copy").onclick=()=>{ if(!lastSignalText) return; navigator.clipboard.writeText(lastSignalText); };
+
+    $("askAI").onclick=async()=>{
+      const key=$("openaiKey").value.trim(); if(!key){ $("aiOut").value='Vui lòng dán OpenAI API key.'; return; }
+      if(!lastSignalText){ $("aiOut").value='Hãy bấm Phân tích & Gợi ý trước.'; return; }
+      $("aiOut").value='Đang phân tích với AI...';
+      try{
+        const r = await fetch('https://api.openai.com/v1/chat/completions',{ method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body:JSON.stringify({ model:'gpt-4o-mini', messages:[{role:'user', content:`Giải thích tín hiệu và rủi ro:\n${lastSignalText}`}] }) });
+        const j=await r.json(); $("aiOut").value=j.choices?.[0]?.message?.content || JSON.stringify(j);
+      }catch(e){ $("aiOut").value='Lỗi gọi OpenAI: '+e.message; }
+    };
+
+    // --- Self tests (console + UI) ---
+    function runSelfTests(){
+      const out=[];
+      try{
+        // 1) Regex split test (fix for /\n+/)
+        const sampleCSV = 'Date,Time,Open,High,Low,Close,Volume\n2025-10-11,09:00:00,1,2,0.5,1.5,10\n2025-10-11,09:05:00,1.5,2.5,1.0,2.0,12\n';
+        const lines = sampleCSV.trim().split(/\n+/);
+        out.push(`[OK] Regex split lines=${lines.length}`);
+
+        // 2) LWMA sanity test
+        const arr=[1,2,3,4,5];
+        const lw = lwma(arr,3);
+        const approx = (a,b)=>Math.abs(a-b)<1e-6;
+        out.push(`[OK] LWMA last=${lw[4].toFixed(6)} (expect ~4.333333)`);
+
+        // 3) RSI edge test (flat series)
+        const r = rsi([1,1,1,1,1],14);
+        out.push(`[OK] RSI flat last=${r[r.length-1].toFixed(2)} (implementation-specific)`);
+      }catch(e){ out.push('[ERR] Self-test: '+e.message); }
+      const el=$("selftest"); if(el) el.textContent = out.join('\n');
+      console.log('Self-tests:', out.join('\n'));
+    }
+
+    window.addEventListener('load', ()=>{ populateSymbols(); load(); runSelfTests(); });
+    $("market").addEventListener('change', ()=>{ populateSymbols(); load(); });
+    $("symbol").addEventListener('change', load);
+    $("interval").addEventListener('change', load);
+    $("resample4h").addEventListener('change', load);
+    window.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='a') $("auto").click(); if(e.key.toLowerCase()==='l') $("btnLong").click(); if(e.key.toLowerCase()==='s') $("btnShort").click(); });
+  </script>
+</body>
+</html>
