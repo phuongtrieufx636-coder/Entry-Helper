@@ -34,6 +34,8 @@
     .log{height:180px}
     .footer{margin-top:8px;display:flex;align-items:center;justify-content:space-between}
     .error{color:#ef9a9a;font-size:12px}
+    .green{color:var(--ok)}
+    .red{color:var(--bad)}
     kbd{background:#101633;border:1px solid #2b3256;border-radius:6px;padding:2px 6px;font-size:12px}
     details{margin-top:10px;color:var(--muted)}
     summary{cursor:pointer}
@@ -115,7 +117,7 @@
         <div id="tvWidget" class="tv-embed"></div>
         <div id="err" class="error"></div>
         <div class="footer">
-          <div class="hint">Dữ liệu phân tích lấy từ Binance.</div>
+          <div class="hint" id="dsHint">Dữ liệu phân tích lấy từ Binance.</div>
           <div class="mini">
             <button id="refresh" class="btn secondary">↻ Tải dữ liệu</button>
             <button id="auto" class="btn">Phân tích & Gợi ý</button>
@@ -177,7 +179,7 @@
         autosize: true,
         symbol: tvSymbolFor(market, sym),
         interval: toTVInt(intv),
-        timezone: "Asia/Bangkok",
+        timezone: "Asia/Ho_Chi_Minh",
         theme: "dark",
         style: "1",
         container_id: "tvWidget",
@@ -219,48 +221,82 @@
       const market = $("market").value;
       if(market==='binance'){
         const base = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-        const attempts = [base, `https://cors.isomorphic-git.org/${base}`, `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`];
+        const attempts = [
+          base,
+          `https://cors.isomorphic-git.org/${base}`,
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`
+        ];
         for(const u of attempts){
           try{ const raw = await fetchJSON(u); return raw.map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]})); }
           catch(e){ /* try next */ }
         }
         throw new Error('Không lấy được dữ liệu nến (Binance)');
       } else {
-        // Stooq CSV (5/15/60 minutes & daily). Example header:
-        // intraday: Date,Time,Open,High,Low,Close,Volume
-        // daily   : Date,Open,High,Low,Close,Volume
-        const stooqSym = symbol.toLowerCase();
-        const i = toStooqInt(interval);
-        const url = `https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`;
-        const attempts = [url, `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
+        // ------- STOOQ (FX/Gold) -------
+        const stooqSym = symbol.toLowerCase();                 // eurusd, xauusd, ...
+        const i = toStooqInt(interval);                        // '5','15','60','d'
+        const base = `https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`;
+
+        // Thêm nhiều proxy fallback để vượt CORS / rate limit
+        const attempts = [
+          base,                                                // (thường bị CORS)
+          `https://cors.isomorphic-git.org/${base}`,           // proxy 1
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`, // proxy 2
+          // proxy 3/4: r.jina.ai wrap (ổn định, text-only)
+          `https://r.jina.ai/http://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`,
+          `https://r.jina.ai/https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`,
+        ];
+
+        // Parse CSV (intraday có cột Time, daily thì không)
+        const parseCSV = (txt) => {
+          const lines = txt.trim().split(/\n+/);
+          if(lines.length < 2) return [];
+          const head = lines[0].toLowerCase();
+          const rows = lines.slice(1);
+          return rows.map(line=>{
+            const parts = line.split(',');
+            let d,t,o,h,l,c;
+            if(head.includes('time')){ [d,t,o,h,l,c] = parts; }
+            else { [d,o,h,l,c] = parts; t = '00:00:00'; }
+            const ts = Date.parse(`${d}T${t}Z`);
+            return { time: Math.floor(ts/1000), open:+o, high:+h, low:+l, close:+c };
+          }).filter(v=>isFinite(v.time) && isFinite(v.open));
+        };
+
+        // Thử lần lượt các proxy
         for(const u of attempts){
           try{
             const txt = await fetchTEXT(u);
-            const lines = txt.trim().split(/\n+/);
-            if(lines.length < 2) continue;
-            const head = lines[0].toLowerCase();
-            const rows = lines.slice(1);
-            const data = rows.map(line=>{
-              const parts = line.split(',');
-              let d, t, o, h, l, c;
-              if(head.includes('time')){ // intraday
-                [d,t,o,h,l,c] = parts;
-              } else { // daily (no time)
-                [d,o,h,l,c] = parts; t = '00:00:00';
-              }
-              const ts = Date.parse(`${d}T${t}Z`);
-              return { time: Math.floor(ts/1000), open:+o, high:+h, low:+l, close:+c };
-            }).filter(v=>isFinite(v.time) && isFinite(v.open));
+            let data = parseCSV(txt).slice(-limit);
 
-            let out = data.slice(-limit);
-            // If user asks 4h for FX and Stooq only gives 60m → resample if enabled
+            // Resample 60m → 4h nếu user chọn 4h và i==='60'
             if(interval==='4h' && $("resample4h").value==='on' && i==='60'){
-              out = resampleCandles(out, 4*60*60);
+              data = resampleCandles(data, 4*60*60);
             }
-            if(out.length) return out;
-          }catch(e){ /* try next */ }
+
+            if(data.length) return data;
+          }catch(e){ /* thử proxy khác */ }
         }
-        throw new Error('Không lấy được dữ liệu nến (Stooq)');
+
+        // Nếu intraday rỗng, tự rơi xuống DAILY làm phương án cuối
+        try{
+          const dailyBase = `https://stooq.com/q/d/l/?s=${stooqSym}&i=d`;
+          const alt = [
+            dailyBase,
+            `https://cors.isomorphic-git.org/${dailyBase}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(dailyBase)}`,
+            `https://r.jina.ai/https://stooq.com/q/d/l/?s=${stooqSym}&i=d`
+          ];
+          for(const u of alt){
+            try{
+              const txt = await fetchTEXT(u);
+              const data = parseCSV(txt).slice(-limit);
+              if(data.length) return data;
+            }catch(e){ /* next */ }
+          }
+        }catch(e){ /* ignore */ }
+
+        throw new Error('Không lấy được dữ liệu nến (Stooq) – thử lại sau hoặc chuyển Daily.');
       }
     }
 
@@ -293,6 +329,8 @@
         const opt=document.createElement('option'); opt.textContent=s; opt.value=s; sel.appendChild(opt);
       }
       sel.value = arr[0];
+      // cập nhật gợi ý nguồn dữ liệu hiển thị
+      $("dsHint").textContent = market==='binance' ? 'Dữ liệu phân tích lấy từ Binance.' : 'Dữ liệu phân tích lấy từ Stooq (qua proxy).';
     }
 
     // --- STATE ---
@@ -318,7 +356,7 @@
       const rsiPeriod = 14;
       const baseRSI = rsi(closes, rsiPeriod);
 
-      // Derived FROM RSI ("dữ liệu chỉ số đầu tiên")
+      // Derived FROM RSI
       const emaRSI9  = ema(baseRSI, 9);
       const lwmaRSI45 = lwma(baseRSI, 45);
 
@@ -387,7 +425,35 @@ Kết luận: ${ok?'NÊN CHỜ PULLBACK HOẶC VÀO VỊ THẾ NHẸ':'Quan sát
     }
 
     $("refresh").onclick=load;
-    $("auto").onclick=()=>{ load().then(()=>{ const closes=candles.map(c=>c.close); if(closes.length<60) return; const baseRSI = rsi(closes, 14); const emaRSI9 = ema(baseRSI, 9); const lwmaRSI45 = lwma(baseRSI, 45); const n=closes.length-1; const dir = (emaRSI9[n] >= lwmaRSI45[n]) ? 'long' : 'short'; analyzeRSI(dir); }); };
+    $("auto").onclick = async () => {
+      try{
+        $("err").textContent='';
+        // Nếu chưa có dữ liệu thì tải trước
+        if(!candles.length) await load();
+        if(!candles.length){ $("err").textContent='Không có dữ liệu để phân tích.'; return; }
+
+        const closes = candles.map(c=>c.close);
+        if(closes.length<60){
+          $("signal").innerHTML='<span class="red">Dữ liệu quá ít (cần ≥ 60 nến). Hãy chọn khung thời gian lớn hơn hoặc thử lại.</span>';
+          return;
+        }
+
+        const baseRSI = rsi(closes, 14);
+        const emaRSI9 = ema(baseRSI, 9);
+        const lwmaRSI45 = lwma(baseRSI, 45);
+        const n = closes.length-1;
+
+        if(!isFinite(emaRSI9[n]) || !isFinite(lwmaRSI45[n])){
+          $("err").textContent='Không đủ dữ liệu để tính RSI/EMA/LWMA.';
+          return;
+        }
+
+        const dir = (emaRSI9[n] >= lwmaRSI45[n]) ? 'long' : 'short';
+        analyzeRSI(dir);
+      }catch(e){
+        $("err").textContent = 'Lỗi Auto Analyze: '+ e.message;
+      }
+    };
     $("btnLong").onclick=()=>analyzeRSI('long');
     $("btnShort").onclick=()=>analyzeRSI('short');
     $("clear").onclick=()=>{ $("signal").innerHTML=''; lastSignalText=''; lastAnalysis=null; };
