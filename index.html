@@ -4,12 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Aura Entry Helper — RSI14 + LWMA45 + EMA9 (on RSI)</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
   <style>
     :root{ --bg:#0b1020;--card:#12162a;--muted:#9aa3b2;--text:#eef1f6;--accent:#7c5cff;--ok:#22c55e;--bad:#ef4444 }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;background:radial-gradient(120% 120% at 10% 0%,#1a1f37 0%,var(--bg) 55%);color:var(--text)}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .wrap{max-width:1180px;margin:0 auto;padding:16px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
     .brand{display:flex;align-items:center;gap:10px}
     .brand h1{font-size:18px;margin:0}
@@ -19,6 +18,8 @@
     label{font-size:12px;color:var(--muted)}
     .row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
     .row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .row3{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr;gap:10px}
+    .row4{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
     select,input,button,textarea{width:100%;border-radius:12px;border:1px solid #2a3152;background:#0e1430;color:var(--text);padding:10px}
     button{cursor:pointer;font-weight:600}
     .btn{background:linear-gradient(180deg,#3b2fff, #6a58ff);border:none}
@@ -29,16 +30,16 @@
     .tv-embed{height:560px;border-radius:12px;overflow:hidden}
     .mini{display:flex;gap:8px;flex-wrap:wrap}
     .pill{padding:6px 10px;border-radius:999px;background:#141a36;border:1px solid #283058;font-size:12px}
+    .pill.bad{border-color:#55333b;background:#2a1520;color:#ffb4b4}
+    .pill.good{border-color:#2f5a3a;background:#183024;color:#b9f5c7}
     .signal{font-size:14px;line-height:1.55}
     .signal strong{color:#cbd5ff}
     .log{height:180px}
-    .footer{margin-top:8px;display:flex;align-items:center;justify-content:space-between}
+    .footer{margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
     .error{color:#ef9a9a;font-size:12px}
     .green{color:var(--ok)}
     .red{color:var(--bad)}
     kbd{background:#101633;border:1px solid #2b3256;border-radius:6px;padding:2px 6px;font-size:12px}
-    details{margin-top:10px;color:var(--muted)}
-    summary{cursor:pointer}
   </style>
 </head>
 <body>
@@ -49,15 +50,14 @@
         <h1>Aura Entry Helper</h1>
       </div>
       <div class="mini">
-        <span class="pill">1 widget TradingView</span>
-        <span class="pill">RSI14 + LWMA45(RSI) + EMA9(RSI)</span>
-        <span class="pill">Crypto + FX/Gold</span>
+        <span class="pill">TradingView + Binance API</span>
+        <span class="pill">RSI14 + LWMA45 + EMA9</span>
       </div>
     </header>
 
     <div class="grid">
       <section class="card">
-        <div class="row">
+        <div class="row3">
           <div>
             <label>Nguồn dữ liệu</label>
             <select id="market">
@@ -66,9 +66,45 @@
             </select>
           </div>
           <div>
+            <label>Quote filter</label>
+            <select id="quote">
+              <option value="">Tất cả</option>
+              <option value="USDT" selected>USDT</option>
+              <option value="FDUSD">FDUSD</option>
+              <option value="USDC">USDC</option>
+              <option value="BTC">BTC</option>
+            </select>
+          </div>
+          <div>
+            <label>Tìm nhanh symbol</label>
+            <input id="symSearch" placeholder="vd: BTC, ARB, MEME..." />
+          </div>
+          <div>
             <label>Symbol</label>
             <select id="symbol"></select>
           </div>
+          <div>
+            <label>Tình trạng</label>
+            <div id="symCount" class="pill">Symbols: 0</div>
+          </div>
+        </div>
+
+        <div class="row4" style="margin-top:10px">
+          <div>
+            <label>Custom proxy prefix (tùy chọn)</label>
+            <input id="customProxy" placeholder="vd: https://r.jina.ai/https:// (để vượt chặn)" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="reloadSymbols" class="btn secondary">↻ Reload symbols</button>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="testProxies" class="btn secondary">🧪 Test proxies</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
           <div>
             <label>Khung thời gian</label>
             <select id="interval">
@@ -87,23 +123,9 @@
             <label>ATR SL multiplier</label>
             <input id="atrSL" type="number" step="0.1" value="1.5" />
           </div>
-        </div>
-        <div class="row" style="margin-top:10px">
           <div>
             <label>TP : SL (R:R)</label>
             <input id="rr" type="number" step="0.1" value="2.0" />
-          </div>
-          <div>
-            <label>RSI period (fixed)</label>
-            <input type="number" value="14" disabled />
-          </div>
-          <div>
-            <label>LWMA period (fixed)</label>
-            <input type="number" value="45" disabled />
-          </div>
-          <div>
-            <label>EMA period (fixed)</label>
-            <input type="number" value="9" disabled />
           </div>
           <div>
             <label>Resample 4h (FX)</label>
@@ -122,6 +144,7 @@
             <button id="refresh" class="btn secondary">↻ Tải dữ liệu</button>
             <button id="auto" class="btn">Phân tích & Gợi ý</button>
           </div>
+          <div id="apiStatus" class="pill bad" style="display:none"></div>
         </div>
       </section>
 
@@ -151,20 +174,19 @@
 
   </div>
 
-  <!-- Chỉ còn 1 widget TradingView -->
+  <!-- TradingView Widget -->
   <script src="https://s3.tradingview.com/tv.js"></script>
 
   <script>
+    // ====== Helpers ======
     const $ = (id)=>document.getElementById(id);
     const fmt = (x, d=2)=> Number(x).toFixed(d);
-
     const toBinanceInt = (v)=>({"5m":"5m","15m":"15m","1h":"1h","4h":"4h","1d":"1d"}[v]||"15m");
     const toTVInt = (v)=>({"5m":"5","15m":"15","1h":"60","4h":"240","1d":"D"}[v]||"15");
-    const toStooqInt = (v)=>({"5m":"5","15m":"15","1h":"60","4h":"60","1d":"d"}[v]||"15"); // Stooq có 5/15/60 & daily
+    const toStooqInt = (v)=>({"5m":"5","15m":"15","1h":"60","4h":"60","1d":"d"}[v]||"15");
 
-    // ---- Create/Recreate TV widget ----
     function tvSymbolFor(market,sym){
-      if(market==='binance') return 'BINANCE:'+sym; // crypto
+      if(market==='binance') return 'BINANCE:'+sym;
       const map = {
         'XAUUSD':'FX_IDC:XAUUSD','XAGUSD':'FX_IDC:XAGUSD',
         'EURUSD':'FX:EURUSD','GBPUSD':'FX:GBPUSD','USDJPY':'FX:USDJPY','AUDUSD':'FX:AUDUSD','USDCAD':'FX:USDCAD','NZDUSD':'FX:NZDUSD','USDCHF':'FX:USDCHF'
@@ -190,64 +212,135 @@
       });
     }
 
-    // ---- Helpers ----
-    async function fetchJSON(u){ const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
-    async function fetchTEXT(u){ const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }
-
-    // Resample candles to coarser timeframe (seconds)
-    function resampleCandles(src, stepSec){
-      if(!src?.length) return [];
-      const out=[];
-      let bucketTs = Math.floor(src[0].time/stepSec)*stepSec;
-      let o=src[0].open, h=src[0].high, l=src[0].low, c=src[0].close;
-      for(let i=1;i<src.length;i++){
-        const t=src[i].time;
-        if(t < bucketTs+stepSec){
-          h=Math.max(h, src[i].high);
-          l=Math.min(l, src[i].low);
-          c=src[i].close;
-        }else{
-          out.push({time:bucketTs, open:o, high:h, low:l, close:c});
-          bucketTs = Math.floor(t/stepSec)*stepSec;
-          o=src[i].open; h=src[i].high; l=src[i].low; c=src[i].close;
-        }
-      }
-      out.push({time:bucketTs, open:o, high:h, low:l, close:c});
-      return out;
+    async function fetchJSON(u, timeoutMs=9000){
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      try{
+        const r = await fetch(u, {signal: ctrl.signal});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return await r.json();
+      } finally { clearTimeout(t); }
+    }
+    async function fetchTEXT(u, timeoutMs=9000){
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      try{
+        const r = await fetch(u, {signal: ctrl.signal});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return await r.text();
+      } finally { clearTimeout(t); }
     }
 
-    // ---- Data fetch (for analysis only) ----
+    function withCustomProxy(u){
+      const p = $("customProxy").value.trim();
+      if(!p) return u;
+      if(p.endsWith('/') && u.startsWith('http')) return p + u;
+      if(!p.endsWith('/') && u.startsWith('http')) return p + '/' + u;
+      return p + u;
+    }
+
+    // ====== Binance exchangeInfo with fallbacks ======
+    let BINANCE_SYMBOLS_ALL = [];
+    let BINANCE_SOURCE = 'api';
+    const STOOQ_SYMBOLS = ['XAUUSD','XAGUSD','EURUSD','GBPUSD','USDJPY','AUDUSD','USDCAD','NZDUSD','USDCHF'];
+
+    async function fetchBinanceSymbols(){
+      BINANCE_SOURCE = 'api';
+      $("apiStatus").style.display = 'none';
+      const bases = [
+        'https://api.binance.com/api/v3/exchangeInfo',
+        'https://api1.binance.com/api/v3/exchangeInfo',
+        'https://api2.binance.com/api/v3/exchangeInfo',
+        'https://api3.binance.com/api/v3/exchangeInfo',
+        'https://data-api.binance.vision/api/v3/exchangeInfo',
+      ];
+      const wrappers = (u)=>[
+        u,
+        'https://cors.isomorphic-git.org/'+u,
+        'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+        'https://r.jina.ai/https://'+u.replace(/^https?:\/\//,''),
+        'https://r.jina.ai/http://'+u.replace(/^https?:\/\//,''),
+        withCustomProxy(u),
+      ];
+      const attempts = [];
+      for(const b of bases){ attempts.push(...wrappers(b)); }
+
+      for(const u of attempts){
+        try{
+          let data;
+          if(u.includes('r.jina.ai') || u.includes('allorigins') || u.includes('isomorphic-git') || u===withCustomProxy(u)){
+            const txt = await fetchTEXT(u);
+            try{ data = JSON.parse(txt); }catch{ data = null; }
+          }else{
+            data = await fetchJSON(u);
+          }
+          const list = (data?.symbols||[])
+            .filter(s => s.status === 'TRADING' && Array.isArray(s.permissions) && s.permissions.includes('SPOT'))
+            .map(s => s.symbol);
+          if(list && list.length > 50){
+            BINANCE_SYMBOLS_ALL = list.sort();
+            updateCountBadge();
+            return {ok:true, url:u, count:list.length};
+          }
+        }catch(e){ /* try next */ }
+      }
+      // Fallback
+      BINANCE_SOURCE = 'fallback';
+      BINANCE_SYMBOLS_ALL = ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','DOTUSDT','LINKUSDT'];
+      $("apiStatus").textContent = 'Đang dùng danh sách fallback (API bị chặn). Bạn có thể nhập "Custom proxy prefix" ví dụ: https://r.jina.ai/https://';
+      $("apiStatus").className = 'pill bad';
+      $("apiStatus").style.display = 'inline-block';
+      updateCountBadge();
+      return {ok:false};
+    }
+
+    // ====== Klines ======
     async function fetchKlines(symbol, interval, limit=500){
       const market = $("market").value;
       if(market==='binance'){
-        const base = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+        const bases = [
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+          `https://api1.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+          `https://api2.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+          `https://api3.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+          `https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+        ];
+        const wrappers = (u)=>[
+          u,
+          'https://cors.isomorphic-git.org/'+u,
+          'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+          'https://r.jina.ai/https://'+u.replace(/^https?:\/\//,''),
+          'https://r.jina.ai/http://'+u.replace(/^https?:\/\//,''),
+          withCustomProxy(u),
+        ];
+        const attempts = [];
+        for(const b of bases){ attempts.push(...wrappers(b)); }
+        for(const u of attempts){
+          try{
+            let raw;
+            if(u.includes('r.jina.ai') || u.includes('allorigins') || u.includes('isomorphic-git') || u===withCustomProxy(u)){
+              const txt = await fetchTEXT(u);
+              try{ raw = JSON.parse(txt); }catch{ raw = null; }
+            }else{
+              raw = await fetchJSON(u);
+            }
+            if(Array.isArray(raw) && raw.length){
+              return raw.map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]}));
+            }
+          }catch(e){}
+        }
+        throw new Error('Không lấy được dữ liệu nến (Binance).');
+      } else {
+        const stooqSym = symbol.toLowerCase();
+        const i = toStooqInt(interval);
+        const base = `https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`;
         const attempts = [
           base,
           `https://cors.isomorphic-git.org/${base}`,
-          `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`
-        ];
-        for(const u of attempts){
-          try{ const raw = await fetchJSON(u); return raw.map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]})); }
-          catch(e){ /* try next */ }
-        }
-        throw new Error('Không lấy được dữ liệu nến (Binance)');
-      } else {
-        // ------- STOOQ (FX/Gold) -------
-        const stooqSym = symbol.toLowerCase();                 // eurusd, xauusd, ...
-        const i = toStooqInt(interval);                        // '5','15','60','d'
-        const base = `https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`;
-
-        // Thêm nhiều proxy fallback để vượt CORS / rate limit
-        const attempts = [
-          base,                                                // (thường bị CORS)
-          `https://cors.isomorphic-git.org/${base}`,           // proxy 1
-          `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`, // proxy 2
-          // proxy 3/4: r.jina.ai wrap (ổn định, text-only)
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`,
           `https://r.jina.ai/http://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`,
           `https://r.jina.ai/https://stooq.com/q/d/l/?s=${stooqSym}&i=${i}`,
         ];
-
-        // Parse CSV (intraday có cột Time, daily thì không)
         const parseCSV = (txt) => {
           const lines = txt.trim().split(/\n+/);
           if(lines.length < 2) return [];
@@ -262,23 +355,16 @@
             return { time: Math.floor(ts/1000), open:+o, high:+h, low:+l, close:+c };
           }).filter(v=>isFinite(v.time) && isFinite(v.open));
         };
-
-        // Thử lần lượt các proxy
         for(const u of attempts){
           try{
             const txt = await fetchTEXT(u);
             let data = parseCSV(txt).slice(-limit);
-
-            // Resample 60m → 4h nếu user chọn 4h và i==='60'
             if(interval==='4h' && $("resample4h").value==='on' && i==='60'){
               data = resampleCandles(data, 4*60*60);
             }
-
             if(data.length) return data;
-          }catch(e){ /* thử proxy khác */ }
+          }catch(e){}
         }
-
-        // Nếu intraday rỗng, tự rơi xuống DAILY làm phương án cuối
         try{
           const dailyBase = `https://stooq.com/q/d/l/?s=${stooqSym}&i=d`;
           const alt = [
@@ -292,21 +378,34 @@
               const txt = await fetchTEXT(u);
               const data = parseCSV(txt).slice(-limit);
               if(data.length) return data;
-            }catch(e){ /* next */ }
+            }catch(e){}
           }
-        }catch(e){ /* ignore */ }
-
-        throw new Error('Không lấy được dữ liệu nến (Stooq) – thử lại sau hoặc chuyển Daily.');
+        }catch(e){}
+        throw new Error('Không lấy được dữ liệu nến (Stooq).');
       }
     }
 
-    // ---- Indicators ----
+    // ====== Indicators ======
     function ema(values, period){ const k=2/(period+1); let prev=values[0]; const out=[prev]; for(let i=1;i<values.length;i++){ const v=values[i]*k+prev*(1-k); out.push(v); prev=v;} return out; }
-    function rsi(closes, period){ const g=[],l=[]; for(let i=1;i<closes.length;i++){const d=closes[i]-closes[i-1]; g.push(Math.max(0,d)); l.push(Math.max(0,-d)); } const eg=ema([g[0],...g],period), el=ema([l[0],...l],period); const rs=eg.map((v,i)=>v/(el[i]||1e-9)); return rs.map(v=>100-100/(1+v)); }
-    function atr(c, p){ const t=[]; for(let i=0;i<c.length;i++){ if(i===0){t.push(c[i].high-c[i].low);continue;} const h=c[i].high,l=c[i].low,pc=c[i-1].close; t.push(Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc))); } return ema(t,p); }
+    function rsi(closes, period){
+      const g=[],l=[];
+      for(let i=1;i<closes.length;i++){const d=closes[i]-closes[i-1]; g.push(Math.max(0,d)); l.push(Math.max(0,-d));}
+      const eg=ema([g[0],...g],period), el=ema([l[0],...l],period);
+      const rs=eg.map((v,i)=>v/(el[i]||1e-9));
+      return rs.map(v=>100-100/(1+v));
+    }
+    function atr(c, p){
+      const t=[];
+      for(let i=0;i<c.length;i++){
+        if(i===0){t.push(c[i].high-c[i].low);continue;}
+        const h=c[i].high,l=c[i].low,pc=c[i-1].close;
+        t.push(Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc)));
+      }
+      return ema(t,p);
+    }
     function lwma(values, period){
       const out = new Array(values.length).fill(NaN);
-      const denom = period*(period+1)/2; // 1+2+..+n
+      const denom = period*(period+1)/2;
       for(let i=period-1;i<values.length;i++){
         let sum=0; let w=1;
         for(let j=i-period+1;j<=i;j++) sum += values[j]*w++;
@@ -315,31 +414,67 @@
       for(let k=0;k<period-1;k++){ out[k] = values[k]; }
       return out;
     }
+    function resampleCandles(data, stepSec){
+      if(!data?.length) return [];
+      const out=[]; let bucket=null;
+      for(const c of data){
+        const t = Math.floor(c.time/stepSec)*stepSec;
+        if(!bucket || bucket.time!==t){
+          if(bucket) out.push(bucket);
+          bucket = {time:t, open:c.open, high:c.high, low:c.low, close:c.close};
+        }else{
+          bucket.high = Math.max(bucket.high, c.high);
+          bucket.low  = Math.min(bucket.low, c.low);
+          bucket.close= c.close;
+        }
+      }
+      if(bucket) out.push(bucket);
+      return out;
+    }
 
-    // --- Symbol lists ---
-    const BINANCE_SYMBOLS = ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT'];
-    const STOOQ_SYMBOLS = ['XAUUSD','XAGUSD','EURUSD','GBPUSD','USDJPY','AUDUSD','USDCAD','NZDUSD','USDCHF'];
-
+    // ====== Symbol list & UI ======
+    function filterBinanceSymbols(){
+      const q = $("quote").value.trim();
+      const search = $("symSearch").value.trim().toUpperCase();
+      let arr = BINANCE_SYMBOLS_ALL;
+      if(q) arr = arr.filter(s => s.endsWith(q));
+      if(search) arr = arr.filter(s => s.includes(search));
+      return arr;
+    }
     function populateSymbols(){
       const sel = $("symbol");
       sel.innerHTML = '';
       const market = $("market").value;
-      const arr = market==='binance' ? BINANCE_SYMBOLS : STOOQ_SYMBOLS;
+      let arr = [];
+      if(market==='binance'){
+        arr = filterBinanceSymbols();
+      }else arr = STOOQ_SYMBOLS;
       for(const s of arr){
         const opt=document.createElement('option'); opt.textContent=s; opt.value=s; sel.appendChild(opt);
       }
-      sel.value = arr[0];
-      // cập nhật gợi ý nguồn dữ liệu hiển thị
-      $("dsHint").textContent = market==='binance' ? 'Dữ liệu phân tích lấy từ Binance.' : 'Dữ liệu phân tích lấy từ Stooq (qua proxy).';
+      if(arr.length) sel.value = arr[0];
+      $("dsHint").textContent = market==='binance' ? 'Dữ liệu phân tích lấy từ Binance (symbol tự động cập nhật).' : 'Dữ liệu phân tích lấy từ Stooq (qua proxy).';
+      updateCountBadge();
+    }
+    function updateCountBadge(){
+      const count = ($("market").value==='binance') ? filterBinanceSymbols().length : STOOQ_SYMBOLS.length;
+      const el = $("symCount");
+      el.textContent = `Symbols: ${count}`;
+      el.className = BINANCE_SOURCE==='api' ? 'pill good' : 'pill bad';
     }
 
-    // --- STATE ---
+    // ====== Analysis state ======
     let candles=[], lastSignalText='', lastAnalysis=null;
 
     async function load(){
       $("err").textContent='';
+      if($("market").value==='binance' && BINANCE_SYMBOLS_ALL.length===0){
+        await fetchBinanceSymbols();
+      }
       if($("symbol").options.length===0) populateSymbols();
-      const sym = $("symbol").value.trim();
+
+      const sym = $("symbol").value?.trim();
+      if(!sym){ $("err").textContent='Không có symbol để tải.'; return; }
       const intv = $("interval").value;
       createTV(sym, intv);
       try{
@@ -351,18 +486,10 @@
     function analyzeRSI(direction){
       if(candles.length<60){ $("signal").innerHTML='<span class="red">Dữ liệu quá ít để phân tích.</span>'; return; }
       const closes = candles.map(c=>c.close);
-
-      // Base indicator = RSI(14)
-      const rsiPeriod = 14;
-      const baseRSI = rsi(closes, rsiPeriod);
-
-      // Derived FROM RSI
+      const baseRSI = rsi(closes, 14);
       const emaRSI9  = ema(baseRSI, 9);
       const lwmaRSI45 = lwma(baseRSI, 45);
-
-      // Risk tools
       const at = atr(candles, Math.max(2, +$("atrPeriod").value|0));
-
       const n = closes.length-1;
       const price = closes[n];
       const rsiV  = baseRSI[n]||50;
@@ -403,7 +530,6 @@ Kết luận: ${ok?'NÊN CHỜ PULLBACK HOẶC VÀO VỊ THẾ NHẸ':'Quan sát
 `;
       lastSignalText=text.trim();
 
-      // LƯU PHÂN TÍCH CHO AI (JSON có cấu trúc)
       lastAnalysis = {
         symbol: $("symbol").value,
         interval: $("interval").value,
@@ -417,37 +543,52 @@ Kết luận: ${ok?'NÊN CHỜ PULLBACK HOẶC VÀO VỊ THẾ NHẸ':'Quan sát
         rsi14: +fmt(rsiV,1),
         ema9_gt_lwma45: emaRSI9[n] > lwmaRSI45[n],
         crossUp, crossDn, trendUp, trendDn,
-        lastBarTime: candles[n]?.time || null, // epoch seconds
+        lastBarTime: candles[n]?.time || null,
         notes: lastSignalText
       };
 
       $("signal").innerHTML=`<strong>Kết quả:</strong> ${status}<br><br><pre style="white-space:pre-wrap">${text}</pre>`;
     }
 
+    // ====== UI Events ======
+    $("reloadSymbols").onclick = async ()=>{
+      BINANCE_SYMBOLS_ALL = [];
+      await fetchBinanceSymbols();
+      populateSymbols();
+    };
+    $("testProxies").onclick = async ()=>{
+      $("apiStatus").style.display = 'inline-block';
+      $("apiStatus").className = 'pill';
+      $("apiStatus").textContent = 'Đang test...';
+      const r = await fetchBinanceSymbols();
+      if(r?.ok){
+        $("apiStatus").className = 'pill good';
+        $("apiStatus").textContent = `OK: ${r.count} symbols • ${r.url}`;
+      }else{
+        $("apiStatus").className = 'pill bad';
+        $("apiStatus").textContent = 'Không truy cập được API. Đang dùng fallback. Bạn hãy nhập "Custom proxy prefix".';
+      }
+      populateSymbols();
+    };
     $("refresh").onclick=load;
     $("auto").onclick = async () => {
       try{
         $("err").textContent='';
-        // Nếu chưa có dữ liệu thì tải trước
         if(!candles.length) await load();
         if(!candles.length){ $("err").textContent='Không có dữ liệu để phân tích.'; return; }
-
         const closes = candles.map(c=>c.close);
         if(closes.length<60){
           $("signal").innerHTML='<span class="red">Dữ liệu quá ít (cần ≥ 60 nến). Hãy chọn khung thời gian lớn hơn hoặc thử lại.</span>';
           return;
         }
-
         const baseRSI = rsi(closes, 14);
         const emaRSI9 = ema(baseRSI, 9);
         const lwmaRSI45 = lwma(baseRSI, 45);
         const n = closes.length-1;
-
         if(!isFinite(emaRSI9[n]) || !isFinite(lwmaRSI45[n])){
           $("err").textContent='Không đủ dữ liệu để tính RSI/EMA/LWMA.';
           return;
         }
-
         const dir = (emaRSI9[n] >= lwmaRSI45[n]) ? 'long' : 'short';
         analyzeRSI(dir);
       }catch(e){
@@ -458,88 +599,136 @@ Kết luận: ${ok?'NÊN CHỜ PULLBACK HOẶC VÀO VỊ THẾ NHẸ':'Quan sát
     $("btnShort").onclick=()=>analyzeRSI('short');
     $("clear").onclick=()=>{ $("signal").innerHTML=''; lastSignalText=''; lastAnalysis=null; };
     $("copy").onclick=()=>{ if(!lastSignalText) return; navigator.clipboard.writeText(lastSignalText); };
-
-    // ===== NEW: OpenAI handler đã chuẩn hoá =====
-    $("askAI").onclick = async () => {
-      const key = $("openaiKey").value.trim();
-      if (!key) { $("aiOut").value = 'Vui lòng dán OpenAI API key.'; return; }
-      if (!lastSignalText || !lastAnalysis) { $("aiOut").value = 'Hãy bấm Phân tích & Gợi ý trước.'; return; }
-
-      $("aiOut").value = 'Đang phân tích với AI...';
-
-      const systemPrompt = [
-        "Bạn là trợ lý phân tích kỹ thuật.",
-        "Nhiệm vụ: giải thích setup, nêu rủi ro, điều kiện vô hiệu (invalidation),",
-        "gợi ý quản lý lệnh (vào/thoát/tỉ lệ vị thế), và cảnh báo khi RR/SL thiếu an toàn.",
-        "Trả lời ngắn gọn, gạch đầu dòng, tiếng Việt."
-      ].join(" ");
-
-      const userPrompt = [
-        "Dưới đây là dữ liệu setup ở dạng JSON. Hãy giải thích và đánh giá rủi ro,",
-        "đưa ra điều kiện vô hiệu, và gợi ý quản lý lệnh cụ thể:",
-        "```json",
-        JSON.stringify(lastAnalysis, null, 2),
-        "```",
-        "",
-        "Lưu ý:",
-        "- Nếu tín hiệu yếu (chỉ trend mà không có cross) hãy khuyến nghị chờ pullback hoặc nến xác nhận.",
-        "- Nếu ATR quá nhỏ/SL quá ngắn với khung thời gian hiện tại, hãy cảnh báo nguy cơ whipsaw.",
-        "- Nếu R:R < 1.5, khuyên điều chỉnh TP/SL hoặc bỏ lệnh."
-      ].join("\n");
-
-      try {
-        const r = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + key
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            temperature: 0.2,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt }
-            ]
-          })
-        });
-
-        const j = await r.json();
-        const out = j?.choices?.[0]?.message?.content;
-        $("aiOut").value = out || JSON.stringify(j, null, 2);
-      } catch (e) {
-        $("aiOut").value = 'Lỗi gọi OpenAI: ' + e.message;
+    $("symSearch").addEventListener('input', ()=>{ populateSymbols(); });
+    $("quote").addEventListener('change', ()=>{ populateSymbols(); });
+    $("market").addEventListener('change', async ()=>{
+      if($("market").value==='binance' && BINANCE_SYMBOLS_ALL.length===0){
+        await fetchBinanceSymbols();
       }
-    };
-
-    // --- Self tests (console + UI) ---
-    function runSelfTests(){
-      const out=[];
-      try{
-        // 1) Regex split test (fix for /\n+/)
-        const sampleCSV = 'Date,Time,Open,High,Low,Close,Volume\n2025-10-11,09:00:00,1,2,0.5,1.5,10\n2025-10-11,09:05:00,1.5,2.5,1.0,2.0,12\n';
-        const lines = sampleCSV.trim().split(/\n+/);
-        out.push(`[OK] Regex split lines=${lines.length}`);
-
-        // 2) LWMA sanity test
-        const arr=[1,2,3,4,5];
-        const lw = lwma(arr,3);
-        out.push(`[OK] LWMA last=${lw[4].toFixed(6)} (expect ~4.333333)`);
-
-        // 3) RSI edge test (flat series)
-        const r = rsi([1,1,1,1,1],14);
-        out.push(`[OK] RSI flat last=${r[r.length-1].toFixed(2)} (implementation-specific)`);
-      }catch(e){ out.push('[ERR] Self-test: '+e.message); }
-      const el=$("selftest"); if(el) el.textContent = out.join('\n');
-      console.log('Self-tests:', out.join('\n'));
-    }
-
-    window.addEventListener('load', ()=>{ populateSymbols(); load(); runSelfTests(); });
-    $("market").addEventListener('change', ()=>{ populateSymbols(); load(); });
+      populateSymbols();
+      load();
+    });
     $("symbol").addEventListener('change', load);
     $("interval").addEventListener('change', load);
     $("resample4h").addEventListener('change', load);
-    window.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='a') $("auto").click(); if(e.key.toLowerCase()==='l') $("btnLong").click(); if(e.key.toLowerCase()==='s') $("btnShort").click(); });
+
+    // ====== OpenAI Explain (fully wired) ======
+    function buildAIPrompt() {
+      if (!lastAnalysis || !lastSignalText) {
+        return "Không có tín hiệu/phân tích nào. Hãy bấm 'Phân tích & Gợi ý' trước.";
+      }
+      const a = lastAnalysis;
+      return `
+Bạn là trợ lý giao dịch. Hãy giải thích rõ ràng setup vừa phân tích:
+
+TÓM TẮT:
+${lastSignalText}
+
+CHI TIẾT THÔNG SỐ:
+- Symbol: ${a.symbol} (${a.market})
+- Khung thời gian: ${a.interval}
+- RSI14 hiện tại: ${a.rsi14}
+- EMA9(RSI) ${a.ema9_gt_lwma45 ? '>' : '<='} LWMA45(RSI)
+- CrossUp: ${a.crossUp}, CrossDown: ${a.crossDn}, TrendUp: ${a.trendUp}, TrendDown: ${a.trendDn}
+- Entry: ${a.entry}
+- SL (ATR x ${a.atrSLmult}, p=${a.atrPeriod}): ${a.sl}
+- TP (R:R ${a.rr}): ${a.tp}
+- Thời điểm nến cuối: ${a.lastBarTime ? new Date(a.lastBarTime*1000).toISOString() : 'N/A'}
+
+YÊU CẦU:
+1) Giải thích vì sao ra kết luận trên (dựa vào EMA9(RSI) vs LWMA45(RSI), ngưỡng RSI14).
+2) Gợi ý cách vào lệnh (market hay pullback), đặt SL/TP theo ATR và R:R nêu trên.
+3) Nêu rủi ro và điều kiện vô hiệu (invalidation).
+4) Ngắn gọn, từng ý rõ ràng (gạch đầu dòng).
+`.trim();
+    }
+
+    async function callOpenAIExplain(key, prompt) {
+      const url = "https://api.openai.com/v1/chat/completions";
+      const body = {
+        model: "gpt-4o-mini",
+        temperature: 0.3,
+        messages: [
+          { role: "system", content: "Bạn là trợ lý giao dịch thận trọng, giải thích súc tích, có cấu trúc, tránh phóng đại." },
+          { role: "user",   content: prompt }
+        ]
+      };
+      const r = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${key}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) {
+        let detail=""; try{ detail=await r.text(); }catch{}
+        throw new Error(`OpenAI API lỗi HTTP ${r.status}${detail ? ` — ${detail}` : ""}`);
+      }
+      const data = await r.json();
+      const text = data?.choices?.[0]?.message?.content?.trim();
+      if (!text) throw new Error("Không nhận được nội dung phản hồi từ OpenAI.");
+      return text;
+    }
+
+    $("askAI").onclick = async () => {
+      const key = $("openaiKey").value.trim();
+      const out = $("aiOut");
+      out.value = "";
+      $("err").textContent = "";
+
+      if (!key || !/^sk-/.test(key)) {
+        $("err").textContent = "Vui lòng nhập OpenAI API Key hợp lệ (bắt đầu bằng sk-...).";
+        return;
+      }
+      if (!lastAnalysis || !lastSignalText) {
+        $("err").textContent = "Chưa có dữ liệu phân tích. Hãy bấm 'Phân tích & Gợi ý' trước.";
+        return;
+      }
+      const btn = $("askAI");
+      btn.disabled = true; btn.textContent = "Đang hỏi AI...";
+      try {
+        const prompt = buildAIPrompt();
+        const answer = await callOpenAIExplain(key, prompt);
+        out.value = answer;
+      } catch (e) {
+        out.value = "";
+        $("err").textContent = "OpenAI error: " + (e?.message || e);
+      } finally {
+        btn.disabled = false; btn.textContent = "Nhờ AI giải thích setup";
+      }
+    };
+
+    // ====== Keyboard shortcuts ======
+    window.addEventListener('keydown', (e)=>{
+      if (e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+      if(e.key==='a' || e.key==='A'){ $("auto").click(); }
+      if(e.key==='l' || e.key==='L'){ $("btnLong").click(); }
+      if(e.key==='s' || e.key==='S'){ $("btnShort").click(); }
+    });
+
+    // ====== Self-tests & init ======
+    function runSelfTests(){
+      const out=[];
+      try{
+        const sampleCSV = 'Date,Time,Open,High,Low,Close,Volume\n2025-10-11,09:00:00,1,2,0.5,1.5,10\n2025-10-11,09:05:00,1.5,2.5,1.0,2.0,12\n';
+        const lines = sampleCSV.trim().split(/\n+/);
+        out.push(`[OK] Regex split lines=${lines.length}`);
+        const arr=[1,2,3,4,5];
+        const lw = lwma(arr,3);
+        out.push(`[OK] LWMA last=${lw[4].toFixed(6)} (expect ~4.333333)`);
+        const r = rsi([1,1,1,1,1],14);
+        out.push(`[OK] RSI flat last=${r[r.length-1].toFixed(2)} (impl-specific)`);
+      }catch(e){ out.push('[ERR] Self-test: '+e.message); }
+      console.log('Self-tests:', out.join('\n'));
+    }
+
+    window.addEventListener('load', async ()=>{
+      await fetchBinanceSymbols();
+      populateSymbols();
+      await load();
+      runSelfTests();
+    });
   </script>
 </body>
 </html>
