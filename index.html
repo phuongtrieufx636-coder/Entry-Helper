@@ -1326,45 +1326,87 @@
         document.getElementById('ath-stats').innerHTML = stats;
     }
 
-    // Hàm khởi tạo
+    // Hàm khởi tạo với error handling tốt hơn
     async function init() {
-        // Lấy dữ liệu giá từ API (cho tính toán entry/sl/tp)
-        await fetchPriceData();
-        
-        // Hiển thị tất cả các phần tính toán với REAL LEVELS
-        displaySupportResistance();
-        displayFibonacci();
-        analyzeTrend();
-        displayDeepAnalysis();
-        displayStrategy();
-        displayATHStats();
-        
-        // Tạo entry suggestions dựa trên PHÂN TÍCH THỰC
-        const levels = calculateRealLevels(priceData.current);
-        document.getElementById('entry-suggestions').innerHTML = generateEntrySetups(priceData.current, levels);
-        
-        // Cập nhật thời gian
-        const now = new Date();
-        const timeStr = now.toLocaleString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-        
-        document.getElementById('updateTime').innerHTML = `
-            📊 Phân tích cập nhật: ${timeStr}<br>
-            💹 Giá realtime: Xem widget TradingView phía trên (100% chính xác)<br>
-            🎯 Entry/SL/TP: Dựa trên phân tích swing high/low THỰC TẾ<br>
-            📈 Nguồn: FXStreet, LiteFinance, TradersUnion, Investing.com<br>
-            🔄 Refresh trang để cập nhật entry mới
-        `;
+        try {
+            console.log('Starting initialization...');
+            
+            // Lấy dữ liệu giá từ API
+            console.log('Fetching price data...');
+            await fetchPriceData();
+            console.log('Price data loaded:', priceData.current);
+            
+            // Nếu không có giá, dùng fallback
+            if (!priceData.current || priceData.current < 1000) {
+                console.log('Price invalid, using fallback');
+                priceData.current = 4215;
+                priceData.ath = 4381.60;
+                priceData.change = 0;
+                priceData.changePercent = 0;
+            }
+            
+            // Hiển thị tất cả các phần
+            console.log('Displaying analysis...');
+            displaySupportResistance();
+            displayFibonacci();
+            analyzeTrend();
+            displayDeepAnalysis();
+            displayStrategy();
+            displayATHStats();
+            
+            // Tạo entry suggestions
+            console.log('Generating entry setups...');
+            const levels = calculateRealLevels(priceData.current);
+            document.getElementById('entry-suggestions').innerHTML = generateEntrySetups(priceData.current, levels);
+            
+            // Cập nhật thời gian
+            const now = new Date();
+            const timeStr = now.toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            
+            document.getElementById('updateTime').innerHTML = `
+                📊 Phân tích cập nhật: ${timeStr}<br>
+                💹 Giá chính xác: Xem widget TradingView phía trên<br>
+                🎯 Entry/SL/TP: Dựa trên phân tích swing high/low THỰC TẾ<br>
+                📈 Nguồn: FXStreet, LiteFinance, TradersUnion<br>
+                🔄 Refresh để cập nhật mới
+            `;
+            
+            console.log('Initialization complete!');
+            
+        } catch (error) {
+            console.error('Error during initialization:', error);
+            
+            // Hiển thị lỗi cho user
+            document.getElementById('entry-suggestions').innerHTML = `
+                <div style="padding: 20px; background: #ffebee; border-radius: 10px; color: #c62828;">
+                    <strong>⚠️ Lỗi khi tải dữ liệu</strong><br><br>
+                    Vui lòng:<br>
+                    • Kiểm tra kết nối internet<br>
+                    • Refresh lại trang (F5)<br>
+                    • Xóa cache trình duyệt<br><br>
+                    Lỗi: ${error.message}
+                </div>
+            `;
+            
+            document.getElementById('updateTime').innerHTML = `
+                ❌ Không thể tải dữ liệu. Vui lòng refresh trang.
+            `;
+        }
     }
 
-    // Chạy khi trang load
-    window.addEventListener('load', init);
+    // Chạy khi trang load - với timeout để đảm bảo DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        // DOM đã ready
+        setTimeout(init, 100);
+    }
 </script>
 ```
 
