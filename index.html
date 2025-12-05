@@ -788,6 +788,11 @@
         const levels = calculateLevels(priceData.current);
         
         document.getElementById('support-resistance').innerHTML = `
+            <div class="analysis-text" style="background: #e3f2fd; border-left-color: #2196F3; color: #0d47a1; margin-bottom: 20px;">
+                <strong>💡 Lưu ý:</strong> Các mức được tính dựa trên giá API (~$${Math.round(priceData.current)}). 
+                Xem giá chính xác tại widget TradingView phía trên!
+            </div>
+            
             <h3 style="color: #f44336; margin-top: 15px;">Kháng Cự (Tự động)</h3>
             <div class="level-item" style="border-left-color: #f44336;">
                 <span class="level-label">R3:</span>
@@ -802,8 +807,8 @@
                 <span class="level-value">$${levels.r1.toLocaleString()}</span>
             </div>
 
-            <div style="text-align: center; padding: 15px; background: #FFD700; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #1e3c72;">
-                GIÁ HIỆN TẠI: $${Math.round(priceData.current).toLocaleString()}
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border-radius: 8px; margin: 15px 0; font-weight: bold; color: #1e3c72; border: 3px solid #FF8C00;">
+                📍 Xem giá realtime tại widget TradingView ở trên
             </div>
 
             <h3 style="color: #4CAF50; margin-top: 15px;">Hỗ Trợ (Tự động)</h3>
@@ -823,10 +828,11 @@
             <div class="analysis-text" style="margin-top: 15px;">
                 <strong>📊 Cách tính:</strong><br>
                 • Dựa trên ATR (Average True Range)<br>
-                • Tự động cập nhật theo giá hiện tại<br>
+                • Tự động cập nhật theo giá từ API<br>
                 • R1/S1: Mục tiêu ngắn hạn<br>
                 • R2/S2: Mục tiêu trung hạn<br>
-                • R3/S3: Mục tiêu dài hạn
+                • R3/S3: Mục tiêu dài hạn<br>
+                • <strong style="color: #f44336;">Lưu ý:</strong> Điều chỉnh theo giá chính xác từ TradingView!
             </div>
         `;
     }
