@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Gold Trading Assistant - XAU/USD</title>
+    <title>Phân Tích Tự Động XAU/USD - AI Powered</title>
     <style>
         * {
             margin: 0;
@@ -42,52 +42,39 @@
         text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
-    .header p {
-        color: #1e3c72;
-        font-size: 1.1em;
-        margin-top: 10px;
-    }
-
-    .analyze-btn {
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    .ai-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        border: none;
-        padding: 15px 40px;
-        font-size: 1.2em;
-        font-weight: bold;
-        border-radius: 10px;
-        cursor: pointer;
-        margin-top: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        margin-top: 10px;
+        animation: pulse 2s infinite;
     }
 
-    .analyze-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    }
-
-    .analyze-btn:disabled {
-        background: #ccc;
-        cursor: not-allowed;
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
     }
 
     .loading {
-        text-align: center;
-        padding: 40px;
         background: white;
+        padding: 40px;
         border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         margin: 20px 0;
     }
 
     .spinner {
-        border: 5px solid #f3f3f3;
-        border-top: 5px solid #FFD700;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #FFD700;
         border-radius: 50%;
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
         animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
+        margin: 20px auto;
     }
 
     @keyframes spin {
@@ -95,12 +82,24 @@
         100% { transform: rotate(360deg); }
     }
 
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
     .card {
         background: white;
         border-radius: 15px;
         padding: 25px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
     .card h2 {
@@ -199,63 +198,48 @@
         color: #856404;
     }
 
-    .info-box {
-        background: #e3f2fd;
-        border: 2px solid #2196F3;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 15px 0;
-        color: #0d47a1;
-    }
-
-    .timeframe-tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-
-    .timeframe-tab {
-        padding: 12px 24px;
-        background: #e0e0e0;
+    .refresh-btn {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
         border: none;
-        border-radius: 8px;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 1.1em;
+        font-weight: bold;
         cursor: pointer;
-        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
-        flex: 1;
-        min-width: 100px;
+        margin: 20px auto;
+        display: block;
     }
 
-    .timeframe-tab.active {
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-        color: #1e3c72;
-        transform: scale(1.05);
+    .refresh-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
-    #results {
-        display: none;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 20px;
-    }
-
-    .price-display {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #1e3c72;
-        margin: 15px 0;
-        text-align: center;
+    .refresh-btn:active {
+        transform: translateY(0);
     }
 
     .timestamp {
         text-align: center;
         color: #666;
         font-style: italic;
-        margin-top: 10px;
+        margin: 20px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+    }
+
+    .error-box {
+        background: #f8d7da;
+        border: 2px solid #f5c6cb;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        text-align: center;
     }
 
     @media (max-width: 768px) {
@@ -273,380 +257,311 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 AI GOLD TRADING ASSISTANT</h1>
-            <p>⚡ Phân tích tự động bởi Claude AI - Cập nhật realtime mỗi lần load</p>
-            <button class="analyze-btn" onclick="analyzeMarket()" id="analyzeBtn">
-                🔍 PHÂN TÍCH THỊ TRƯỜNG NGAY
-            </button>
+            <h1>🤖 PHÂN TÍCH XAU/USD - AI POWERED</h1>
+            <div class="ai-badge">✨ Tự động phân tích mỗi lần load trang</div>
         </div>
 
 ```
-    <!-- TradingView Chart -->
-    <div class="card" style="padding: 0; overflow: hidden;">
-        <div style="height: 500px;">
-            <div class="tradingview-widget-container" style="height:100%;width:100%">
-                <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                {
-                    "autosize": true,
-                    "symbol": "OANDA:XAUUSD",
-                    "interval": "240",
-                    "timezone": "Asia/Ho_Chi_Minh",
-                    "theme": "light",
-                    "style": "1",
-                    "locale": "vi_VN",
-                    "enable_publishing": false,
-                    "allow_symbol_change": true,
-                    "calendar": false,
-                    "studies": ["STD;SMA", "STD;RSI", "STD;MACD"],
-                    "support_host": "https://www.tradingview.com"
-                }
-                </script>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <h2>🔍 Đang phân tích thị trường...</h2>
+        <p>AI đang thu thập dữ liệu và tính toán entry points mới</p>
+    </div>
+
+    <div id="content" style="display: none;">
+        <!-- TradingView Chart -->
+        <div class="card" style="padding: 10px; margin-bottom: 20px;">
+            <h2 style="padding: 15px;">📊 Biểu Đồ XAU/USD Realtime</h2>
+            <div style="height: 500px;">
+                <div class="tradingview-widget-container" style="height:100%;width:100%">
+                    <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                    {
+                        "autosize": true,
+                        "symbol": "OANDA:XAUUSD",
+                        "interval": "240",
+                        "timezone": "Asia/Ho_Chi_Minh",
+                        "theme": "light",
+                        "style": "1",
+                        "locale": "vi_VN",
+                        "enable_publishing": false,
+                        "allow_symbol_change": true,
+                        "support_host": "https://www.tradingview.com"
+                    }
+                    </script>
+                </div>
             </div>
+        </div>
+
+        <div id="analysis-results"></div>
+
+        <button class="refresh-btn" onclick="refreshAnalysis()">
+            🔄 Phân tích lại (Load Entry Mới)
+        </button>
+
+        <div class="timestamp" id="timestamp"></div>
+
+        <div class="warning-box">
+            <strong>⚠️ LƯU Ý:</strong><br>
+            • Phân tích được tạo tự động bởi AI dựa trên dữ liệu thị trường<br>
+            • Luôn sử dụng Stop Loss và quản lý rủi ro<br>
+            • Kết hợp với phân tích riêng của bạn<br>
+            • Thị trường có thể thay đổi nhanh chóng
         </div>
     </div>
 
-    <div id="loading" class="loading" style="display: none;">
-        <div class="spinner"></div>
-        <h2>🤖 Claude AI đang phân tích chart...</h2>
-        <p>Đang tính toán Support/Resistance, Entry zones, và chiến lược giao dịch...</p>
-    </div>
-
-    <div id="results">
-        <!-- Results will be inserted here by JavaScript -->
-    </div>
-
-    <div class="info-box">
-        <strong>💡 HƯỚNG DẪN SỬ DỤNG:</strong><br>
-        1. Nhấn nút "PHÂN TÍCH THỊ TRƯỜNG NGAY" để AI phân tích<br>
-        2. Mỗi lần phân tích = Entry/SL/TP mới dựa trên giá hiện tại<br>
-        3. Load lại trang để có phân tích mới nhất<br>
-        4. Luôn sử dụng Stop Loss và quản lý rủi ro!
+    <div id="error" style="display: none;" class="error-box">
+        <h2>❌ Lỗi kết nối</h2>
+        <p id="error-message"></p>
+        <button class="refresh-btn" onclick="location.reload()">Thử lại</button>
     </div>
 </div>
 
 <script>
-    async function analyzeMarket() {
-        const btn = document.getElementById('analyzeBtn');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        
-        btn.disabled = true;
-        btn.textContent = '⏳ Đang phân tích...';
-        loading.style.display = 'block';
-        results.style.display = 'none';
+    let currentPrice = null;
+    let marketData = null;
 
+    async function fetchGoldPrice() {
         try {
-            // Call Claude API for market analysis
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 4000,
-                    messages: [{
-                        role: 'user',
-                        content: `Bạn là chuyên gia phân tích kỹ thuật XAU/USD. Hãy phân tích thị trường vàng HIỆN TẠI và đưa ra:
-```
-
-1. GIÁ HIỆN TẠI (ước tính dựa trên xu hướng gần đây, khoảng $4,100-$4,300)
-1. MỨC HỖ TRỢ & KHÁNG CỰ (3 mức mỗi loại, tính toán dựa trên:
-- Fibonacci retracement từ đỉnh/đáy gần đây
-- Psychological levels (00, 50)
-- EMA 50, 200)
-1. TÍN HIỆU ĐA KHUNG THỜI GIAN (15m, 30m, 1h, 4h, Daily, Weekly)
-1. 3 ENTRY SETUP CỤ THỂ:
-- Setup #1: BUY LIMIT (tại support mạnh nhất)
-- Setup #2: SELL STOP (nếu break support)
-- Setup #3: BUY MARKET/SELL MARKET (conservative)
-   
-   Mỗi setup phải có: Entry, SL, TP1, TP2, TP3, Risk/Reward
-1. PHÂN TÍCH TREND & MOMENTUM
-1. FIBONACCI LEVELS (từ ATH gần đây xuống đáy)
-
-Trả về dưới dạng JSON format sau:
-{
-“currentPrice”: 4197.42,
-“priceChange”: -5.84,
-“priceChangePercent”: -0.14,
-“dayRange”: {“low”: 4188.46, “high”: 4216.58},
-“overallSignal”: “STRONG BUY”,
-“timeframeSignals”: {
-“15m”: “Strong Sell”,
-“30m”: “Strong Sell”,
-“1h”: “Sell”,
-“4h”: “Neutral”,
-“daily”: “Strong Buy”,
-“weekly”: “Strong Buy”,
-“monthly”: “Strong Buy”
-},
-“resistance”: [
-{“level”: “R3”, “price”: 4300.00},
-{“level”: “R2”, “price”: 4277.00},
-{“level”: “R1”, “price”: 4245.00}
-],
-“support”: [
-{“level”: “S1”, “price”: 4163.00, “note”: “Weekly swing low”},
-{“level”: “S2”, “price”: 4100.00},
-{“level”: “S3”, “price”: 4085.00, “note”: “EMA200 + Trendline”}
-],
-“entrySetups”: [
-{
-“id”: 1,
-“name”: “BUY LIMIT”,
-“priority”: “Ưu tiên”,
-“type”: “BUY LIMIT”,
-“entry”: “4163 - 4164”,
-“stopLoss”: 4140,
-“takeProfit1”: 4225,
-“takeProfit2”: 4250,
-“takeProfit3”: 4300,
-“riskReward”: “1:2.6”,
-“reason”: “Weekly swing low, high liquidity zone”
-},
-{
-“id”: 2,
-“name”: “SELL STOP”,
-“type”: “SELL STOP”,
-“entry”: “4160”,
-“stopLoss”: 4190,
-“takeProfit1”: 4100,
-“takeProfit2”: 4085,
-“riskReward”: “1:2.0”,
-“reason”: “Breakout xuống dưới support”
-},
-{
-“id”: 3,
-“name”: “BUY MARKET”,
-“type”: “BUY MARKET”,
-“entry”: “Market (~4197)”,
-“stopLoss”: 4175,
-“takeProfit1”: 4245,
-“takeProfit2”: 4277,
-“riskReward”: “1:2.2”,
-“reason”: “Conservative, nếu giữ trên 4200”
-}
-],
-“fibonacci”: [
-{“level”: “0%”, “price”: 4381.60, “note”: “ATH”},
-{“level”: “23.6%”, “price”: 4337.00},
-{“level”: “38.2%”, “price”: 4295.00},
-{“level”: “50%”, “price”: 4254.00},
-{“level”: “61.8%”, “price”: 4213.00},
-{“level”: “78.6%”, “price”: 4163.00, “note”: “Key level”},
-{“level”: “100%”, “price”: 4085.00}
-],
-“analysis”: {
-“trend”: “Xu hướng dài hạn tăng mạnh, ngắn hạn điều chỉnh”,
-“momentum”: “RSI trung tính 52.3, MACD bullish”,
-“keyPoints”: [
-“Giá test kháng cự $4,245-$4,250 nhiều lần”,
-“Đang giao dịch trên EMA 50 và EMA 200”,
-“Weekly/Monthly trend rất bullish”,
-“Chờ pullback về $4,163 để entry tốt”
-]
-},
-“warnings”: [
-“Volatility cao do nhiều dữ liệu kinh tế”,
-“Giá đã reject nhiều lần tại kháng cự”,
-“USD mạnh lên có thể gây áp lực”
-]
-}`
-}]
-})
-});
-
-```
+            const response = await fetch('https://api.metals.dev/v1/latest?api_key=demo&currency=USD&unit=toz');
             const data = await response.json();
-            
-            // Extract JSON from response
-            let analysisData;
-            try {
-                const content = data.content[0].text;
-                // Try to extract JSON from markdown code blocks
-                const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || 
-                                 content.match(/(\{[\s\S]*\})/);
-                
-                if (jsonMatch) {
-                    analysisData = JSON.parse(jsonMatch[1]);
-                } else {
-                    throw new Error('No JSON found in response');
-                }
-            } catch (e) {
-                console.error('Parse error:', e);
-                throw new Error('Không thể phân tích dữ liệu từ AI');
-            }
-
-            displayResults(analysisData);
-            
+            return data.metals.gold * 31.1034768; // Convert to per oz
         } catch (error) {
-            console.error('Error:', error);
-            results.innerHTML = `
-                <div class="card">
-                    <h2>❌ Lỗi</h2>
-                    <div class="warning-box">
-                        <strong>Không thể kết nối với AI phân tích.</strong><br>
-                        Lỗi: ${error.message}<br><br>
-                        Vui lòng thử lại hoặc kiểm tra console để biết thêm chi tiết.
-                    </div>
-                </div>
-            `;
-            results.style.display = 'block';
-        } finally {
-            loading.style.display = 'none';
-            btn.disabled = false;
-            btn.textContent = '🔍 PHÂN TÍCH LẠI';
+            console.error('Error fetching gold price:', error);
+            return null;
         }
     }
 
-    function displayResults(data) {
-        const timestamp = new Date().toLocaleString('vi-VN');
-        
-        const signalClass = data.overallSignal.includes('BUY') ? 'buy-signal' : 
-                           data.overallSignal.includes('SELL') ? 'sell-signal' : 'neutral-signal';
+    async function analyzeMarket() {
+        try {
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('content');
+            const errorEl = document.getElementById('error');
 
-        const resultsHTML = `
-            <div class="card">
-                <h2>📊 GIÁ HIỆN TẠI</h2>
-                <div class="price-display">$${data.currentPrice.toFixed(2)}</div>
-                <div style="text-align: center;">
-                    <span style="color: ${data.priceChange < 0 ? '#f44336' : '#4CAF50'}; font-size: 1.2em; font-weight: bold;">
-                        ${data.priceChange > 0 ? '▲' : '▼'} ${Math.abs(data.priceChange).toFixed(2)} (${data.priceChangePercent.toFixed(2)}%)
-                    </span>
-                </div>
-                <div style="text-align: center; margin-top: 10px; color: #666;">
-                    Phạm vi: $${data.dayRange.low.toFixed(2)} - $${data.dayRange.high.toFixed(2)}
-                </div>
-                <div class="timestamp">⏰ Phân tích lúc: ${timestamp}</div>
-            </div>
+            loadingEl.style.display = 'block';
+            contentEl.style.display = 'none';
+            errorEl.style.display = 'none';
 
-            <div class="card">
-                <h2>🎯 TÍN HIỆU TỔNG QUAN</h2>
-                <div class="signal-box ${signalClass}">
-                    ${data.overallSignal}
-                </div>
-                <div class="analysis-text">
-                    <strong>Phân tích đa khung thời gian:</strong><br>
-                    • <strong>15 phút:</strong> ${data.timeframeSignals['15m']}<br>
-                    • <strong>30 phút:</strong> ${data.timeframeSignals['30m']}<br>
-                    • <strong>1 giờ:</strong> ${data.timeframeSignals['1h']}<br>
-                    • <strong>4 giờ:</strong> ${data.timeframeSignals['4h']}<br>
-                    • <strong>Ngày:</strong> ${data.timeframeSignals.daily} ⭐<br>
-                    • <strong>Tuần:</strong> ${data.timeframeSignals.weekly} ⭐<br>
-                    • <strong>Tháng:</strong> ${data.timeframeSignals.monthly} ⭐
-                </div>
-            </div>
+            // Fetch current gold price
+            currentPrice = await fetchGoldPrice();
+            
+            if (!currentPrice) {
+                currentPrice = 4200; // Fallback price
+            }
 
-            <div class="card">
-                <h2>🎚️ MỨC HỖ TRỢ & KHÁNG CỰ</h2>
-                
-                <h3 style="color: #f44336; margin-top: 15px;">Kháng Cự</h3>
-                ${data.resistance.map((r, i) => `
-                    <div class="level-item" style="border-left-color: ${['#f44336', '#ff5722', '#ff9800'][i]};">
-                        <span class="level-label">${r.level}:</span>
-                        <span class="level-value">$${r.price.toFixed(2)}</span>
-                    </div>
-                `).join('')}
+            // Call Claude API for analysis
+            const analysis = await getAIAnalysis(currentPrice);
+            
+            // Display results
+            displayAnalysis(analysis);
 
-                <div style="text-align: center; padding: 15px; background: #FFD700; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #1e3c72;">
-                    GIÁ HIỆN TẠI: $${data.currentPrice.toFixed(2)}
-                </div>
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
 
-                <h3 style="color: #4CAF50; margin-top: 15px;">Hỗ Trợ</h3>
-                ${data.support.map((s, i) => `
-                    <div class="level-item" style="border-left-color: ${['#8bc34a', '#4CAF50', '#2e7d32'][i]};">
-                        <span class="level-label">${s.level}:</span>
-                        <span class="level-value">$${s.price.toFixed(2)}${s.note ? ' (' + s.note + ')' : ''}</span>
-                    </div>
-                `).join('')}
-            </div>
+            // Update timestamp
+            const now = new Date();
+            document.getElementById('timestamp').innerHTML = `
+                📊 Phân tích được tạo lúc: ${now.toLocaleString('vi-VN')}<br>
+                💰 Giá phân tích: $${currentPrice.toFixed(2)}
+            `;
 
-            <div class="card">
-                <h2>📈 GỢI Ý ENTRY</h2>
-                
-                ${data.entrySetups.map((setup, i) => {
-                    const colors = [
-                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                        'linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%)'
-                    ];
-                    
-                    return `
-                    <div class="entry-suggestion" style="background: ${colors[i]};">
-                        <h3>${['🔵', '🔴', '🟢'][i]} ENTRY SETUP #${setup.id} ${setup.priority ? '(' + setup.priority + ')' : ''}</h3>
-                        <div class="entry-details">
-                            <strong>Loại:</strong> ${setup.type}<br>
-                            <strong>Entry:</strong> $${setup.entry}<br>
-                            <strong>Stop Loss:</strong> $${setup.stopLoss}<br>
-                            <strong>Take Profit 1:</strong> $${setup.takeProfit1}<br>
-                            <strong>Take Profit 2:</strong> $${setup.takeProfit2}<br>
-                            ${setup.takeProfit3 ? `<strong>Take Profit 3:</strong> $${setup.takeProfit3}<br>` : ''}
-                            <strong>Risk/Reward:</strong> ${setup.riskReward}<br>
-                            <strong>Lý do:</strong> ${setup.reason}
-                        </div>
-                    </div>
-                    `;
-                }).join('')}
-            </div>
-
-            <div class="card">
-                <h2>🔍 PHÂN TÍCH CHI TIẾT</h2>
-                
-                <div class="analysis-text">
-                    <strong>📊 Xu hướng:</strong><br>
-                    ${data.analysis.trend}
-                </div>
-
-                <div class="analysis-text">
-                    <strong>💪 Momentum:</strong><br>
-                    ${data.analysis.momentum}
-                </div>
-
-                <div class="analysis-text">
-                    <strong>🎯 Điểm chính:</strong><br>
-                    ${data.analysis.keyPoints.map(point => `• ${point}<br>`).join('')}
-                </div>
-
-                ${data.warnings.length > 0 ? `
-                <div class="warning-box">
-                    <strong>⚠️ CẢNH BÁO:</strong><br>
-                    ${data.warnings.map(w => `• ${w}<br>`).join('')}
-                </div>
-                ` : ''}
-            </div>
-
-            <div class="card">
-                <h2>📝 FIBONACCI RETRACEMENT</h2>
-                ${data.fibonacci.map(fib => `
-                    <div class="level-item">
-                        <span class="level-label">${fib.level}:</span>
-                        <span class="level-value">$${fib.price.toFixed(2)} ${fib.note ? '(' + fib.note + ')' : ''}</span>
-                    </div>
-                `).join('')}
-            </div>
-
-            <div class="warning-box" style="background: #e3f2fd; border-color: #2196F3; color: #0d47a1;">
-                <strong>📌 LƯU Ý QUAN TRỌNG:</strong><br>
-                • Phân tích này được tạo tự động bởi AI dựa trên dữ liệu thị trường<br>
-                • Luôn sử dụng Stop Loss cho mọi lệnh<br>
-                • Không nên risk quá 1-2% tài khoản mỗi lệnh<br>
-                • Thị trường có thể thay đổi bất ngờ - luôn theo dõi tin tức<br>
-                • Nên kết hợp với phân tích riêng của bạn
-            </div>
-        `;
-
-        document.getElementById('results').innerHTML = resultsHTML;
-        document.getElementById('results').style.display = 'block';
+        } catch (error) {
+            console.error('Analysis error:', error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = error.message;
+        }
     }
 
-    // Auto analyze on page load
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            analyzeMarket();
-        }, 1000);
-    });
+    async function getAIAnalysis(price) {
+        const prompt = `Bạn là chuyên gia phân tích kỹ thuật XAU/USD. Giá vàng hiện tại là $${price.toFixed(2)}.
+```
+
+Hãy phân tích và đưa ra:
+
+1. Tín hiệu tổng quan (Strong Buy/Buy/Neutral/Sell/Strong Sell)
+1. 2-3 entry setup cụ thể với:
+- Loại lệnh (Buy Limit/Sell Limit/Buy Stop/Sell Stop/Market)
+- Entry price
+- Stop Loss
+- Take Profit (2-3 mức)
+- Risk:Reward ratio
+1. Support và Resistance levels (3 mức mỗi loại)
+1. Phân tích xu hướng
+1. Fibonacci levels nếu có ATH mới
+1. Khuyến nghị cho từng loại trader
+
+Trả về dạng JSON với cấu trúc:
+{
+“signal”: “Strong Buy/Buy/Neutral/Sell/Strong Sell”,
+“currentPrice”: ${price},
+“entries”: [
+{
+“type”: “Buy Limit”,
+“entry”: 4160,
+“sl”: 4140,
+“tp”: [4220, 4250, 4280],
+“rr”: “1:2.5”,
+“reason”: “Lý do setup này”
+}
+],
+“support”: [4150, 4100, 4050],
+“resistance”: [4250, 4300, 4350],
+“trend”: “Xu hướng ngắn hạn và dài hạn”,
+“fibonacci”: {“ath”: 4381, “levels”: {…}},
+“recommendations”: {
+“scalper”: “Khuyến nghị”,
+“swing”: “Khuyến nghị”,
+“longterm”: “Khuyến nghị”
+}
+}`;
+
+```
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 4000,
+                messages: [
+                    { 
+                        role: "user", 
+                        content: prompt
+                    }
+                ],
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Không thể kết nối API phân tích');
+        }
+
+        const data = await response.json();
+        const textContent = data.content.find(item => item.type === "text");
+        
+        if (!textContent) {
+            throw new Error('Không nhận được phản hồi từ AI');
+        }
+
+        // Extract JSON from response
+        let jsonText = textContent.text;
+        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            jsonText = jsonMatch[0];
+        }
+
+        return JSON.parse(jsonText);
+    }
+
+    function displayAnalysis(analysis) {
+        const resultsDiv = document.getElementById('analysis-results');
+        
+        let entriesHTML = '';
+        analysis.entries.forEach((entry, index) => {
+            const gradients = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%)'
+            ];
+            
+            entriesHTML += `
+                <div class="entry-suggestion" style="background: ${gradients[index % 3]};">
+                    <h3>🎯 ENTRY SETUP #${index + 1}</h3>
+                    <div class="entry-details">
+                        <strong>Loại:</strong> ${entry.type}<br>
+                        <strong>Entry:</strong> $${entry.entry}<br>
+                        <strong>Stop Loss:</strong> $${entry.sl}<br>
+                        <strong>Take Profit:</strong> ${entry.tp.map((tp, i) => `TP${i+1}: $${tp}`).join(' | ')}<br>
+                        <strong>Risk/Reward:</strong> ${entry.rr}<br>
+                        <strong>Lý do:</strong> ${entry.reason}
+                    </div>
+                </div>
+            `;
+        });
+
+        const signalClass = analysis.signal.includes('Buy') ? 'buy-signal' : 
+                           analysis.signal.includes('Sell') ? 'sell-signal' : 'neutral-signal';
+
+        resultsDiv.innerHTML = `
+            <div class="grid">
+                <div class="card">
+                    <h2>🎯 TÍN HIỆU TỰ ĐỘNG</h2>
+                    <div class="signal-box ${signalClass}">
+                        ${analysis.signal}
+                    </div>
+                    <div class="analysis-text">
+                        <strong>Giá phân tích:</strong> $${analysis.currentPrice.toFixed(2)}<br>
+                        <strong>Xu hướng:</strong> ${analysis.trend}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📈 GỢI Ý ENTRY TỰ ĐỘNG</h2>
+                    ${entriesHTML}
+                </div>
+
+                <div class="card">
+                    <h2>🎚️ HỖ TRỢ & KHÁNG CỰ</h2>
+                    <h3 style="color: #f44336; margin: 15px 0;">Kháng Cự</h3>
+                    ${analysis.resistance.map((r, i) => `
+                        <div class="level-item" style="border-left-color: #f44336;">
+                            <span class="level-label">R${i+1}:</span>
+                            <span class="level-value">$${r}</span>
+                        </div>
+                    `).join('')}
+
+                    <div style="text-align: center; padding: 15px; background: #FFD700; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #1e3c72;">
+                        GIÁ HIỆN TẠI: $${analysis.currentPrice.toFixed(2)}
+                    </div>
+
+                    <h3 style="color: #4CAF50; margin: 15px 0;">Hỗ Trợ</h3>
+                    ${analysis.support.map((s, i) => `
+                        <div class="level-item" style="border-left-color: #4CAF50;">
+                            <span class="level-label">S${i+1}:</span>
+                            <span class="level-value">$${s}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${analysis.fibonacci ? `
+                <div class="card">
+                    <h2>📊 FIBONACCI RETRACEMENT</h2>
+                    <div class="analysis-text">
+                        <strong>ATH:</strong> $${analysis.fibonacci.ath}<br>
+                        ${Object.entries(analysis.fibonacci.levels).map(([level, price]) => 
+                            `<strong>${level}:</strong> $${price}`
+                        ).join('<br>')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="card">
+                    <h2>💡 CHIẾN LƯỢC KHUYẾN NGHỊ</h2>
+                    <div class="analysis-text">
+                        <strong>✅ Scalper/Day Trader:</strong><br>
+                        ${analysis.recommendations.scalper}
+                    </div>
+                    <div class="analysis-text">
+                        <strong>✅ Swing Trader:</strong><br>
+                        ${analysis.recommendations.swing}
+                    </div>
+                    <div class="analysis-text">
+                        <strong>✅ Long-term Investor:</strong><br>
+                        ${analysis.recommendations.longterm}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function refreshAnalysis() {
+        analyzeMarket();
+    }
+
+    // Auto-run on page load
+    window.addEventListener('load', analyzeMarket);
 </script>
 ```
 
