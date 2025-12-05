@@ -42,43 +42,11 @@
         text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
-    .live-price {
-        background: rgba(255,255,255,0.9);
-        padding: 20px;
-        border-radius: 10px;
-        display: inline-block;
-        margin-top: 15px;
-    }
-
-    .price-display {
-        font-size: 3em;
-        font-weight: bold;
+    .header-subtitle {
         color: #1e3c72;
-        margin: 10px 0;
-    }
-
-    .price-change {
         font-size: 1.2em;
-        padding: 5px 15px;
-        border-radius: 5px;
-        display: inline-block;
-    }
-
-    .positive {
-        background: #4CAF50;
-        color: white;
-    }
-
-    .negative {
-        background: #f44336;
-        color: white;
-    }
-
-    .loading {
-        text-align: center;
-        padding: 20px;
-        font-size: 1.2em;
-        color: #666;
+        margin-top: 15px;
+        font-weight: 500;
     }
 
     .grid {
@@ -107,33 +75,6 @@
         padding-bottom: 10px;
         border-bottom: 3px solid #FFD700;
         font-size: 1.5em;
-    }
-
-    .signal-box {
-        padding: 20px;
-        border-radius: 10px;
-        margin: 15px 0;
-        text-align: center;
-        font-weight: bold;
-        font-size: 1.3em;
-    }
-
-    .buy-signal {
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        color: white;
-        border: 3px solid #2e7d32;
-    }
-
-    .sell-signal {
-        background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
-        color: white;
-        border: 3px solid #c62828;
-    }
-
-    .neutral-signal {
-        background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-        color: white;
-        border: 3px solid #E65100;
     }
 
     .level-item {
@@ -175,6 +116,7 @@
         padding: 15px;
         border-radius: 8px;
         margin: 10px 0;
+        line-height: 1.8;
     }
 
     .analysis-text {
@@ -196,6 +138,15 @@
         color: #856404;
     }
 
+    .info-box {
+        background: #e3f2fd;
+        border: 2px solid #2196F3;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        color: #0d47a1;
+    }
+
     .update-time {
         text-align: center;
         color: #fff;
@@ -211,43 +162,9 @@
             font-size: 1.8em;
         }
         
-        .price-display {
-            font-size: 2em;
-        }
-        
         .grid {
             grid-template-columns: 1fr;
         }
-    }
-
-    .pulse {
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.7;
-        }
-    }
-
-    .ath-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-        color: white;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.9em;
-        font-weight: bold;
-        margin-left: 10px;
-        animation: blink 1.5s infinite;
-    }
-
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
     }
 </style>
 ```
@@ -257,16 +174,13 @@
     <div class="container">
         <div class="header">
             <h1>📊 PHÂN TÍCH KỸ THUẬT XAU/USD (GOLD)</h1>
-            <div style="margin-top: 20px; color: #1e3c72; font-size: 1.1em;">
-                ⚡ Tự động phân tích & cập nhật entry mới
-            </div>
-            <div class="live-price pulse" id="priceDisplay">
-                <div class="loading">⏳ Đang tải dữ liệu giá...</div>
+            <div class="header-subtitle">
+                ⚡ Phân tích đa khung thời gian & Chiến lược giao dịch
             </div>
         </div>
 
 ```
-    <!-- TradingView Widget -->
+    <!-- TradingView Advanced Chart -->
     <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
         <div style="height: 500px;">
             <div class="tradingview-widget-container" style="height:100%;width:100%">
@@ -290,7 +204,7 @@
         </div>
     </div>
 
-    <!-- TradingView Mini Symbol Overview -->
+    <!-- TradingView Symbol Overview -->
     <div class="card" style="padding: 10px; margin-bottom: 20px;">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
@@ -336,7 +250,7 @@
         </div>
     </div>
 
-    <!-- TradingView Market Overview Widget -->
+    <!-- TradingView Market Overview -->
     <div class="card" style="padding: 10px; margin-bottom: 20px;">
         <h2 style="padding: 15px; margin: 0;">📊 Thị Trường Tổng Quan</h2>
         <div class="tradingview-widget-container">
@@ -398,33 +312,100 @@
 
     <div class="grid">
         <div class="card">
-            <h2>🎯 TÍN HIỆU TỔNG QUAN</h2>
-            <div id="overall-signal" class="signal-box neutral-signal">
-                <div class="loading">Đang phân tích...</div>
+            <h2>🎯 CÁCH XÁC ĐỊNH SUPPORT & RESISTANCE</h2>
+            
+            <div class="analysis-text">
+                <strong>📊 Phương pháp tính toán:</strong><br><br>
+                
+                <strong>1. Pivot Points (Tự động):</strong><br>
+                • PP = (High + Low + Close) / 3<br>
+                • R1 = 2×PP - Low<br>
+                • R2 = PP + (High - Low)<br>
+                • R3 = High + 2×(PP - Low)<br>
+                • S1 = 2×PP - High<br>
+                • S2 = PP - (High - Low)<br>
+                • S3 = Low - 2×(High - PP)<br><br>
+                
+                <strong>2. ATR-Based Levels:</strong><br>
+                • ATR = Average True Range (14 periods)<br>
+                • R1 = Current Price + 1×ATR<br>
+                • R2 = Current Price + 2×ATR<br>
+                • S1 = Current Price - 1×ATR<br>
+                • S2 = Current Price - 2×ATR<br><br>
+                
+                <strong>3. Fibonacci Retracement:</strong><br>
+                • Kéo từ Low đến High (uptrend)<br>
+                • Các mức: 23.6%, 38.2%, 50%, 61.8%, 78.6%<br>
+                • Level 61.8% là zone golden ratio
             </div>
-            <div id="trend-analysis" class="analysis-text">
-                <strong>Đang tải phân tích xu hướng...</strong>
+
+            <div class="info-box">
+                <strong>💡 Hướng dẫn:</strong><br>
+                • Xem giá trên chart TradingView bên trên<br>
+                • Áp dụng công thức trên để tính levels<br>
+                • Kết hợp với các zone quan trọng trên chart
             </div>
         </div>
 
         <div class="card">
-            <h2>📈 GỢI Ý ENTRY TỰ ĐỘNG</h2>
-            <div id="entry-suggestions">
-                <div class="loading">⏳ Đang tính toán entry points...</div>
+            <h2>📈 CHIẾN LƯỢC ENTRY</h2>
+            
+            <div class="entry-suggestion">
+                <h3>🔵 SETUP #1: BUY tại Support</h3>
+                <div class="entry-details">
+                    <strong>Điều kiện:</strong><br>
+                    • Giá chạm S1 hoặc S2 (pivot/ATR)<br>
+                    • Có nến pin bar hoặc engulfing tại support<br>
+                    • RSI < 30 (oversold)<br>
+                    • Volume tăng khi test support<br><br>
+                    
+                    <strong>Cách vào lệnh:</strong><br>
+                    • Entry: Tại support level + 5 pips<br>
+                    • Stop Loss: Dưới support - (1×ATR)<br>
+                    • Take Profit 1: R1 (Risk:Reward = 1:1.5)<br>
+                    • Take Profit 2: R2 (Risk:Reward = 1:2.5)<br>
+                    • Take Profit 3: R3 (Risk:Reward = 1:3.5)
+                </div>
             </div>
-        </div>
 
-        <div class="card">
-            <h2>🎚️ MỨC HỖ TRỢ & KHÁNG CỰ</h2>
-            <div id="support-resistance">
-                <div class="loading">Đang tính toán...</div>
+            <div class="entry-suggestion" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3>🔴 SETUP #2: SELL tại Resistance</h3>
+                <div class="entry-details">
+                    <strong>Điều kiện:</strong><br>
+                    • Giá chạm R1 hoặc R2<br>
+                    • Có nến shooting star hoặc bearish engulfing<br>
+                    • RSI > 70 (overbought)<br>
+                    • Divergence bearish trên MACD<br><br>
+                    
+                    <strong>Cách vào lệnh:</strong><br>
+                    • Entry: Tại resistance - 5 pips<br>
+                    • Stop Loss: Trên resistance + (1×ATR)<br>
+                    • Take Profit 1: S1 (Risk:Reward = 1:1.5)<br>
+                    • Take Profit 2: S2 (Risk:Reward = 1:2.5)
+                </div>
+            </div>
+
+            <div class="entry-suggestion" style="background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);">
+                <h3>🟢 SETUP #3: BUY BREAKOUT</h3>
+                <div class="entry-details">
+                    <strong>Điều kiện:</strong><br>
+                    • Phá resistance với volume lớn<br>
+                    • Nến đóng cửa trên resistance<br>
+                    • MACD cross bullish<br>
+                    • Trend dài hạn đang tăng<br><br>
+                    
+                    <strong>Cách vào lệnh:</strong><br>
+                    • Entry: Khi retest resistance (đã thành support)<br>
+                    • Stop Loss: Dưới resistance cũ - (0.5×ATR)<br>
+                    • Take Profit: Đo chiều cao range trước đó<br>
+                    • Target = Breakout Point + Range Height
+                </div>
             </div>
         </div>
 
         <div class="card">
             <h2>📊 CHỈ BÁO KỸ THUẬT</h2>
             
-            <!-- TradingView Technical Analysis Widget -->
             <div class="tradingview-widget-container" style="margin-bottom: 20px;">
                 <div class="tradingview-widget-container__widget"></div>
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
@@ -441,578 +422,230 @@
                 </script>
             </div>
 
-            <div class="analysis-text" style="margin-top: 20px;">
-                <strong>💡 Cách đọc chỉ báo:</strong><br>
-                • <strong>Strong Buy/Strong Sell:</strong> Tín hiệu mạnh từ nhiều chỉ báo<br>
-                • <strong>Buy/Sell:</strong> Tín hiệu trung bình<br>
-                • <strong>Neutral:</strong> Không có xu hướng rõ ràng<br>
-                • Nên kết hợp nhiều khung thời gian để quyết định
+            <div class="analysis-text">
+                <strong>💡 Cách đọc chỉ báo kết hợp:</strong><br><br>
+                
+                <strong>RSI (Relative Strength Index):</strong><br>
+                • < 30: Oversold → Cơ hội mua<br>
+                • > 70: Overbought → Cơ hội bán<br>
+                • 40-60: Neutral, chờ tín hiệu<br><br>
+                
+                <strong>MACD (Moving Average Convergence Divergence):</strong><br>
+                • MACD cross trên Signal: Tín hiệu mua<br>
+                • MACD cross dưới Signal: Tín hiệu bán<br>
+                • Histogram tăng: Momentum tăng<br><br>
+                
+                <strong>Moving Averages:</strong><br>
+                • Giá trên MA50 & MA200: Uptrend<br>
+                • Giá dưới MA50 & MA200: Downtrend<br>
+                • Golden Cross (MA50 > MA200): Bullish<br>
+                • Death Cross (MA50 < MA200): Bearish
             </div>
         </div>
 
         <div class="card">
-            <h2>🔍 PHÂN TÍCH SÂU</h2>
-            <div id="deep-analysis">
-                <div class="loading">Đang phân tích...</div>
+            <h2>🔍 PHÂN TÍCH ĐA KHUNG</h2>
+            
+            <div class="analysis-text">
+                <strong>📌 Nguyên tắc Top-Down Analysis:</strong><br><br>
+                
+                <strong>1. Khung Dài hạn (Daily/Weekly):</strong><br>
+                • Xác định xu hướng chính<br>
+                • Tìm major support/resistance<br>
+                • Vẽ trendlines quan trọng<br><br>
+                
+                <strong>2. Khung Trung hạn (4H):</strong><br>
+                • Xác định setup giao dịch<br>
+                • Tìm entry zones tốt<br>
+                • Đặt SL/TP sơ bộ<br><br>
+                
+                <strong>3. Khung Ngắn hạn (1H/15M):</strong><br>
+                • Timing entry chính xác<br>
+                • Xác nhận tín hiệu<br>
+                • Fine-tune SL/TP
+            </div>
+
+            <div class="analysis-text">
+                <strong>✅ Quy tắc xác nhận tín hiệu:</strong><br>
+                • Xu hướng Daily + 4H cùng chiều = Tín hiệu mạnh<br>
+                • Giá tại support/resistance quan trọng + Pattern xác nhận = Entry tốt<br>
+                • 3/4 chỉ báo cùng chiều = Tín hiệu tin cậy<br>
+                • Volume tăng khi breakout = Xác nhận mạnh
             </div>
         </div>
 
         <div class="card">
-            <h2>💡 CHIẾN LƯỢC KHUYẾN NGHỊ</h2>
-            <div id="strategy-suggestions">
-                <div class="loading">Đang tạo chiến lược...</div>
+            <h2>💡 QUẢN LÝ RỦI RO</h2>
+            
+            <div class="analysis-text">
+                <strong>📊 Công thức tính Position Size:</strong><br><br>
+                
+                <strong>Position Size = (Account × Risk%) / Stop Loss (pips)</strong><br><br>
+                
+                Ví dụ:<br>
+                • Account: $10,000<br>
+                • Risk: 1% = $100<br>
+                • Stop Loss: 50 pips<br>
+                • → Position: $100 / 50 = $2/pip<br>
+                • → Lot size: 0.2 lot (standard)
+            </div>
+
+            <div class="analysis-text">
+                <strong>⚠️ Nguyên tắc vàng:</strong><br>
+                • Risk không quá 1-2% mỗi lệnh<br>
+                • Risk:Reward tối thiểu 1:2<br>
+                • Không mở quá 3 lệnh cùng lúc<br>
+                • Không giao dịch khi tin tức quan trọng<br>
+                • Luôn có Stop Loss cho mọi lệnh<br>
+                • Trailing Stop khi profit > 1R
+            </div>
+
+            <div class="warning-box">
+                <strong>🚨 Cảnh báo:</strong><br>
+                • Không all-in một lệnh<br>
+                • Không revenge trading sau thua lỗ<br>
+                • Không overtrading (trade quá nhiều)<br>
+                • Không di chuyển SL để tránh bị cắt
             </div>
         </div>
 
         <div class="card">
-            <h2>📝 FIBONACCI RETRACEMENT</h2>
-            <div id="fibonacci-levels">
-                <div class="loading">Đang tính toán Fibonacci...</div>
+            <h2>💰 CHIẾN LƯỢC THEO PHONG CÁCH</h2>
+            
+            <div class="analysis-text">
+                <strong>✅ Scalper (5-30 phút):</strong><br>
+                • Timeframe: M5, M15<br>
+                • Target: 10-20 pips/lệnh<br>
+                • Stop Loss: 5-10 pips<br>
+                • Số lệnh/ngày: 5-10 lệnh<br>
+                • Tools: Pivot Points, Level 2 data<br>
+                • Best time: Asian & London session
+            </div>
+
+            <div class="analysis-text">
+                <strong>✅ Day Trader (1-4 giờ):</strong><br>
+                • Timeframe: M30, H1, H4<br>
+                • Target: 30-80 pips/lệnh<br>
+                • Stop Loss: 20-40 pips<br>
+                • Số lệnh/ngày: 1-3 lệnh<br>
+                • Tools: Support/Resistance, Trendlines<br>
+                • Best time: London & US session overlap
+            </div>
+
+            <div class="analysis-text">
+                <strong>✅ Swing Trader (1-7 ngày):</strong><br>
+                • Timeframe: H4, Daily<br>
+                • Target: 100-300 pips/lệnh<br>
+                • Stop Loss: 50-100 pips<br>
+                • Số lệnh/tuần: 1-2 lệnh<br>
+                • Tools: Fibonacci, Chart Patterns<br>
+                • Hold qua đêm: Có
+            </div>
+
+            <div class="analysis-text">
+                <strong>✅ Position Trader (1-6 tháng):</strong><br>
+                • Timeframe: Daily, Weekly<br>
+                • Target: 500+ pips/lệnh<br>
+                • Stop Loss: 200+ pips<br>
+                • Số lệnh/tháng: 1-2 lệnh<br>
+                • Tools: Fundamental Analysis, Macro trends<br>
+                • Focus: Xu hướng dài hạn
             </div>
         </div>
 
         <div class="card">
-            <h2>📅 ATH & THỐNG KÊ</h2>
-            <div id="ath-stats">
-                <div class="loading">Đang tải thống kê...</div>
+            <h2>📝 CHECKLIST TRƯỚC KHI VÀO LỆNH</h2>
+            
+            <div class="analysis-text">
+                <strong>✔️ Phân tích kỹ thuật:</strong><br>
+                ☐ Xu hướng chính trên Daily/Weekly?<br>
+                ☐ Giá ở đâu trong range? (support/middle/resistance)<br>
+                ☐ Có pattern xác nhận? (pin bar, engulfing, etc.)<br>
+                ☐ Chỉ báo đồng thuận? (RSI, MACD, MA)<br>
+                ☐ Volume tăng hay giảm?<br><br>
+                
+                <strong>✔️ Quản lý rủi ro:</strong><br>
+                ☐ Đã tính Position Size chưa?<br>
+                ☐ Stop Loss đặt ở đâu?<br>
+                ☐ Take Profit levels?<br>
+                ☐ Risk:Reward ratio ≥ 1:2?<br>
+                ☐ Total risk < 5% account?<br><br>
+                
+                <strong>✔️ Tâm lý:</strong><br>
+                ☐ Đầu óc tỉnh táo?<br>
+                ☐ Không revenge trading?<br>
+                ☐ Theo trading plan?<br>
+                ☐ Chấp nhận được kết quả thua lỗ?
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📅 LỊCH KINH TẾ QUAN TRỌNG</h2>
+            
+            <div class="analysis-text">
+                <strong>🔴 High Impact (Tránh trade):</strong><br>
+                • NFP (Non-Farm Payrolls) - Thứ 6 đầu tháng<br>
+                • Fed Interest Rate Decision<br>
+                • FOMC Meeting & Press Conference<br>
+                • CPI (Consumer Price Index)<br>
+                • GDP (Gross Domestic Product)<br><br>
+                
+                <strong>🟡 Medium Impact:</strong><br>
+                • Retail Sales<br>
+                • Unemployment Claims<br>
+                • PMI Manufacturing/Services<br>
+                • Fed Officials Speeches<br><br>
+                
+                <strong>🟢 Low Impact:</strong><br>
+                • Consumer Confidence<br>
+                • Housing Data<br>
+                • Trade Balance
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Khuyến nghị:</strong><br>
+                • Đóng tất cả lệnh trước tin High Impact 30 phút<br>
+                • Chờ 15-30 phút sau tin mới trade<br>
+                • Tránh trade trong giờ thay phiên (session change)<br>
+                • Best volatility: 14:00-20:00 GMT (London-US overlap)
             </div>
         </div>
     </div>
 
-    <div class="warning-box" style="background: #e3f2fd; border-color: #2196F3; color: #0d47a1;">
-        <strong>📌 LƯU Ý QUAN TRỌNG:</strong><br>
-        • Entry/SL/TP được tính tự động dựa trên giá hiện tại<br>
-        • Giá được lấy từ API hoặc ước tính thông minh nếu API fail<br>
-        • <strong>Biểu đồ TradingView bên trên mới là nguồn chính xác nhất!</strong><br>
-        • Luôn sử dụng Stop Loss cho mọi lệnh<br>
-        • Không nên risk quá 1-2% tài khoản mỗi lệnh<br>
-        • Phân tích này chỉ mang tính chất tham khảo<br>
-        • Thị trường có thể thay đổi bất ngờ do tin tức<br>
-        • Nên kết hợp với phân tích riêng của bạn
+    <div class="info-box">
+        <strong>📌 HƯỚNG DẪN SỬ DỤNG TOOL:</strong><br>
+        1. Xem giá realtime trên biểu đồ TradingView ở trên<br>
+        2. Áp dụng các công thức tính Support/Resistance<br>
+        3. Tìm setup phù hợp với phong cách giao dịch của bạn<br>
+        4. Xác nhận tín hiệu bằng nhiều chỉ báo<br>
+        5. Tính Position Size và đặt SL/TP trước khi vào lệnh<br>
+        6. Theo dõi và quản lý lệnh theo kế hoạch
     </div>
 
-    <div class="update-time" id="updateTime">
-        📊 Đang tải dữ liệu...<br>
-        🔄 Refresh trang để cập nhật phân tích mới
+    <div class="warning-box">
+        <strong>⚠️ DISCLAIMER:</strong><br>
+        • Tool này chỉ mang tính chất giáo dục và tham khảo<br>
+        • Không phải lời khuyên đầu tư tài chính<br>
+        • Bạn hoàn toàn chịu trách nhiệm với quyết định giao dịch của mình<br>
+        • Luôn thực hành với tài khoản demo trước khi trade thật<br>
+        • Giao dịch có rủi ro cao, có thể mất toàn bộ vốn
+    </div>
+
+    <div class="update-time">
+        📊 Tool phân tích XAU/USD - Phiên bản 2.0<br>
+        🔄 Dữ liệu giá realtime từ TradingView<br>
+        💡 Công thức và chiến lược được cập nhật thường xuyên<br>
+        ⭐ Được thiết kế bởi Claude AI
     </div>
 </div>
 
 <script>
-    // Biến toàn cục
-    let priceData = {
-        current: 0,
-        high24h: 0,
-        low24h: 0,
-        ath: 0,
-        change: 0,
-        changePercent: 0
-    };
-
-    // Hàm lấy dữ liệu giá từ nhiều nguồn
-    async function fetchPriceData() {
-        // Thử API 1: Goldapi.io (miễn phí, có rate limit)
-        try {
-            const response1 = await fetch('https://www.goldapi.io/api/XAU/USD', {
-                headers: {
-                    'x-access-token': 'goldapi-demo' // Demo key, giới hạn 1000 requests/tháng
-                }
-            });
-            const data1 = await response1.json();
-            
-            if (data1 && data1.price > 0) {
-                return processPrice(data1.price);
-            }
-        } catch (error) {
-            console.log('API 1 failed, trying backup...');
-        }
-
-        // Thử API 2: Metals-API
-        try {
-            const response2 = await fetch('https://api.metals.live/v1/spot/gold');
-            const data2 = await response2.json();
-            
-            if (data2 && data2.price > 0) {
-                return processPrice(data2.price);
-            }
-        } catch (error) {
-            console.log('API 2 failed, trying backup...');
-        }
-
-        // Fallback: Sử dụng giá ước tính dựa trên thời gian
-        // Giá vàng có xu hướng tăng nên tôi dự đoán dựa trên pattern
-        const now = new Date();
-        const hourOfDay = now.getHours();
-        
-        // Giá base (cập nhật thủ công định kỳ)
-        let basePrice = 4208; // Giá gần đây nhất từ nguồn tin cậy
-        
-        // Dao động nhẹ theo giờ (mô phỏng volatility)
-        const volatility = Math.sin(hourOfDay / 24 * Math.PI * 2) * 8;
-        const estimatedPrice = basePrice + volatility;
-        
-        // Lấy giá đã lưu (nếu có) và so sánh
-        const savedPrice = parseFloat(localStorage.getItem('lastKnownPrice'));
-        if (savedPrice && savedPrice > 3000 && savedPrice < 5000) {
-            // Nếu có giá đã lưu hợp lý, dùng nó và thêm random nhẹ
-            const randomChange = (Math.random() - 0.5) * 15;
-            return processPrice(savedPrice + randomChange);
-        }
-        
-        return processPrice(estimatedPrice);
-    }
-
-    function processPrice(goldPrice) {
-        // Lấy giá từ localStorage để so sánh
-        const previousPrice = parseFloat(localStorage.getItem('previousGoldPrice')) || goldPrice;
-        const savedATH = parseFloat(localStorage.getItem('goldATH')) || 4381.60;
-        
-        priceData.current = goldPrice;
-        priceData.high24h = goldPrice * 1.003; // Ước tính +0.3%
-        priceData.low24h = goldPrice * 0.997; // Ước tính -0.3%
-        priceData.change = goldPrice - previousPrice;
-        priceData.changePercent = ((goldPrice - previousPrice) / previousPrice) * 100;
-        
-        // Cập nhật ATH
-        if (goldPrice > savedATH) {
-            priceData.ath = goldPrice;
-            localStorage.setItem('goldATH', goldPrice.toString());
-        } else {
-            priceData.ath = savedATH;
-        }
-        
-        // Lưu giá hiện tại
-        localStorage.setItem('previousGoldPrice', goldPrice.toString());
-        localStorage.setItem('lastKnownPrice', goldPrice.toString());
-        localStorage.setItem('lastUpdateTime', new Date().toISOString());
-        
-        return true;
-    }
-
-    // Hàm tính toán support và resistance
-    function calculateLevels(price) {
-        const atr = price * 0.015; // ATR ước tính 1.5%
-        
-        return {
-            r3: Math.round(price * 1.025),
-            r2: Math.round(price * 1.019),
-            r1: Math.round(price * 1.012),
-            s1: Math.round(price * 0.992),
-            s2: Math.round(price * 0.978),
-            s3: Math.round(price * 0.973)
-        };
-    }
-
-    // Hàm tính Fibonacci
-    function calculateFibonacci(ath, current) {
-        const diff = ath - current;
-        return {
-            fib0: ath,
-            fib236: Math.round(ath - diff * 0.236),
-            fib382: Math.round(ath - diff * 0.382),
-            fib50: Math.round(ath - diff * 0.5),
-            fib618: Math.round(ath - diff * 0.618),
-            fib786: Math.round(ath - diff * 0.786),
-            fib100: current
-        };
-    }
-
-    // Hàm tạo entry suggestions
-    function generateEntrySetups(price, levels) {
-        const atr = price * 0.01; // ATR cho SL
-        const isNearATH = ((priceData.ath - price) / priceData.ath) < 0.02; // Trong 2% của ATH
-        
-        let setups = '';
-        
-        // Setup 1: Buy Limit tại support
-        setups += `
-            <div class="entry-suggestion">
-                <h3>🔵 SETUP #1: BUY LIMIT (Ưu tiên)</h3>
-                <div class="entry-details">
-                    <strong>Điều kiện:</strong> Chờ giá pullback về support<br>
-                    <strong>Entry:</strong> $${levels.s1} - $${levels.s1 - 5}<br>
-                    <strong>Stop Loss:</strong> $${levels.s1 - Math.round(atr * 25)}<br>
-                    <strong>Take Profit 1:</strong> $${Math.round(price + atr * 30)}<br>
-                    <strong>Take Profit 2:</strong> $${levels.r1}<br>
-                    <strong>Take Profit 3:</strong> $${levels.r2}<br>
-                    <strong>Risk/Reward:</strong> 1:2.5
-                </div>
-            </div>
-        `;
-        
-        // Setup 2: Sell nếu reject tại resistance
-        setups += `
-            <div class="entry-suggestion" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <h3>🔴 SETUP #2: SELL (Nếu reject R1)</h3>
-                <div class="entry-details">
-                    <strong>Điều kiện:</strong> Giá reject tại kháng cự<br>
-                    <strong>Entry:</strong> $${levels.r1} (khi có nến reject)<br>
-                    <strong>Stop Loss:</strong> $${levels.r1 + Math.round(atr * 20)}<br>
-                    <strong>Take Profit 1:</strong> $${Math.round(price)}<br>
-                    <strong>Take Profit 2:</strong> $${levels.s1}<br>
-                    <strong>Risk/Reward:</strong> 1:2.0
-                </div>
-            </div>
-        `;
-        
-        // Setup 3: Buy breakout nếu gần ATH
-        if (isNearATH) {
-            setups += `
-                <div class="entry-suggestion" style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);">
-                    <h3>🟡 SETUP #3: BUY BREAKOUT ATH ⚡</h3>
-                    <div class="entry-details">
-                        <strong>Điều kiện:</strong> Phá ATH với volume mạnh<br>
-                        <strong>Entry:</strong> $${Math.round(priceData.ath + 5)} (break + retest)<br>
-                        <strong>Stop Loss:</strong> $${Math.round(priceData.ath - 15)}<br>
-                        <strong>Take Profit 1:</strong> $${Math.round(priceData.ath + 50)}<br>
-                        <strong>Take Profit 2:</strong> $${Math.round(priceData.ath + 100)}<br>
-                        <strong>Take Profit 3:</strong> $${Math.round(priceData.ath + 150)}<br>
-                        <strong>Risk/Reward:</strong> 1:3.5<br>
-                        <span class="ath-badge">⚡ GẦN ATH - CƠ HỘI BREAKOUT</span>
-                    </div>
-                </div>
-            `;
-        } else {
-            setups += `
-                <div class="entry-suggestion" style="background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);">
-                    <h3>🟢 SETUP #3: BUY MARKET (Conservative)</h3>
-                    <div class="entry-details">
-                        <strong>Điều kiện:</strong> Xu hướng tăng rõ ràng<br>
-                        <strong>Entry:</strong> Market (~$${Math.round(price)})<br>
-                        <strong>Stop Loss:</strong> $${Math.round(price - atr * 25)}<br>
-                        <strong>Take Profit 1:</strong> $${levels.r1}<br>
-                        <strong>Take Profit 2:</strong> $${levels.r2}<br>
-                        <strong>Risk/Reward:</strong> 1:2.2
-                    </div>
-                </div>
-            `;
-        }
-        
-        return setups;
-    }
-
-    // Hàm hiển thị giá
-    function displayPrice() {
-        const changeClass = priceData.change >= 0 ? 'positive' : 'negative';
-        const changeSymbol = priceData.change >= 0 ? '▲' : '▼';
-        const athBadge = ((priceData.ath - priceData.current) / priceData.ath) < 0.02 
-            ? '<span class="ath-badge">🔥 GẦN ATH!</span>' 
-            : '';
-        
-        document.getElementById('priceDisplay').innerHTML = `
-            <div style="color: #666; font-size: 0.9em;">Giá Hiện Tại</div>
-            <div class="price-display">$${priceData.current.toFixed(2)}</div>
-            <span class="price-change ${changeClass}">${changeSymbol} ${Math.abs(priceData.change).toFixed(2)} (${priceData.changePercent.toFixed(2)}%)</span>
-            ${athBadge}
-            <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                Cao: $${priceData.high24h.toFixed(2)} | Thấp: $${priceData.low24h.toFixed(2)}
-            </div>
-        `;
-    }
-
-    // Hàm hiển thị support/resistance
-    function displaySupportResistance() {
-        const levels = calculateLevels(priceData.current);
-        
-        document.getElementById('support-resistance').innerHTML = `
-            <h3 style="color: #f44336; margin-top: 15px;">Kháng Cự (Tự động)</h3>
-            <div class="level-item" style="border-left-color: #f44336;">
-                <span class="level-label">R3:</span>
-                <span class="level-value">$${levels.r3.toLocaleString()}</span>
-            </div>
-            <div class="level-item" style="border-left-color: #ff5722;">
-                <span class="level-label">R2:</span>
-                <span class="level-value">$${levels.r2.toLocaleString()}</span>
-            </div>
-            <div class="level-item" style="border-left-color: #ff9800;">
-                <span class="level-label">R1:</span>
-                <span class="level-value">$${levels.r1.toLocaleString()}</span>
-            </div>
-
-            <div style="text-align: center; padding: 15px; background: #FFD700; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #1e3c72;">
-                GIÁ HIỆN TẠI: $${Math.round(priceData.current).toLocaleString()}
-            </div>
-
-            <h3 style="color: #4CAF50; margin-top: 15px;">Hỗ Trợ (Tự động)</h3>
-            <div class="level-item" style="border-left-color: #8bc34a;">
-                <span class="level-label">S1:</span>
-                <span class="level-value">$${levels.s1.toLocaleString()}</span>
-            </div>
-            <div class="level-item" style="border-left-color: #4CAF50;">
-                <span class="level-label">S2:</span>
-                <span class="level-value">$${levels.s2.toLocaleString()}</span>
-            </div>
-            <div class="level-item" style="border-left-color: #2e7d32;">
-                <span class="level-label">S3:</span>
-                <span class="level-value">$${levels.s3.toLocaleString()}</span>
-            </div>
-            
-            <div class="analysis-text" style="margin-top: 15px;">
-                <strong>📊 Cách tính:</strong><br>
-                • Dựa trên ATR (Average True Range)<br>
-                • Tự động cập nhật theo giá hiện tại<br>
-                • R1/S1: Mục tiêu ngắn hạn<br>
-                • R2/S2: Mục tiêu trung hạn<br>
-                • R3/S3: Mục tiêu dài hạn
-            </div>
-        `;
-    }
-
-    // Hàm hiển thị Fibonacci
-    function displayFibonacci() {
-        const fib = calculateFibonacci(priceData.ath, priceData.current);
-        const distanceFromATH = ((priceData.ath - priceData.current) / priceData.ath * 100).toFixed(2);
-        
-        document.getElementById('fibonacci-levels').innerHTML = `
-            <div class="analysis-text" style="margin-bottom: 15px;">
-                <strong>📐 Fibonacci từ ATH $${priceData.ath.toFixed(2)}</strong><br>
-                Khoảng cách từ ATH: ${distanceFromATH}%
-            </div>
-            
-            <div class="level-item">
-                <span class="level-label">0% (ATH):</span>
-                <span class="level-value">$${fib.fib0.toLocaleString()}</span>
-            </div>
-            <div class="level-item">
-                <span class="level-label">23.6%:</span>
-                <span class="level-value">$${fib.fib236.toLocaleString()}</span>
-            </div>
-            <div class="level-item">
-                <span class="level-label">38.2%:</span>
-                <span class="level-value">$${fib.fib382.toLocaleString()}</span>
-            </div>
-            <div class="level-item">
-                <span class="level-label">50%:</span>
-                <span class="level-value">$${fib.fib50.toLocaleString()}</span>
-            </div>
-            <div class="level-item">
-                <span class="level-label">61.8% ⭐:</span>
-                <span class="level-value">$${fib.fib618.toLocaleString()}</span>
-            </div>
-            <div class="level-item">
-                <span class="level-label">78.6%:</span>
-                <span class="level-value">$${fib.fib786.toLocaleString()}</span>
-            </div>
-        `;
-    }
-
-    // Hàm phân tích xu hướng
-    function analyzeTrend() {
-        const distanceFromATH = ((priceData.ath - priceData.current) / priceData.ath * 100);
-        let signal = '';
-        let signalClass = '';
-        let trendText = '';
-        
-        if (distanceFromATH < 1) {
-            signal = 'STRONG BUY - Cơ hội phá ATH! 🚀';
-            signalClass = 'buy-signal';
-            trendText = `
-                <strong>🔥 Phân tích đa khung thời gian:</strong><br>
-                • Giá đang <strong>RẤT GẦN ATH</strong> (chỉ còn ${distanceFromATH.toFixed(2)}%)<br>
-                • Xu hướng ngắn hạn: <strong style="color: #4CAF50;">BULLISH MẠNH</strong><br>
-                • Xu hướng trung hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • Xu hướng dài hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • <strong>Chiến lược:</strong> Chờ phá ATH để BUY BREAKOUT
-            `;
-        } else if (distanceFromATH < 3) {
-            signal = 'BUY - Tiềm năng tăng cao';
-            signalClass = 'buy-signal';
-            trendText = `
-                <strong>📊 Phân tích đa khung thời gian:</strong><br>
-                • Giá cách ATH: ${distanceFromATH.toFixed(2)}%<br>
-                • Xu hướng ngắn hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • Xu hướng trung hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • Xu hướng dài hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • <strong>Chiến lược:</strong> Tìm điểm entry tốt để BUY
-            `;
-        } else if (distanceFromATH < 5) {
-            signal = 'NEUTRAL - Quan sát';
-            signalClass = 'neutral-signal';
-            trendText = `
-                <strong>📊 Phân tích đa khung thời gian:</strong><br>
-                • Giá cách ATH: ${distanceFromATH.toFixed(2)}%<br>
-                • Xu hướng ngắn hạn: <strong style="color: #FF9800;">SIDEWAY</strong><br>
-                • Xu hướng trung hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • Xu hướng dài hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • <strong>Chiến lược:</strong> Chờ tín hiệu rõ ràng hơn
-            `;
-        } else {
-            signal = 'SELL/WAIT - Đã xa ATH';
-            signalClass = 'sell-signal';
-            trendText = `
-                <strong>📊 Phân tích đa khung thời gian:</strong><br>
-                • Giá cách ATH: ${distanceFromATH.toFixed(2)}%<br>
-                • Xu hướng ngắn hạn: <strong style="color: #f44336;">BEARISH</strong><br>
-                • Xu hướng trung hạn: <strong style="color: #FF9800;">NEUTRAL</strong><br>
-                • Xu hướng dài hạn: <strong style="color: #4CAF50;">BULLISH</strong><br>
-                • <strong>Chiến lược:</strong> Chờ giá về Fibonacci 61.8% để BUY
-            `;
-        }
-        
-        document.getElementById('overall-signal').className = `signal-box ${signalClass}`;
-        document.getElementById('overall-signal').textContent = signal;
-        document.getElementById('trend-analysis').innerHTML = trendText;
-    }
-
-    // Hàm hiển thị phân tích sâu
-    function displayDeepAnalysis() {
-        const levels = calculateLevels(priceData.current);
-        const distanceFromATH = ((priceData.ath - priceData.current) / priceData.ath * 100);
-        
-        let analysis = `
-            <div class="analysis-text">
-                <strong>📌 Điểm mạnh của thị trường:</strong><br>
-                • Xu hướng dài hạn vẫn tăng mạnh<br>
-                • ${distanceFromATH < 2 ? 'Giá đang rất gần ATH, momentum mạnh' : 'Đang trong quá trình điều chỉnh lành mạnh'}<br>
-                • Vàng vẫn là tài sản trú ẩn an toàn<br>
-                • Fed có thể cắt giảm lãi suất hỗ trợ vàng
-            </div>
-
-            <div class="analysis-text">
-                <strong>⚠️ Rủi ro cần lưu ý:</strong><br>
-                • Kháng cự gần nhất tại $${levels.r1.toLocaleString()}<br>
-                • Nếu phá support $${levels.s1.toLocaleString()}, có thể về $${levels.s2.toLocaleString()}<br>
-                • USD tăng mạnh có thể gây áp lực<br>
-                • Cần theo dõi dữ liệu kinh tế Mỹ
-            </div>
-
-            <div class="analysis-text">
-                <strong>🎯 Kịch bản ưu tiên:</strong><br>
-        `;
-        
-        if (distanceFromATH < 2) {
-            analysis += `
-                <strong style="color: #4CAF50;">KỊCH BẢN BULLISH:</strong> Giá đang rất gần ATH ($${priceData.ath.toFixed(2)}). Nếu phá ATH với volume mạnh, mục tiêu tiếp theo là $${Math.round(priceData.ath + 50)} - $${Math.round(priceData.ath + 100)}. Setup BUY BREAKOUT là ưu tiên số 1!
-            `;
-        } else if (distanceFromATH < 5) {
-            analysis += `
-                Chờ giá pullback về vùng $${levels.s1.toLocaleString()} (hỗ trợ) để BUY LIMIT. Đây là vùng có thanh khoản tốt và tỷ lệ R:R hấp dẫn. Target ngắn hạn $${levels.r1.toLocaleString()}, trung hạn $${levels.r2.toLocaleString()}.
-            `;
-        } else {
-            analysis += `
-                Giá đã điều chỉnh khá xa ATH. Chờ giá về Fibonacci 61.8% hoặc support mạnh $${levels.s2.toLocaleString()} để tích lũy. Xu hướng dài hạn vẫn tăng nên đây là cơ hội mua tốt.
-            `;
-        }
-        
-        analysis += `</div>`;
-        
-        document.getElementById('deep-analysis').innerHTML = analysis;
-    }
-
-    // Hàm hiển thị chiến lược
-    function displayStrategy() {
-        const levels = calculateLevels(priceData.current);
-        const atr = priceData.current * 0.01;
-        
-        const strategy = `
-            <div class="analysis-text">
-                <strong>✅ Trader ngắn hạn (Scalper/Day trader):</strong><br>
-                • Ưu tiên SELL khi test lại $${levels.r1.toLocaleString()}<br>
-                • BUY tại support $${levels.s1.toLocaleString()}<br>
-                • Target ngắn: ${Math.round(atr * 20)}-${Math.round(atr * 30)} USD mỗi lệnh<br>
-                • SL chặt: ${Math.round(atr * 15)} USD
-            </div>
-
-            <div class="analysis-text">
-                <strong>✅ Trader trung hạn (Swing trader):</strong><br>
-                • BUY LIMIT tại $${levels.s1.toLocaleString()}<br>
-                • Hold cho target $${levels.r1.toLocaleString()} và $${levels.r2.toLocaleString()}<br>
-                • SL dưới $${levels.s2.toLocaleString()}<br>
-                • Thời gian hold: 3-7 ngày
-            </div>
-
-            <div class="analysis-text">
-                <strong>✅ Nhà đầu tư dài hạn:</strong><br>
-                • Tích lũy vàng khi về vùng $${levels.s2.toLocaleString()} - $${levels.s3.toLocaleString()}<br>
-                • Xu hướng dài hạn vẫn tăng mạnh<br>
-                • Target dài hạn: $${Math.round(priceData.ath * 1.08).toLocaleString()}+<br>
-                • DCA (Dollar Cost Averaging) là chiến lược tốt
-            </div>
-        `;
-        
-        document.getElementById('strategy-suggestions').innerHTML = strategy;
-    }
-
-    // Hàm hiển thị thống kê ATH
-    function displayATHStats() {
-        const distanceFromATH = ((priceData.ath - priceData.current) / priceData.ath * 100).toFixed(2);
-        const priceToATH = priceData.ath - priceData.current;
-        const athBadge = distanceFromATH < 2 ? '<span class="ath-badge">🔥 CƠ HỘI PHÁ ATH!</span>' : '';
-        
-        const stats = `
-            <div class="analysis-text">
-                <strong>🏆 All-Time High:</strong> $${priceData.ath.toFixed(2)}<br>
-                <strong>📍 Giá hiện tại:</strong> $${priceData.current.toFixed(2)}<br>
-                <strong>📏 Khoảng cách:</strong> $${priceToATH.toFixed(2)} (${distanceFromATH}%)<br>
-                <strong>📊 52-Week Range:</strong> $2,584 - $${priceData.ath.toFixed(2)}
-                ${athBadge}
-            </div>
-
-            <div class="analysis-text">
-                <strong>💰 Nếu mua tại giá hiện tại:</strong><br>
-                • Để đạt ATH: +${distanceFromATH}%<br>
-                • Target +5%: $${(priceData.current * 1.05).toFixed(2)}<br>
-                • Target +10%: $${(priceData.current * 1.10).toFixed(2)}<br>
-                • Target +15%: $${(priceData.current * 1.15).toFixed(2)}
-            </div>
-
-            <div class="analysis-text">
-                <strong>⚡ Tín hiệu kỹ thuật:</strong><br>
-                ${distanceFromATH < 1 ? 
-                    '• <strong style="color: #4CAF50;">CỰC KỲ BULLISH</strong> - Sẵn sàng phá ATH<br>• Volume tăng mạnh là tín hiệu xác nhận<br>• Setup breakout có R:R rất tốt' :
-                    distanceFromATH < 3 ?
-                    '• <strong style="color: #4CAF50;">BULLISH</strong> - Momentum tích cực<br>• Tích lũy để chờ phá ATH<br>• Mức hỗ trợ mạnh bên dưới' :
-                    '• <strong style="color: #FF9800;">NEUTRAL</strong> - Đang điều chỉnh<br>• Chờ về Fibonacci để entry tốt hơn<br>• Xu hướng dài hạn vẫn tích cực'
-                }
-            </div>
-        `;
-        
-        document.getElementById('ath-stats').innerHTML = stats;
-    }
-
-    // Hàm khởi tạo
-    async function init() {
-        // Hiển thị loading
-        document.getElementById('updateTime').innerHTML = `
-            📊 Đang tải và phân tích dữ liệu...<br>
-            ⏳ Vui lòng đợi...
-        `;
-        
-        // Lấy dữ liệu giá
-        await fetchPriceData();
-        
-        // Hiển thị tất cả
-        displayPrice();
-        displaySupportResistance();
-        displayFibonacci();
-        analyzeTrend();
-        displayDeepAnalysis();
-        displayStrategy();
-        displayATHStats();
-        
-        // Tạo entry suggestions
-        const levels = calculateLevels(priceData.current);
-        document.getElementById('entry-suggestions').innerHTML = generateEntrySetups(priceData.current, levels);
-        
-        // Cập nhật thời gian
-        const now = new Date();
-        const timeStr = now.toLocaleString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-        
-        document.getElementById('updateTime').innerHTML = `
-            📊 Cập nhật lần cuối: ${timeStr}<br>
-            🔄 Refresh trang để tính toán lại entry points mới<br>
-            ⚡ Tất cả giá trị được tính tự động dựa trên giá realtime
-        `;
-    }
-
-    // Chạy khi trang load
-    window.addEventListener('load', init);
+    // Hiển thị thông báo khi trang load xong
+    window.addEventListener('load', function() {
+        console.log('✅ Tool phân tích XAU/USD đã load thành công!');
+        console.log('📊 Xem giá realtime trên biểu đồ TradingView');
+        console.log('💡 Áp dụng các công thức để tính Support/Resistance');
+    });
 </script>
 ```
 
