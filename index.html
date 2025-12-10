@@ -769,36 +769,122 @@
         });
     }
 
-    // Fetch real-time price from multiple sources
+    let priceCheckInterval;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+
+    // Parse price from TradingView widget iframe
+    function parseFromTradingViewWidget() {
+        try {
+            const iframe = document.querySelector('iframe[id*="tradingview"]');
+            if (!iframe) return null;
+            
+            // Try to get price from iframe title or other attributes
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            if (iframeDoc) {
+                const priceElement = iframeDoc.querySelector('[class*="price"]');
+                if (priceElement) {
+                    const priceText = priceElement.textContent;
+                    const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+                    if (price && price > 2000 && price < 3000) {
+                        return price;
+                    }
+                }
+            }
+        } catch (e) {
+            // Cross-origin restrictions prevent this approach
+            console.log('Cannot parse from iframe due to CORS');
+        }
+        return null;
+    }
+
+    // Fetch real-time price - Multiple reliable sources
     async function fetchRealTimePrice() {
         try {
-            // Method 1: Try Metals API
+            // Method 1: Yahoo Finance API (most reliable, no API key needed)
             try {
-                const metalsResponse = await fetch('https://metals-api.com/api/latest?access_key=YOUR_KEY&base=USD&symbols=XAU');
-                const metalsData = await metalsResponse.json();
+                const yahooResponse = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d');
+                const yahooData = await yahooResponse.json();
                 
-                if (metalsData.success) {
-                    const goldPrice = 1 / metalsData.rates.XAU;
-                    processPrice(goldPrice);
+                if (yahooData?.chart?.result?.[0]?.meta?.regularMarketPrice) {
+                    const price = yahooData.chart.result[0].meta.regularMarketPrice;
+                    console.log('✅ Yahoo Finance price:', price);
+                    processPrice(price);
+                    retryCount = 0;
                     return;
                 }
             } catch (e) {
-                console.log('Metals API not available, trying alternative...');
+                console.log('❌ Yahoo Finance failed:', e.message);
             }
 
-            // Method 2: Simulated realistic data based on current market
-            // In production, integrate with a real API like TradingView Data API, Oanda, or Alpha Vantage
-            const basePrice = 2656.50; // Current approximate XAU/USD price
-            const volatility = 15; // Price can vary by this amount
-            const trend = Math.sin(Date.now() / 10000) * volatility;
-            const noise = (Math.random() - 0.5) * 5;
-            const currentPrice = basePrice + trend + noise;
+            // Method 2: Binance Gold Futures (XAU/USDT)
+            try {
+                const binanceResponse = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol=XAUUSDT');
+                const binanceData = await binanceResponse.json();
+                
+                if (binanceData?.price) {
+                    const price = parseFloat(binanceData.price);
+                    console.log('✅ Binance price:', price);
+                    processPrice(price);
+                    retryCount = 0;
+                    return;
+                }
+            } catch (e) {
+                console.log('❌ Binance failed:', e.message);
+            }
+
+            // Method 3: CoinGecko PAX Gold (backed by physical gold)
+            try {
+                const coinGeckoResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pax-gold&vs_currencies=usd');
+                const coinGeckoData = await coinGeckoResponse.json();
+                
+                if (coinGeckoData?.['pax-gold']?.usd) {
+                    const price = coinGeckoData['pax-gold'].usd;
+                    console.log('✅ CoinGecko PAX Gold price:', price);
+                    processPrice(price);
+                    retryCount = 0;
+                    return;
+                }
+            } catch (e) {
+                console.log('❌ CoinGecko failed:', e.message);
+            }
+
+            // Method 4: Metals-API.com (free tier)
+            try {
+                const metalsResponse = await fetch('https://api.metals.dev/v1/latest?api_key=YOUR_API_KEY&currency=USD&unit=toz');
+                const metalsData = await metalsResponse.json();
+                
+                if (metalsData?.metals?.gold) {
+                    const price = metalsData.metals.gold;
+                    console.log('✅ Metals API price:', price);
+                    processPrice(price);
+                    retryCount = 0;
+                    return;
+                }
+            } catch (e) {
+                console.log('❌ Metals API failed:', e.message);
+            }
             
-            processPrice(currentPrice);
+            // If all else fails
+            retryCount++;
+            throw new Error(`Không thể kết nối đến nguồn dữ liệu (lần thử ${retryCount}/${MAX_RETRIES})`);
             
         } catch (error) {
-            console.error('Error fetching price:', error);
-            document.getElementById('currentPrice').textContent = 'Lỗi tải dữ liệu';
+            console.error('❌ All price sources failed:', error);
+            
+            if (retryCount >= MAX_RETRIES) {
+                document.getElementById('currentPrice').innerHTML = '⚠️ Lỗi kết nối<br><small style="font-size:0.5em">Kiểm tra internet</small>';
+                document.getElementById('currentPrice').style.fontSize = '1.2em';
+            } else {
+                document.getElementById('currentPrice').innerHTML = '🔄 Đang thử lại...';
+            }
+            
+            document.getElementById('bidPrice').textContent = '--';
+            document.getElementById('askPrice').textContent = '--';
+            
+            // Retry with exponential backoff
+            const retryDelay = Math.min(5000 * retryCount, 30000);
+            setTimeout(fetchRealTimePrice, retryDelay);
         }
     }
 
@@ -1167,10 +1253,17 @@ Nếu sử dụng OpenAI API:
   
     // Initialize on page load
     window.addEventListener('load', () => {
+        console.log('Page loaded, fetching XAU/USD price...');
+        document.getElementById('currentPrice').textContent = '🔄 Đang tải...';
+        
+        // Initialize TradingView widget first
         initTradingViewWidget();
+        
+        // Fetch price immediately
         fetchRealTimePrice();
-        // Auto refresh every 15 seconds for more real-time feel
-        setInterval(fetchRealTimePrice, 15000);
+        
+        // Auto refresh every 10 seconds
+        setInterval(fetchRealTimePrice, 10000);
     });
   ```
   
