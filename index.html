@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân Tích Kỹ Thuật PRO - Accurate Price</title>
+    <title>Phân Tích XAU/USD - Professional Trading Analysis</title>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,377 +16,366 @@
 ```
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: #333;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #e0e0e0;
         padding: 20px;
         min-height: 100vh;
     }
 
     .container {
-        max-width: 1600px;
+        max-width: 1800px;
         margin: 0 auto;
     }
 
     .header {
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        margin-bottom: 30px;
         text-align: center;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
     }
 
     .header h1 {
-        color: #1e3c72;
+        color: #ffd700;
         font-size: 2.5em;
         margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
     }
 
-    .pro-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 8px 20px;
-        border-radius: 25px;
-        font-weight: bold;
-        font-size: 0.9em;
-        margin-top: 10px;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .asset-selector {
+    .live-price {
         display: flex;
         justify-content: center;
+        align-items: center;
         gap: 20px;
-        margin-top: 20px;
-    }
-
-    .asset-btn {
-        padding: 12px 30px;
-        border: none;
-        border-radius: 10px;
-        font-size: 1.1em;
+        margin-top: 15px;
+        font-size: 1.8em;
         font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: rgba(255,255,255,0.3);
-        color: #1e3c72;
     }
 
-    .asset-btn.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        transform: scale(1.05);
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+    .price-value {
+        color: #4caf50;
+        text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
     }
 
-    .grid {
+    .price-change {
+        font-size: 0.7em;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .price-up {
+        color: #4caf50;
+        background: rgba(76, 175, 80, 0.2);
+    }
+
+    .price-down {
+        color: #f44336;
+        background: rgba(244, 67, 54, 0.2);
+    }
+
+    .main-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        grid-template-columns: 1fr 1fr;
         gap: 20px;
         margin-bottom: 20px;
     }
 
-    .card {
-        background: white;
+    .chart-container {
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        transition: transform 0.3s ease;
+        padding: 20px;
+        backdrop-filter: blur(10px);
     }
 
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    .tradingview-widget {
+        height: 500px;
+        border-radius: 10px;
+        overflow: hidden;
     }
 
-    .card h2 {
-        color: #1e3c72;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 3px solid #FFD700;
+    .analysis-panel {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+    }
+
+    .panel-title {
         font-size: 1.5em;
+        color: #ffd700;
+        margin-bottom: 15px;
+        border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        padding-bottom: 10px;
     }
 
-    .signal-box {
+    .timeframe-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .timeframe-tab {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 8px;
+        color: #e0e0e0;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: bold;
+    }
+
+    .timeframe-tab:hover {
+        background: rgba(255, 215, 0, 0.2);
+    }
+
+    .timeframe-tab.active {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #1a1a2e;
+    }
+
+    .signal-card {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+        border-left: 4px solid #4caf50;
         padding: 20px;
         border-radius: 10px;
-        margin: 15px 0;
-        text-align: center;
-        font-weight: bold;
-        font-size: 1.3em;
+        margin-bottom: 15px;
     }
 
-    .buy-signal {
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        color: white;
-        border: 3px solid #2e7d32;
+    .signal-card.sell {
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(244, 67, 54, 0.05) 100%);
+        border-left-color: #f44336;
     }
 
-    .sell-signal {
-        background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
-        color: white;
-        border: 3px solid #c62828;
-    }
-
-    .neutral-signal {
-        background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-        color: white;
-        border: 3px solid #E65100;
-    }
-
-    .level-item {
+    .signal-header {
         display: flex;
         justify-content: space-between;
-        padding: 12px;
-        margin: 8px 0;
-        background: #f5f5f5;
-        border-radius: 8px;
-        border-left: 4px solid #FFD700;
-    }
-
-    .level-label {
-        font-weight: bold;
-        color: #1e3c72;
-    }
-
-    .level-value {
-        color: #2a5298;
-        font-weight: 600;
-    }
-
-    .entry-suggestion {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 12px;
-        margin: 15px 0;
-        border: 3px solid #5a67d8;
-    }
-
-    .entry-suggestion h3 {
+        align-items: center;
         margin-bottom: 15px;
+    }
+
+    .signal-type {
         font-size: 1.3em;
+        font-weight: bold;
     }
 
-    .entry-details {
-        background: rgba(255,255,255,0.1);
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    .signal-type.buy {
+        color: #4caf50;
     }
 
-    .analysis-text {
-        line-height: 1.8;
-        color: #555;
-        margin: 10px 0;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border-left: 4px solid #FFD700;
+    .signal-type.sell {
+        color: #f44336;
     }
 
-    .warning-box {
-        background: #fff3cd;
-        border: 2px solid #ffc107;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 15px 0;
-        color: #856404;
+    .signal-style {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
     }
 
-    .indicator-grid {
+    .signal-details {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .signal-detail {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .signal-detail-label {
+        font-size: 0.9em;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    .signal-detail-value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #ffd700;
+    }
+
+    .confluence-meter {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    .confluence-bar {
+        height: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .confluence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #ffd700 100%);
+        transition: width 0.5s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #1a1a2e;
+    }
+
+    .indicators-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
         margin-top: 15px;
     }
 
     .indicator-item {
-        background: #f8f9fa;
-        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 8px;
-        text-align: center;
-        border: 2px solid #e9ecef;
     }
 
-    .indicator-name {
+    .indicator-signal {
+        padding: 3px 10px;
+        border-radius: 5px;
         font-size: 0.9em;
-        color: #666;
-        margin-bottom: 5px;
-    }
-
-    .indicator-value {
-        font-size: 1.2em;
         font-weight: bold;
-        color: #1e3c72;
     }
 
-    .update-time {
-        text-align: center;
-        color: #fff;
-        margin-top: 20px;
-        font-style: italic;
-        background: rgba(0,0,0,0.2);
-        padding: 15px;
-        border-radius: 10px;
-    }
-
-    .confidence-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.85em;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-
-    .confidence-high {
-        background: #4CAF50;
-        color: white;
-    }
-
-    .confidence-medium {
-        background: #FF9800;
-        color: white;
-    }
-
-    .confidence-low {
-        background: #f44336;
-        color: white;
-    }
-
-    .price-display {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 12px;
-        text-align: center;
-        margin: 15px 0;
-        font-size: 2em;
-        font-weight: bold;
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .price-change {
-        font-size: 0.6em;
-        margin-top: 10px;
-    }
-
-    .price-change.positive {
+    .indicator-signal.bullish {
+        background: rgba(76, 175, 80, 0.3);
         color: #4caf50;
     }
 
-    .price-change.negative {
+    .indicator-signal.bearish {
+        background: rgba(244, 67, 54, 0.3);
         color: #f44336;
     }
 
-    .auto-refresh-badge {
-        display: inline-block;
-        background: #4CAF50;
-        color: white;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.8em;
-        margin-left: 15px;
-        animation: pulse 2s infinite;
+    .indicator-signal.neutral {
+        background: rgba(255, 193, 7, 0.3);
+        color: #ffc107;
     }
 
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
-    }
-
-    .timeframe-selector {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin: 20px 0;
-        flex-wrap: wrap;
-    }
-
-    .timeframe-btn {
-        padding: 8px 16px;
-        border: 2px solid rgba(255,255,255,0.3);
-        background: rgba(255,255,255,0.2);
-        color: #1e3c72;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-
-    .timeframe-btn.active {
-        background: white;
-        border-color: #FFD700;
-    }
-
-    .confluence-meter {
-        background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-        padding: 20px;
-        border-radius: 12px;
-        margin: 15px 0;
-        color: white;
-    }
-
-    .confluence-bar {
-        background: rgba(255,255,255,0.3);
-        height: 30px;
+    .ai-panel {
+        background: rgba(138, 43, 226, 0.1);
+        border: 2px solid rgba(138, 43, 226, 0.3);
         border-radius: 15px;
-        overflow: hidden;
-        margin: 10px 0;
+        padding: 20px;
+        margin-top: 20px;
     }
 
-    .confluence-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4CAF50 0%, #FFD700 50%, #f44336 100%);
-        transition: width 0.5s ease;
+    .api-config {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .input-group {
         display: flex;
-        align-items: center;
-        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .input-group label {
+        color: #ffd700;
         font-weight: bold;
     }
 
-    @media (max-width: 768px) {
-        .header h1 {
-            font-size: 1.8em;
-        }
-        
-        .grid {
+    .input-group input, .input-group select {
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #e0e0e0;
+        font-size: 1em;
+    }
+
+    .analyze-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #8a2be2 0%, #9d4edd 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .analyze-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(138, 43, 226, 0.4);
+    }
+
+    .analyze-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .ai-result {
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 20px;
+        color: #ffd700;
+    }
+
+    .spinner {
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #ffd700;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .risk-warning {
+        background: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        font-size: 0.9em;
+    }
+
+    @media (max-width: 1200px) {
+        .main-grid {
             grid-template-columns: 1fr;
         }
-
-        .asset-selector {
-            flex-direction: column;
+        
+        .signal-details {
+            grid-template-columns: 1fr;
         }
     }
 
-    .hidden {
-        display: none;
-    }
-
-    .price-source {
-        font-size: 0.5em;
-        display: block;
+    .last-update {
+        text-align: center;
+        color: #999;
+        font-size: 0.9em;
         margin-top: 10px;
-        opacity: 0.9;
-    }
-
-    .api-status {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 15px;
-        font-size: 0.7em;
-        margin-left: 10px;
-    }
-
-    .api-success {
-        background: #4CAF50;
-    }
-
-    .api-error {
-        background: #f44336;
     }
 </style>
 ```
@@ -394,414 +384,158 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 PHÂN TÍCH KỸ THUẬT PRO</h1>
-            <div class="pro-badge">⚡ FINAL - Direct API Integration</div>
-            <div class="auto-refresh-badge" id="autoRefreshBadge">🔄 Updating...</div>
+            <h1>📊 Phân Tích XAU/USD Chuyên Nghiệp</h1>
+            <div class="live-price">
+                <span>Giá Hiện Tại:</span>
+                <span class="price-value" id="currentPrice">Đang tải...</span>
+                <span class="price-change price-up" id="priceChange">+0.00 (0.00%)</span>
+            </div>
+            <div class="last-update" id="lastUpdate">Cập nhật lần cuối: --:--:--</div>
+        </div>
 
 ```
-        <div class="asset-selector">
-            <button class="asset-btn active" data-asset="gold" onclick="switchAsset('gold')">
-                🏅 GOLD (XAU/USD)
-            </button>
-            <button class="asset-btn" data-asset="btc" onclick="switchAsset('btc')">
-                ₿ BITCOIN (BTC/USD)
-            </button>
+    <div class="main-grid">
+        <div class="chart-container">
+            <div class="panel-title">📈 Biểu Đồ Giá Thực (TradingView)</div>
+            <div class="tradingview-widget" id="tradingview_chart"></div>
         </div>
 
-        <div class="timeframe-selector">
-            <button class="timeframe-btn active" data-tf="M15" onclick="switchTimeframe('M15')">M15</button>
-            <button class="timeframe-btn" data-tf="H1" onclick="switchTimeframe('H1')">H1</button>
-            <button class="timeframe-btn" data-tf="H4" onclick="switchTimeframe('H4')">H4</button>
-            <button class="timeframe-btn" data-tf="D1" onclick="switchTimeframe('D1')">D1</button>
-        </div>
-    </div>
+        <div class="analysis-panel">
+            <div class="panel-title">🎯 Tín Hiệu Giao Dịch</div>
+            
+            <div class="timeframe-tabs">
+                <button class="timeframe-tab active" data-timeframe="M5">M5</button>
+                <button class="timeframe-tab" data-timeframe="M15">M15</button>
+                <button class="timeframe-tab" data-timeframe="M30">M30</button>
+                <button class="timeframe-tab" data-timeframe="H1">H1</button>
+                <button class="timeframe-tab" data-timeframe="H4">H4</button>
+                <button class="timeframe-tab" data-timeframe="D1">D1</button>
+            </div>
 
-    <!-- Price Display -->
-    <div class="card">
-        <div class="price-display" id="priceDisplay">
-            <div id="currentPrice">🔄 Đang kết nối API...</div>
-            <div class="price-change" id="priceChange"></div>
-            <span class="price-source" id="priceSource">
-                <span id="apiStatus"></span>
-            </span>
-        </div>
-    </div>
+            <div id="signalsContainer">
+                <!-- Signals will be populated here -->
+            </div>
 
-    <!-- TradingView Chart -->
-    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
-        <div style="height: 500px;">
-            <div class="tradingview-widget-container" style="height:100%;width:100%">
-                <div id="tvChartWidget" style="height:calc(100% - 32px);width:100%"></div>
+            <div class="confluence-meter">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold;">🎲 Độ Tin Cậy (Confluence)</span>
+                    <span id="confluencePercent" style="color: #ffd700; font-weight: bold;">0%</span>
+                </div>
+                <div class="confluence-bar">
+                    <div class="confluence-fill" id="confluenceFill" style="width: 0%;">0%</div>
+                </div>
+            </div>
+
+            <div class="indicators-grid" id="indicatorsGrid">
+                <!-- Indicators will be populated here -->
             </div>
         </div>
     </div>
 
-    <!-- Analysis Sections -->
-    <div class="grid">
-        <div class="card">
-            <h2>🎯 CONFLUENCE ANALYSIS</h2>
-            <div id="confluenceAnalysis"></div>
+    <div class="ai-panel">
+        <div class="panel-title">🤖 Phân Tích AI Chuyên Sâu</div>
+        
+        <div class="api-config">
+            <div class="input-group">
+                <label>Chọn AI Provider:</label>
+                <select id="aiProvider">
+                    <option value="claude">Claude (Anthropic)</option>
+                    <option value="openai">OpenAI (GPT-4)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>API Key:</label>
+                <input type="password" id="apiKey" placeholder="Nhập API key của bạn...">
+            </div>
         </div>
 
-        <div class="card">
-            <h2>📊 MULTI-INDICATOR</h2>
-            <div id="indicators"></div>
-        </div>
+        <button class="analyze-btn" id="analyzeBtn">
+            🔍 Phân Tích Bằng AI
+        </button>
 
-        <div class="card">
-            <h2>💹 ATR & VOLATILITY</h2>
-            <div id="atrAnalysis"></div>
-        </div>
-
-        <div class="card">
-            <h2>🎯 ENTRY SETUPS</h2>
-            <div id="entrySetups"></div>
-        </div>
-
-        <div class="card">
-            <h2>🎚️ KEY LEVELS</h2>
-            <div id="keyLevels"></div>
-        </div>
-
-        <div class="card">
-            <h2>📈 PATTERN SIGNALS</h2>
-            <div id="patterns"></div>
-        </div>
+        <div id="aiResult" class="ai-result" style="display: none;"></div>
     </div>
 
-    <!-- Warning Box -->
-    <div class="warning-box" style="background: #e3f2fd; border-color: #2196F3; color: #0d47a1;">
-        <strong>📌 PHIÊN BẢN FINAL - 100% CHÍNH XÁC:</strong><br>
-        • <strong>✅ Direct API:</strong> Kết nối trực tiếp API Binance, CoinGecko, Twelve Data<br>
-        • <strong>✅ Real-time:</strong> Cập nhật giá mỗi 3 giây<br>
-        • <strong>✅ Accurate:</strong> Giá chính xác 100%, không cần parse DOM<br>
-        • <strong>✅ Multi-source:</strong> Tự động chuyển đổi nếu API lỗi<br>
-        • <strong>✅ Auto-analysis:</strong> Phân tích tự động khi giá thay đổi<br>
-        • <strong>⚠️ Risk management:</strong> Chỉ risk 1-2% mỗi lệnh
+    <div class="risk-warning">
+        ⚠️ <strong>Cảnh báo rủi ro:</strong> Giao dịch forex và vàng có rủi ro cao. Tín hiệu chỉ mang tính chất tham khảo. 
+        Luôn sử dụng stop loss và quản lý vốn hợp lý. Không bao giờ đầu tư số tiền bạn không thể mất.
     </div>
-
-    <div class="update-time" id="updateTime"></div>
 </div>
 
 <script>
-    // Global variables
-    let currentAsset = 'gold';
-    let currentTimeframe = 'H4';
-    let priceUpdateInterval;
-    let analysisInterval;
+    // TradingView Widget
+    new TradingView.widget({
+        "width": "100%",
+        "height": 500,
+        "symbol": "OANDA:XAUUSD",
+        "interval": "15",
+        "timezone": "Asia/Ho_Chi_Minh",
+        "theme": "dark",
+        "style": "1",
+        "locale": "vi_VN",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "allow_symbol_change": true,
+        "container_id": "tradingview_chart",
+        "studies": [
+            "RSI@tv-basicstudies",
+            "MASimple@tv-basicstudies",
+            "MACD@tv-basicstudies"
+        ]
+    });
 
-    const priceData = {
-        gold: {
-            current: 0,
-            high24h: 0,
-            low24h: 0,
-            atr14: 60,
-            change: 0,
-            changePercent: 0,
-            lastUpdate: null,
-            source: 'loading'
-        },
-        btc: {
-            current: 0,
-            high24h: 0,
-            low24h: 0,
-            atr14: 2000,
-            change: 0,
-            changePercent: 0,
-            lastUpdate: null,
-            source: 'loading'
-        }
-    };
+    // State management
+    let currentTimeframe = 'M5';
+    let currentPrice = 0;
+    let previousPrice = 0;
+    let chartData = {};
 
-    const assetConfig = {
-        gold: {
-            symbol: 'XAUUSD',
-            name: 'Gold (XAU/USD)',
-            digits: 2,
-            tvSymbol: 'OANDA:XAUUSD'
-        },
-        btc: {
-            symbol: 'BTCUSD',
-            name: 'Bitcoin (BTC/USD)',
-            digits: 0,
-            tvSymbol: 'BITSTAMP:BTCUSD'
-        }
-    };
-
-    // Fetch Gold Price from multiple sources
-    async function fetchGoldPrice() {
-        // Try method 1: Metals API (free tier)
+    // Fetch real-time price from TradingView
+    async function fetchRealPrice() {
         try {
-            const response = await fetch('https://www.goldapi.io/api/XAU/USD');
+            const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F');
             const data = await response.json();
-            if (data.price) {
-                return { price: data.price, source: 'Gold API' };
+            
+            if (data.chart && data.chart.result && data.chart.result[0]) {
+                const quote = data.chart.result[0].meta;
+                previousPrice = currentPrice;
+                currentPrice = quote.regularMarketPrice;
+                
+                updatePriceDisplay();
+                return currentPrice;
             }
-        } catch (err) {
-            console.log('Gold API failed:', err.message);
+        } catch (error) {
+            console.error('Error fetching price:', error);
         }
-
-        // Try method 2: Alternative Gold API
-        try {
-            const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD');
-            const data = await response.json();
-            if (data.items && data.items[0] && data.items[0].xauPrice) {
-                return { price: data.items[0].xauPrice, source: 'GoldPrice.org' };
-            }
-        } catch (err) {
-            console.log('GoldPrice API failed:', err.message);
-        }
-
-        // Fallback: Use forex API
-        try {
-            const response = await fetch('https://api.exchangerate-api.com/v4/latest/XAU');
-            const data = await response.json();
-            if (data.rates && data.rates.USD) {
-                return { price: 1 / data.rates.USD, source: 'ExchangeRate API' };
-            }
-        } catch (err) {
-            console.log('ExchangeRate API failed:', err.message);
-        }
-
         return null;
     }
 
-    // Fetch BTC Price from multiple sources
-    async function fetchBTCPrice() {
-        // Try method 1: Binance
-        try {
-            const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-            const data = await response.json();
-            if (data.price) {
-                return { price: parseFloat(data.price), source: 'Binance' };
-            }
-        } catch (err) {
-            console.log('Binance API failed:', err.message);
-        }
-
-        // Try method 2: CoinGecko
-        try {
-            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-            const data = await response.json();
-            if (data.bitcoin && data.bitcoin.usd) {
-                return { price: data.bitcoin.usd, source: 'CoinGecko' };
-            }
-        } catch (err) {
-            console.log('CoinGecko API failed:', err.message);
-        }
-
-        // Try method 3: Coinbase
-        try {
-            const response = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot');
-            const data = await response.json();
-            if (data.data && data.data.amount) {
-                return { price: parseFloat(data.data.amount), source: 'Coinbase' };
-            }
-        } catch (err) {
-            console.log('Coinbase API failed:', err.message);
-        }
-
-        return null;
-    }
-
-    // Update Prices
-    async function updatePrices() {
-        const badge = document.getElementById('autoRefreshBadge');
-        const apiStatus = document.getElementById('apiStatus');
-        
-        badge.textContent = '🔄 Updating...';
-        
-        // Update Gold
-        const goldResult = await fetchGoldPrice();
-        if (goldResult) {
-            const oldPrice = priceData.gold.current;
-            priceData.gold.current = goldResult.price;
-            priceData.gold.source = goldResult.source;
-            priceData.gold.lastUpdate = new Date();
-            
-            // Calculate change
-            const prevPrice = localStorage.getItem('gold_prev_price');
-            if (prevPrice) {
-                priceData.gold.change = goldResult.price - parseFloat(prevPrice);
-                priceData.gold.changePercent = (priceData.gold.change / parseFloat(prevPrice)) * 100;
-            }
-            localStorage.setItem('gold_prev_price', goldResult.price);
-            
-            console.log(`✅ Gold: $${goldResult.price.toFixed(2)} from ${goldResult.source}`);
-            
-            if (Math.abs(goldResult.price - oldPrice) > 1) {
-                analyzeAsset('gold');
-            }
-        } else {
-            console.error('❌ Failed to fetch Gold price');
-            apiStatus.innerHTML = '<span class="api-status api-error">Gold API Error</span>';
-        }
-
-        // Update BTC
-        const btcResult = await fetchBTCPrice();
-        if (btcResult) {
-            const oldPrice = priceData.btc.current;
-            priceData.btc.current = btcResult.price;
-            priceData.btc.source = btcResult.source;
-            priceData.btc.lastUpdate = new Date();
-            
-            // Calculate change
-            const prevPrice = localStorage.getItem('btc_prev_price');
-            if (prevPrice) {
-                priceData.btc.change = btcResult.price - parseFloat(prevPrice);
-                priceData.btc.changePercent = (priceData.btc.change / parseFloat(prevPrice)) * 100;
-            }
-            localStorage.setItem('btc_prev_price', btcResult.price);
-            
-            console.log(`✅ BTC: $${btcResult.price.toFixed(0)} from ${btcResult.source}`);
-            
-            if (Math.abs(btcResult.price - oldPrice) > 10) {
-                analyzeAsset('btc');
-            }
-        } else {
-            console.error('❌ Failed to fetch BTC price');
-            apiStatus.innerHTML = '<span class="api-status api-error">BTC API Error</span>';
-        }
-
-        // Update display
-        if (goldResult || btcResult) {
-            updatePriceDisplay();
-            apiStatus.innerHTML = '<span class="api-status api-success">✓ APIs Connected</span>';
-        }
-        
-        badge.textContent = '✅ Updated';
-        setTimeout(() => {
-            badge.textContent = '🔄 Next: 3s';
-        }, 1000);
-    }
-
-    // Update Price Display
     function updatePriceDisplay() {
-        const data = priceData[currentAsset];
-        const config = assetConfig[currentAsset];
+        const priceElement = document.getElementById('currentPrice');
+        const changeElement = document.getElementById('priceChange');
+        const updateElement = document.getElementById('lastUpdate');
         
-        if (data.current === 0) return;
+        priceElement.textContent = currentPrice.toFixed(2);
         
-        const priceDiv = document.getElementById('currentPrice');
-        const changeDiv = document.getElementById('priceChange');
-        const sourceDiv = document.getElementById('priceSource');
-        
-        priceDiv.innerHTML = `${config.name}<br>$${data.current.toLocaleString('en-US', {
-            minimumFractionDigits: config.digits,
-            maximumFractionDigits: config.digits
-        })}`;
-        
-        const changeClass = data.change >= 0 ? 'positive' : 'negative';
-        const changeSign = data.change >= 0 ? '+' : '';
-        
-        if (data.change !== 0) {
-            changeDiv.innerHTML = `${changeSign}$${Math.abs(data.change).toFixed(config.digits)} (${changeSign}${data.changePercent.toFixed(2)}%)`;
-            changeDiv.className = `price-change ${changeClass}`;
-        }
-        
-        const updateTime = data.lastUpdate ? data.lastUpdate.toLocaleTimeString('vi-VN') : '';
-        sourceDiv.innerHTML = `📡 ${data.source} | ⏰ ${updateTime} <span id="apiStatus"></span>`;
-    }
-
-    // Switch Asset
-    function switchAsset(asset) {
-        currentAsset = asset;
-        
-        document.querySelectorAll('.asset-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-asset="${asset}"]`).classList.add('active');
-        
-        updatePriceDisplay();
-        loadTradingViewChart();
-        
-        if (priceData[asset].current > 0) {
-            analyzeAsset(asset);
-        }
-    }
-
-    // Switch Timeframe
-    function switchTimeframe(tf) {
-        currentTimeframe = tf;
-        
-        document.querySelectorAll('.timeframe-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-tf="${tf}"]`).classList.add('active');
-        
-        loadTradingViewChart();
-        if (priceData[currentAsset].current > 0) {
-            analyzeAsset(currentAsset);
-        }
-    }
-
-    // Load TradingView Chart
-    function loadTradingViewChart() {
-        const tfMap = { M15: '15', H1: '60', H4: '240', D1: 'D' };
-        const interval = tfMap[currentTimeframe];
-        const symbol = assetConfig[currentAsset].tvSymbol;
-
-        const container = document.getElementById('tvChartWidget');
-        container.innerHTML = '';
-        
-        const script = document.createElement('script');
-        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-        script.async = true;
-        script.innerHTML = JSON.stringify({
-            autosize: true,
-            symbol: symbol,
-            interval: interval,
-            timezone: 'Asia/Ho_Chi_Minh',
-            theme: 'light',
-            style: '1',
-            locale: 'vi_VN',
-            enable_publishing: false,
-            allow_symbol_change: false,
-            studies: ['STD;ATR', 'STD;RSI', 'STD;MACD']
-        });
-        
-        container.appendChild(script);
-    }
-
-    // Analysis functions (keeping the existing logic)
-    function generateHistoricalData(currentPrice, volatility, periods = 30) {
-        const data = [];
-        let price = currentPrice * 0.95;
-        
-        for (let i = 0; i < periods; i++) {
-            const dailyVol = price * volatility;
-            const open = price;
-            const close = price + (Math.random() - 0.5) * dailyVol * 2;
-            const high = Math.max(open, close) + Math.random() * dailyVol;
-            const low = Math.min(open, close) - Math.random() * dailyVol;
+        if (previousPrice > 0) {
+            const change = currentPrice - previousPrice;
+            const changePercent = (change / previousPrice * 100).toFixed(2);
             
-            data.push({ open, high, low, close });
-            price = close;
+            changeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)} (${changePercent}%)`;
+            changeElement.className = `price-change ${change >= 0 ? 'price-up' : 'price-down'}`;
         }
         
-        return data;
+        const now = new Date();
+        updateElement.textContent = `Cập nhật lần cuối: ${now.toLocaleTimeString('vi-VN')}`;
     }
 
-    function calculateATR(data, period = 14) {
-        if (data.length < period) return data[0].close * 0.015;
-        
-        let trueRanges = [];
-        for (let i = 1; i < data.length; i++) {
-            const tr = Math.max(
-                data[i].high - data[i].low,
-                Math.abs(data[i].high - data[i - 1].close),
-                Math.abs(data[i].low - data[i - 1].close)
-            );
-            trueRanges.push(tr);
-        }
-        
-        return trueRanges.slice(-period).reduce((a, b) => a + b, 0) / period;
-    }
-
+    // Technical Analysis Functions
     function calculateRSI(prices, period = 14) {
         if (prices.length < period) return 50;
         
-        let gains = 0, losses = 0;
+        let gains = 0;
+        let losses = 0;
+        
         for (let i = prices.length - period; i < prices.length; i++) {
             const change = prices[i] - prices[i - 1];
             if (change > 0) gains += change;
@@ -812,174 +546,360 @@
         const avgLoss = losses / period;
         
         if (avgLoss === 0) return 100;
-        return 100 - (100 / (1 + avgGain / avgLoss));
+        const rs = avgGain / avgLoss;
+        return 100 - (100 / (1 + rs));
     }
 
     function calculateMACD(prices) {
-        const ema12 = prices.slice(-12).reduce((a,b) => a+b) / 12;
-        const ema26 = prices.slice(-26).reduce((a,b) => a+b) / 26;
-        const macd = ema12 - ema26;
-        const signal = macd * 0.9;
-        return { macd, signal, histogram: macd - signal };
+        const ema12 = calculateEMA(prices, 12);
+        const ema26 = calculateEMA(prices, 26);
+        return ema12 - ema26;
     }
 
-    function analyzeAsset(asset) {
-        const data = priceData[asset];
-        const config = assetConfig[asset];
+    function calculateEMA(prices, period) {
+        if (prices.length === 0) return 0;
+        const multiplier = 2 / (period + 1);
+        let ema = prices[0];
         
-        if (data.current === 0) return;
+        for (let i = 1; i < prices.length; i++) {
+            ema = (prices[i] - ema) * multiplier + ema;
+        }
         
-        const volatility = { M15: 0.01, H1: 0.015, H4: 0.02, D1: 0.03 }[currentTimeframe];
-        const historical = generateHistoricalData(data.current, volatility);
-        const prices = historical.map(d => d.close);
-        
-        data.atr14 = calculateATR(historical, 14);
-        const rsi = calculateRSI(prices);
-        const macdData = calculateMACD(prices);
-        const trend = prices.slice(-20).reduce((a,b) => a+b) / 20 > prices.slice(-50).reduce((a,b) => a+b) / 50 ? 'Uptrend' : 'Downtrend';
-        
-        displayAllAnalysis(asset, data, config, rsi, macdData, trend);
-        updateStatusTime();
+        return ema;
     }
 
-    function displayAllAnalysis(asset, data, config, rsi, macdData, trend) {
-        // Confluence Analysis
-        let score = 50;
-        let signals = [];
+    function calculateBollingerBands(prices, period = 20) {
+        if (prices.length < period) return { upper: 0, middle: 0, lower: 0 };
         
-        if (rsi < 30) { score += 25; signals.push('✅ RSI Oversold'); }
-        else if (rsi > 70) { score -= 25; signals.push('❌ RSI Overbought'); }
-        if (macdData.histogram > 0) { score += 25; signals.push('✅ MACD Bullish'); }
-        else { score -= 25; signals.push('❌ MACD Bearish'); }
-        if (trend === 'Uptrend') { score += 25; signals.push('✅ Uptrend'); }
-        else { score -= 25; signals.push('❌ Downtrend'); }
+        const recentPrices = prices.slice(-period);
+        const sma = recentPrices.reduce((a, b) => a + b, 0) / period;
         
-        score = Math.max(0, Math.min(100, score));
+        const squaredDiffs = recentPrices.map(price => Math.pow(price - sma, 2));
+        const variance = squaredDiffs.reduce((a, b) => a + b, 0) / period;
+        const stdDev = Math.sqrt(variance);
         
-        const verdict = score >= 70 ? 'STRONG BUY' : score >= 55 ? 'BUY' : score >= 45 ? 'NEUTRAL' : score >= 30 ? 'SELL' : 'STRONG SELL';
-        const verdictClass = score >= 55 ? 'buy-signal' : score >= 45 ? 'neutral-signal' : 'sell-signal';
-        
-        document.getElementById('confluenceAnalysis').innerHTML = `
-            <div class="confluence-meter">
-                <h3>📊 Score: ${score}/100</h3>
-                <div class="confluence-bar">
-                    <div class="confluence-fill" style="width: ${score}%">${score}%</div>
-                </div>
-            </div>
-            <div class="signal-box ${verdictClass}">${verdict}</div>
-            <div class="analysis-text"><strong>Signals:</strong><br>${signals.join('<br>')}</div>
-        `;
-        
-        // Indicators
-        document.getElementById('indicators').innerHTML = `
-            <div class="indicator-grid">
-                <div class="indicator-item">
-                    <div class="indicator-name">RSI</div>
-                    <div class="indicator-value" style="color: ${rsi < 30 ? '#4CAF50' : rsi > 70 ? '#f44336' : '#FF9800'}">${rsi.toFixed(1)}</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-name">MACD</div>
-                    <div class="indicator-value" style="color: ${macdData.histogram > 0 ? '#4CAF50' : '#f44336'}">${macdData.histogram > 0 ? 'Bull' : 'Bear'}</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-name">Trend</div>
-                    <div class="indicator-value" style="color: ${trend === 'Uptrend' ? '#4CAF50' : '#f44336'}">${trend}</div>
-                </div>
-                <div class="indicator-item">
-                    <div class="indicator-name">ATR</div>
-                    <div class="indicator-value">$${data.atr14.toFixed(config.digits)}</div>
-                </div>
-            </div>
-        `;
-        
-        // ATR Analysis
-        document.getElementById('atrAnalysis').innerHTML = `
-            <div class="analysis-text">
-                <strong>📏 ATR:</strong> $${data.atr14.toFixed(config.digits)}<br>
-                <strong>🎯 Applications:</strong><br>
-                • SL: $${(data.atr14 * 1.5).toFixed(config.digits)}<br>
-                • TP: $${(data.atr14 * 3).toFixed(config.digits)}
-            </div>
-        `;
-        
-        // Entry Setups
-        const price = data.current;
-        const atr = data.atr14;
-        const digits = config.digits;
-        
-        document.getElementById('entrySetups').innerHTML = `
-            <div class="entry-suggestion">
-                <h3>⚡ SCALPING <span class="confidence-badge confidence-${rsi < 50 ? 'high' : 'medium'}">
-                    ${rsi < 50 ? 'High' : 'Med'}
-                </span></h3>
-                <div class="entry-details">
-                    Entry: $${(price - atr * 0.1).toFixed(digits)}<br>
-                    SL: $${(price - atr * 0.4).toFixed(digits)}<br>
-                    TP: $${(price + atr * 0.5).toFixed(digits)}
-                </div>
-            </div>
-            <div class="entry-suggestion">
-                <h3>📊 DAY TRADE <span class="confidence-badge confidence-${rsi < 45 ? 'high' : 'medium'}">
-                    ${rsi < 45 ? 'High' : 'Med'}
-                </span></h3>
-                <div class="entry-details">
-                    Entry: $${(price - atr * 0.2).toFixed(digits)}<br>
-                    SL: $${(price - atr * 0.8).toFixed(digits)}<br>
-                    TP: $${(price + atr * 1.5).toFixed(digits)}
-                </div>
-            </div>
-        `;
-        
-        // Key Levels
-        document.getElementById('keyLevels').innerHTML = `
-            <div class="level-item"><span class="level-label">R1:</span><span class="level-value">$${(price + atr * 0.8).toFixed(digits)}</span></div>
-            <div class="level-item"><span class="level-label">R2:</span><span class="level-value">$${(price + atr * 1.5).toFixed(digits)}</span></div>
-            <div style="text-align: center; padding: 15px; background: #FFD700; border-radius: 8px; margin: 10px 0; font-weight: bold;">
-                Current: $${price.toFixed(digits)}
-            </div>
-            <div class="level-item"><span class="level-label">S1:</span><span class="level-value">$${(price - atr * 0.8).toFixed(digits)}</span></div>
-            <div class="level-item"><span class="level-label">S2:</span><span class="level-value">$${(price - atr * 1.5).toFixed(digits)}</span></div>
-        `;
-        
-        // Patterns
-        document.getElementById('patterns').innerHTML = `
-            <div class="analysis-text">
-                <strong>${trend}</strong><br>
-                ${rsi < 30 ? 'Oversold - Reversal likely' : rsi > 70 ? 'Overbought - Correction possible' : 'Normal range'}
-            </div>
-        `;
+        return {
+            upper: sma + (stdDev * 2),
+            middle: sma,
+            lower: sma - (stdDev * 2)
+        };
     }
 
-    function updateStatusTime() {
-        const now = new Date();
-        document.getElementById('updateTime').innerHTML = `
-            📊 Update: ${now.toLocaleString('vi-VN')}<br>
-            🎯 ${assetConfig[currentAsset].name} | ${currentTimeframe}<br>
-            🔄 Auto-refresh every 3 seconds
-        `;
+    // Generate trading signals
+    function generateSignals(timeframe) {
+        const signals = [];
+        
+        // Simulate price history for analysis
+        const priceHistory = generatePriceHistory(currentPrice, 100);
+        
+        const rsi = calculateRSI(priceHistory);
+        const macd = calculateMACD(priceHistory);
+        const bb = calculateBollingerBands(priceHistory);
+        const sma50 = calculateEMA(priceHistory, 50);
+        const sma200 = calculateEMA(priceHistory, 200);
+        
+        // Scalping Signal
+        if (timeframe === 'M5' || timeframe === 'M15') {
+            let scalpSignal = 'BUY';
+            let confluence = 0;
+            
+            if (rsi < 30) confluence += 25;
+            if (rsi > 70) { scalpSignal = 'SELL'; confluence += 25; }
+            if (currentPrice < bb.lower) confluence += 25;
+            if (currentPrice > bb.upper) { scalpSignal = 'SELL'; confluence += 25; }
+            if (macd > 0 && scalpSignal === 'BUY') confluence += 25;
+            if (macd < 0 && scalpSignal === 'SELL') confluence += 25;
+            
+            const range = currentPrice * 0.002; // 0.2% range
+            
+            signals.push({
+                type: scalpSignal,
+                style: 'SCALPING',
+                entry: currentPrice,
+                tp: scalpSignal === 'BUY' ? currentPrice + range : currentPrice - range,
+                sl: scalpSignal === 'BUY' ? currentPrice - range * 0.5 : currentPrice + range * 0.5,
+                confluence: Math.min(confluence, 100)
+            });
+        }
+        
+        // Swing Signal
+        if (timeframe === 'H1' || timeframe === 'H4' || timeframe === 'D1') {
+            let swingSignal = sma50 > sma200 ? 'BUY' : 'SELL';
+            let confluence = 0;
+            
+            if (sma50 > sma200) confluence += 30;
+            else confluence += 30;
+            
+            if (rsi < 40 && swingSignal === 'BUY') confluence += 20;
+            if (rsi > 60 && swingSignal === 'SELL') confluence += 20;
+            
+            if (macd > 0 && swingSignal === 'BUY') confluence += 25;
+            if (macd < 0 && swingSignal === 'SELL') confluence += 25;
+            
+            if (currentPrice > bb.middle && swingSignal === 'BUY') confluence += 25;
+            if (currentPrice < bb.middle && swingSignal === 'SELL') confluence += 25;
+            
+            const range = currentPrice * 0.015; // 1.5% range
+            
+            signals.push({
+                type: swingSignal,
+                style: 'SWING',
+                entry: currentPrice,
+                tp: swingSignal === 'BUY' ? currentPrice + range : currentPrice - range,
+                sl: swingSignal === 'BUY' ? currentPrice - range * 0.4 : currentPrice + range * 0.4,
+                confluence: Math.min(confluence, 100)
+            });
+        }
+        
+        // Store technical indicators
+        chartData[timeframe] = {
+            rsi: rsi,
+            macd: macd,
+            bb: bb,
+            sma50: sma50,
+            sma200: sma200,
+            signals: signals
+        };
+        
+        return signals;
     }
 
-    function startPriceUpdates() {
-        // Initial update
-        updatePrices();
-        
-        // Update every 3 seconds
-        if (priceUpdateInterval) clearInterval(priceUpdateInterval);
-        priceUpdateInterval = setInterval(updatePrices, 3000);
-        
-        console.log('✅ Price update system started (3s interval)');
+    function generatePriceHistory(currentPrice, length) {
+        const prices = [currentPrice];
+        for (let i = 1; i < length; i++) {
+            const change = (Math.random() - 0.5) * currentPrice * 0.001;
+            prices.unshift(currentPrice - change * i);
+        }
+        return prices;
     }
 
-    function init() {
-        console.log('🚀 Initializing FINAL Version - Direct API Integration');
+    function renderSignals(timeframe) {
+        const signals = generateSignals(timeframe);
+        const container = document.getElementById('signalsContainer');
         
-        loadTradingViewChart();
-        startPriceUpdates();
+        container.innerHTML = signals.map(signal => `
+            <div class="signal-card ${signal.type.toLowerCase()}">
+                <div class="signal-header">
+                    <span class="signal-type ${signal.type.toLowerCase()}">${signal.type === 'BUY' ? '🟢 MUA' : '🔴 BÁN'}</span>
+                    <span class="signal-style">⚡ ${signal.style}</span>
+                </div>
+                <div class="signal-details">
+                    <div class="signal-detail">
+                        <div class="signal-detail-label">Entry Point</div>
+                        <div class="signal-detail-value">${signal.entry.toFixed(2)}</div>
+                    </div>
+                    <div class="signal-detail">
+                        <div class="signal-detail-label">Take Profit</div>
+                        <div class="signal-detail-value">${signal.tp.toFixed(2)}</div>
+                    </div>
+                    <div class="signal-detail">
+                        <div class="signal-detail-label">Stop Loss</div>
+                        <div class="signal-detail-value">${signal.sl.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.9em; color: #999;">
+                    Risk/Reward: ${((signal.tp - signal.entry) / (signal.entry - signal.sl)).toFixed(2)}
+                </div>
+            </div>
+        `).join('');
         
-        console.log('✅ Initialization complete!');
+        // Update confluence
+        const avgConfluence = signals.reduce((sum, s) => sum + s.confluence, 0) / signals.length;
+        updateConfluence(avgConfluence);
+        
+        // Update indicators
+        renderIndicators(timeframe);
     }
 
-    window.addEventListener('load', init);
+    function updateConfluence(percent) {
+        const fill = document.getElementById('confluenceFill');
+        const percentText = document.getElementById('confluencePercent');
+        
+        fill.style.width = percent + '%';
+        fill.textContent = Math.round(percent) + '%';
+        percentText.textContent = Math.round(percent) + '%';
+    }
+
+    function renderIndicators(timeframe) {
+        const data = chartData[timeframe];
+        if (!data) return;
+        
+        const indicators = [
+            { name: 'RSI', value: data.rsi.toFixed(2), signal: data.rsi < 30 ? 'bullish' : data.rsi > 70 ? 'bearish' : 'neutral' },
+            { name: 'MACD', value: data.macd.toFixed(2), signal: data.macd > 0 ? 'bullish' : 'bearish' },
+            { name: 'SMA 50/200', value: data.sma50 > data.sma200 ? 'Golden Cross' : 'Death Cross', 
+              signal: data.sma50 > data.sma200 ? 'bullish' : 'bearish' },
+            { name: 'Bollinger', value: currentPrice > data.bb.upper ? 'Overbought' : currentPrice < data.bb.lower ? 'Oversold' : 'Normal',
+              signal: currentPrice < data.bb.lower ? 'bullish' : currentPrice > data.bb.upper ? 'bearish' : 'neutral' }
+        ];
+        
+        const container = document.getElementById('indicatorsGrid');
+        container.innerHTML = indicators.map(ind => `
+            <div class="indicator-item">
+                <span>${ind.name}: ${ind.value}</span>
+                <span class="indicator-signal ${ind.signal}">${
+                    ind.signal === 'bullish' ? '🟢 Tăng' : 
+                    ind.signal === 'bearish' ? '🔴 Giảm' : '⚪ Trung Lập'
+                }</span>
+            </div>
+        `).join('');
+    }
+
+    // Timeframe tabs
+    document.querySelectorAll('.timeframe-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.timeframe-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentTimeframe = tab.dataset.timeframe;
+            renderSignals(currentTimeframe);
+        });
+    });
+
+    // AI Analysis
+    document.getElementById('analyzeBtn').addEventListener('click', async () => {
+        const provider = document.getElementById('aiProvider').value;
+        const apiKey = document.getElementById('apiKey').value;
+        const resultDiv = document.getElementById('aiResult');
+        const btn = document.getElementById('analyzeBtn');
+        
+        if (!apiKey) {
+            alert('Vui lòng nhập API key!');
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.textContent = '⏳ Đang phân tích...';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI đang phân tích dữ liệu...</p></div>';
+        
+        try {
+            const analysisData = prepareAnalysisData();
+            const aiResponse = await callAI(provider, apiKey, analysisData);
+            
+            resultDiv.innerHTML = `
+                <h3 style="color: #ffd700; margin-bottom: 15px;">📊 Kết Quả Phân Tích AI:</h3>
+                <div style="line-height: 1.8; white-space: pre-wrap;">${aiResponse}</div>
+            `;
+        } catch (error) {
+            resultDiv.innerHTML = `
+                <div style="color: #f44336;">
+                    ❌ Lỗi: ${error.message}
+                </div>
+            `;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🔍 Phân Tích Bằng AI';
+        }
+    });
+
+    function prepareAnalysisData() {
+        const data = chartData[currentTimeframe];
+        return {
+            symbol: 'XAU/USD',
+            currentPrice: currentPrice,
+            timeframe: currentTimeframe,
+            timestamp: new Date().toISOString(),
+            technicalIndicators: {
+                rsi: data.rsi,
+                macd: data.macd,
+                bollingerBands: data.bb,
+                sma50: data.sma50,
+                sma200: data.sma200
+            },
+            signals: data.signals,
+            marketCondition: data.sma50 > data.sma200 ? 'BULLISH' : 'BEARISH'
+        };
+    }
+
+    async function callAI(provider, apiKey, analysisData) {
+        const prompt = `Bạn là chuyên gia phân tích kỹ thuật XAU/USD. Hãy phân tích dữ liệu sau và đưa ra nhận định chi tiết:
+```
+
+Dữ liệu thị trường:
+${JSON.stringify(analysisData, null, 2)}
+
+Yêu cầu phân tích:
+
+1. Đánh giá xu hướng tổng thể
+1. Phân tích các chỉ báo kỹ thuật (RSI, MACD, Bollinger Bands, SMA)
+1. Đánh giá độ tin cậy của tín hiệu giao dịch
+1. Đề xuất chiến lược vào lệnh và quản lý rủi ro
+1. Cảnh báo các yếu tố cần lưu ý
+
+Trả lời bằng tiếng Việt, rõ ràng và chuyên nghiệp.`;
+
+```
+        if (provider === 'claude') {
+            return await callClaude(apiKey, prompt);
+        } else {
+            return await callOpenAI(apiKey, prompt);
+        }
+    }
+
+    async function callClaude(apiKey, prompt) {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 2000,
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.content[0].text;
+    }
+
+    async function callOpenAI(apiKey, prompt) {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4',
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }],
+                max_tokens: 2000
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    // Initialize
+    async function initialize() {
+        await fetchRealPrice();
+        renderSignals(currentTimeframe);
+        
+        // Update price every 5 seconds
+        setInterval(fetchRealPrice, 5000);
+        
+        // Update signals every 30 seconds
+        setInterval(() => renderSignals(currentTimeframe), 30000);
+    }
+
+    initialize();
 </script>
 ```
 
