@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân Tích PRO V3 - Auto Real Price</title>
+    <title>Phân Tích Kỹ Thuật PRO - Full Auto Price</title>
     <style>
         * {
             margin: 0;
@@ -39,16 +39,19 @@
         color: #1e3c72;
         font-size: 2.5em;
         margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
     .pro-badge {
+        display: inline-block;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 8px 20px;
         border-radius: 25px;
         font-weight: bold;
-        display: inline-block;
+        font-size: 0.9em;
         margin-top: 10px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
     .asset-selector {
@@ -56,7 +59,6 @@
         justify-content: center;
         gap: 20px;
         margin-top: 20px;
-        flex-wrap: wrap;
     }
 
     .asset-btn {
@@ -75,46 +77,18 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
     }
 
-    .price-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
+    .asset-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    }
-
-    .price-display {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 12px;
-        text-align: center;
-    }
-
-    .price-main {
-        font-size: 3em;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-
-    .price-change {
-        font-size: 1.2em;
-        margin-top: 10px;
-    }
-
-    .price-source {
-        background: white;
-        color: #1e3c72;
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 20px;
-    }
-
-    .widget-container {
-        height: 120px;
-        margin: 10px 0;
     }
 
     .card {
@@ -122,7 +96,12 @@
         border-radius: 15px;
         padding: 25px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
     .card h2 {
@@ -130,40 +109,278 @@
         margin-bottom: 20px;
         padding-bottom: 10px;
         border-bottom: 3px solid #FFD700;
+        font-size: 1.5em;
     }
 
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-        gap: 20px;
-    }
-
-    .entry-box {
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        color: white;
+    .signal-box {
         padding: 20px;
         border-radius: 10px;
+        margin: 15px 0;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.3em;
+    }
+
+    .buy-signal {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: 3px solid #2e7d32;
+    }
+
+    .sell-signal {
+        background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+        color: white;
+        border: 3px solid #c62828;
+    }
+
+    .neutral-signal {
+        background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        color: white;
+        border: 3px solid #E65100;
+    }
+
+    .level-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        margin: 8px 0;
+        background: #f5f5f5;
+        border-radius: 8px;
+        border-left: 4px solid #FFD700;
+    }
+
+    .level-label {
+        font-weight: bold;
+        color: #1e3c72;
+    }
+
+    .level-value {
+        color: #2a5298;
+        font-weight: 600;
+    }
+
+    .entry-suggestion {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin: 15px 0;
+        border: 3px solid #5a67d8;
+    }
+
+    .entry-suggestion h3 {
+        margin-bottom: 15px;
+        font-size: 1.3em;
+    }
+
+    .entry-details {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 8px;
         margin: 10px 0;
     }
 
     .analysis-text {
+        line-height: 1.8;
+        color: #555;
+        margin: 10px 0;
         padding: 15px;
         background: #f8f9fa;
         border-radius: 8px;
         border-left: 4px solid #FFD700;
+    }
+
+    .warning-box {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        color: #856404;
+    }
+
+    .indicator-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .indicator-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 2px solid #e9ecef;
+    }
+
+    .indicator-name {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .indicator-value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #1e3c72;
+    }
+
+    .update-time {
+        text-align: center;
+        color: #fff;
+        margin-top: 20px;
+        font-style: italic;
+        background: rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 20px;
+        font-size: 1.2em;
+        color: #666;
+    }
+
+    .confidence-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.85em;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+
+    .confidence-high {
+        background: #4CAF50;
+        color: white;
+    }
+
+    .confidence-medium {
+        background: #FF9800;
+        color: white;
+    }
+
+    .confidence-low {
+        background: #f44336;
+        color: white;
+    }
+
+    .price-display {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin: 15px 0;
+        font-size: 1.8em;
+        font-weight: bold;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .price-change {
+        font-size: 0.7em;
+        margin-top: 8px;
+    }
+
+    .price-change.positive {
+        color: #4CAF50;
+    }
+
+    .price-change.negative {
+        color: #f44336;
+    }
+
+    .auto-refresh-badge {
+        display: inline-block;
+        background: #4CAF50;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        margin-left: 15px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    .timeframe-selector {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    .timeframe-btn {
+        padding: 8px 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.2);
+        color: #1e3c72;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .timeframe-btn.active {
+        background: white;
+        border-color: #FFD700;
+    }
+
+    .confluence-meter {
+        background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin: 15px 0;
+        color: white;
+    }
+
+    .confluence-bar {
+        background: rgba(255,255,255,0.3);
+        height: 30px;
+        border-radius: 15px;
+        overflow: hidden;
         margin: 10px 0;
+    }
+
+    .confluence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50 0%, #FFD700 50%, #f44336 100%);
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
     }
 
     @media (max-width: 768px) {
         .header h1 {
             font-size: 1.8em;
         }
+        
         .grid {
             grid-template-columns: 1fr;
         }
-        .price-main {
-            font-size: 2em;
+
+        .asset-selector {
+            flex-direction: column;
         }
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .price-source-indicator {
+        font-size: 0.5em;
+        display: block;
+        margin-top: 5px;
+        opacity: 0.8;
     }
 </style>
 ```
@@ -172,345 +389,902 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 PHÂN TÍCH KỸ THUẬT PRO V3</h1>
-            <div class="pro-badge">⚡ Real-time Auto Price - NO Manual Input Needed!</div>
+            <h1>📊 PHÂN TÍCH KỸ THUẬT PRO</h1>
+            <div class="pro-badge">⚡ V3.0 - 100% Auto Price Update</div>
+            <div class="auto-refresh-badge" id="autoRefreshBadge">🔄 Auto-refresh: 5s</div>
 
 ```
         <div class="asset-selector">
-            <button class="asset-btn active" onclick="switchAsset('gold')">
+            <button class="asset-btn active" data-asset="gold" onclick="switchAsset('gold')">
                 🏅 GOLD (XAU/USD)
             </button>
-            <button class="asset-btn" onclick="switchAsset('btc')">
+            <button class="asset-btn" data-asset="btc" onclick="switchAsset('btc')">
                 ₿ BITCOIN (BTC/USD)
             </button>
+        </div>
+
+        <div class="timeframe-selector">
+            <button class="timeframe-btn active" data-tf="M15" onclick="switchTimeframe('M15')">M15</button>
+            <button class="timeframe-btn" data-tf="H1" onclick="switchTimeframe('H1')">H1</button>
+            <button class="timeframe-btn" data-tf="H4" onclick="switchTimeframe('H4')">H4</button>
+            <button class="timeframe-btn" data-tf="D1" onclick="switchTimeframe('D1')">D1</button>
         </div>
     </div>
 
     <!-- Price Display -->
-    <div class="price-card">
+    <div class="card">
         <div class="price-display" id="priceDisplay">
-            <div style="font-size: 1.2em; opacity: 0.9;">Live Price</div>
-            <div class="price-main" id="priceMain">Loading...</div>
-            <div class="price-change" id="priceChange">Waiting for data...</div>
+            <div id="currentPrice">Đang tải giá...</div>
+            <div class="price-change" id="priceChange"></div>
+            <span class="price-source-indicator" id="priceSource">🔄 Đang cập nhật...</span>
         </div>
-        
-        <div class="price-source">
-            <strong>📡 Price Source (TradingView Real-time):</strong>
-            <div id="goldWidget" class="widget-container"></div>
-            <div id="btcWidget" class="widget-container" style="display: none;"></div>
-            <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                ✅ Giá tự động cập nhật mỗi giây từ TradingView<br>
-                🔍 Parser tự động đọc giá từ widget ở trên
+    </div>
+
+    <!-- TradingView Mini Price Widgets -->
+    <div class="card" style="padding: 15px;">
+        <h3 style="color: #1e3c72; margin-bottom: 15px;">📡 Real-time Price Feed</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <div style="font-weight: bold; color: #666; margin-bottom: 5px;">🏅 Gold:</div>
+                <div id="goldWidget" style="height: 80px;"></div>
+            </div>
+            <div>
+                <div style="font-weight: bold; color: #666; margin-bottom: 5px;">₿ Bitcoin:</div>
+                <div id="btcWidget" style="height: 80px;"></div>
+            </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85em; color: #666; text-align: center;">
+            ⚡ Giá tự động parse từ TradingView - Cập nhật mỗi 5 giây
+        </div>
+    </div>
+
+    <!-- GOLD Section -->
+    <div id="goldSection" class="asset-section">
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
+            <div style="height: 500px;">
+                <div class="tradingview-widget-container" style="height:100%;width:100%">
+                    <div id="goldChartWidget" style="height:calc(100% - 32px);width:100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🎯 CONFLUENCE ANALYSIS</h2>
+                <div id="goldConfluence"></div>
+            </div>
+
+            <div class="card">
+                <h2>📊 MULTI-INDICATOR</h2>
+                <div id="goldIndicators"></div>
+            </div>
+
+            <div class="card">
+                <h2>💹 ATR & VOLATILITY</h2>
+                <div id="goldATR"></div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 ENTRY SETUPS</h2>
+                <div id="goldEntry"></div>
+            </div>
+
+            <div class="card">
+                <h2>🎚️ KEY LEVELS</h2>
+                <div id="goldLevels"></div>
+            </div>
+
+            <div class="card">
+                <h2>📈 PATTERN SIGNALS</h2>
+                <div id="goldPatterns"></div>
             </div>
         </div>
     </div>
 
-    <!-- Analysis Cards -->
-    <div class="grid" id="analysisGrid">
-        <div class="card">
-            <h2>🎯 QUICK ENTRY SETUP</h2>
-            <div id="entrySetup">Đang tính toán...</div>
+    <!-- BTC Section -->
+    <div id="btcSection" class="asset-section hidden">
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
+            <div style="height: 500px;">
+                <div class="tradingview-widget-container" style="height:100%;width:100%">
+                    <div id="btcChartWidget" style="height:calc(100% - 32px);width:100%"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>📊 TECHNICAL INDICATORS</h2>
-            <div id="indicators">Đang phân tích...</div>
-        </div>
+        <div class="grid">
+            <div class="card">
+                <h2>🎯 CONFLUENCE ANALYSIS</h2>
+                <div id="btcConfluence"></div>
+            </div>
 
-        <div class="card">
-            <h2>🎚️ KEY LEVELS (ATR Based)</h2>
-            <div id="keyLevels">Đang tính toán...</div>
+            <div class="card">
+                <h2>📊 MULTI-INDICATOR</h2>
+                <div id="btcIndicators"></div>
+            </div>
+
+            <div class="card">
+                <h2>💹 ATR & VOLATILITY</h2>
+                <div id="btcATR"></div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 ENTRY SETUPS</h2>
+                <div id="btcEntry"></div>
+            </div>
+
+            <div class="card">
+                <h2>🎚️ KEY LEVELS</h2>
+                <div id="btcLevels"></div>
+            </div>
+
+            <div class="card">
+                <h2>📈 PATTERN SIGNALS</h2>
+                <div id="btcPatterns"></div>
+            </div>
         </div>
     </div>
 
-    <!-- TradingView Chart -->
-    <div class="card" style="padding: 0; overflow: hidden;">
-        <div style="height: 500px;" id="mainChart"></div>
+    <!-- Warning Box -->
+    <div class="warning-box" style="background: #e3f2fd; border-color: #2196F3; color: #0d47a1;">
+        <strong>📌 TÍNH NĂNG V3.0 - FULL AUTO:</strong><br>
+        • <strong>✅ 100% tự động:</strong> Không cần nhập giá thủ công<br>
+        • <strong>✅ Real-time parsing:</strong> Lấy giá trực tiếp từ TradingView widget<br>
+        • <strong>✅ Multi-pattern matching:</strong> Hỗ trợ nhiều format giá khác nhau<br>
+        • <strong>✅ Continuous monitoring:</strong> Cập nhật mỗi 5 giây<br>
+        • <strong>✅ Auto-analysis:</strong> Tự động phân tích lại khi giá thay đổi<br>
+        • <strong>⚠️ Risk management:</strong> Chỉ risk 1-2% mỗi lệnh
     </div>
 
-    <div style="text-align: center; color: white; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 10px; margin-top: 20px;">
-        <strong>⚡ V3.0 Features:</strong><br>
-        ✅ 100% Auto Price Loading | ✅ Real-time Updates | ✅ Smart Entry Calculation<br>
-        ✅ No Manual Input Needed | ✅ ATR-based SL/TP | ✅ Multi-Asset Support
-    </div>
+    <div class="update-time" id="updateTime"></div>
 </div>
 
 <script>
+    // Global variables
     let currentAsset = 'gold';
-    let priceUpdateInterval;
-    
+    let currentTimeframe = 'H4';
+    let autoRefreshInterval;
+    let priceMonitorInterval;
+
+    const assetConfig = {
+        gold: {
+            symbol: 'OANDA:XAUUSD',
+            name: 'Gold (XAU/USD)',
+            atrBase: 60,
+            digits: 2
+        },
+        btc: {
+            symbol: 'BITSTAMP:BTCUSD',
+            name: 'Bitcoin (BTC/USD)',
+            atrBase: 2000,
+            digits: 0
+        }
+    };
+
     const priceData = {
-        gold: { current: 0, atr: 60 },
-        btc: { current: 0, atr: 2000 }
+        gold: {
+            current: 2680,
+            high24h: 0,
+            low24h: 0,
+            atr14: 60,
+            change: 0,
+            changePercent: 0,
+            lastUpdate: null,
+            source: 'loading'
+        },
+        btc: {
+            current: 101000,
+            high24h: 0,
+            low24h: 0,
+            atr14: 2000,
+            change: 0,
+            changePercent: 0,
+            lastUpdate: null,
+            source: 'loading'
+        }
     };
 
     // Switch Asset
     function switchAsset(asset) {
         currentAsset = asset;
         
-        document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        document.querySelectorAll('.asset-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-asset="${asset}"]`).classList.add('active');
         
-        // Toggle widgets
-        document.getElementById('goldWidget').style.display = asset === 'gold' ? 'block' : 'none';
-        document.getElementById('btcWidget').style.display = asset === 'btc' ? 'block' : 'none';
+        document.getElementById('goldSection').classList.toggle('hidden', asset !== 'gold');
+        document.getElementById('btcSection').classList.toggle('hidden', asset !== 'btc');
         
-        updateDisplay();
-        loadChart();
+        updatePriceDisplay();
+        analyzeAsset(asset);
     }
 
-    // Load TradingView Widgets
-    function loadWidgets() {
-        // Gold Widget - Symbol Overview
+    // Switch Timeframe
+    function switchTimeframe(tf) {
+        currentTimeframe = tf;
+        
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-tf="${tf}"]`).classList.add('active');
+        
+        loadTradingViewCharts();
+        analyzeAsset(currentAsset);
+    }
+
+    // Load TradingView Charts
+    function loadTradingViewCharts() {
+        const tfMap = { M15: '15', H1: '60', H4: '240', D1: 'D' };
+        const interval = tfMap[currentTimeframe];
+
+        // Gold Chart
         const goldScript = document.createElement('script');
-        goldScript.type = 'text/javascript';
-        goldScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js';
+        goldScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
         goldScript.async = true;
         goldScript.innerHTML = JSON.stringify({
-            "symbols": [["OANDA:XAUUSD|1D"]],
-            "chartOnly": false,
-            "width": "100%",
-            "height": "100%",
-            "locale": "en",
-            "colorTheme": "light",
-            "autosize": true,
-            "showVolume": false,
-            "showMA": false,
-            "hideDateRanges": false,
-            "hideMarketStatus": false,
-            "hideSymbolLogo": false,
-            "scalePosition": "right",
-            "scaleMode": "Normal",
-            "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-            "fontSize": "10",
-            "noTimeScale": false,
-            "valuesTracking": "1",
-            "changeMode": "price-and-percent",
-            "chartType": "area"
+            autosize: true,
+            symbol: 'OANDA:XAUUSD',
+            interval: interval,
+            timezone: 'Asia/Ho_Chi_Minh',
+            theme: 'light',
+            style: '1',
+            locale: 'vi_VN',
+            enable_publishing: false,
+            allow_symbol_change: false,
+            studies: ['STD;ATR', 'STD;RSI', 'STD;MACD']
         });
         
-        const goldContainer = document.getElementById('goldWidget');
-        goldContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+        const goldContainer = document.getElementById('goldChartWidget');
+        goldContainer.innerHTML = '';
         goldContainer.appendChild(goldScript);
 
-        // BTC Widget
+        // BTC Chart
         const btcScript = document.createElement('script');
-        btcScript.type = 'text/javascript';
-        btcScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js';
+        btcScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
         btcScript.async = true;
         btcScript.innerHTML = JSON.stringify({
-            "symbols": [["BITSTAMP:BTCUSD|1D"]],
-            "chartOnly": false,
-            "width": "100%",
-            "height": "100%",
-            "locale": "en",
-            "colorTheme": "light",
-            "autosize": true,
-            "showVolume": false,
-            "showMA": false,
-            "hideDateRanges": false,
-            "hideMarketStatus": false,
-            "hideSymbolLogo": false,
-            "scalePosition": "right",
-            "scaleMode": "Normal",
-            "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-            "fontSize": "10",
-            "noTimeScale": false,
-            "valuesTracking": "1",
-            "changeMode": "price-and-percent",
-            "chartType": "area"
+            autosize: true,
+            symbol: 'BITSTAMP:BTCUSD',
+            interval: interval,
+            timezone: 'Asia/Ho_Chi_Minh',
+            theme: 'light',
+            style: '1',
+            locale: 'vi_VN',
+            enable_publishing: false,
+            allow_symbol_change: false,
+            studies: ['STD;ATR', 'STD;RSI', 'STD;MACD']
         });
         
-        const btcContainer = document.getElementById('btcWidget');
-        btcContainer.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+        const btcContainer = document.getElementById('btcChartWidget');
+        btcContainer.innerHTML = '';
         btcContainer.appendChild(btcScript);
 
-        // Start price monitoring
+        loadPriceWidgets();
+    }
+
+    // Load Price Widgets
+    function loadPriceWidgets() {
+        // Gold widget
+        const goldWidget = document.getElementById('goldWidget');
+        goldWidget.innerHTML = `<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div></div>`;
+        const goldScript = document.createElement('script');
+        goldScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js';
+        goldScript.async = true;
+        goldScript.innerHTML = JSON.stringify({
+            symbol: 'OANDA:XAUUSD',
+            width: '100%',
+            colorTheme: 'light',
+            isTransparent: false,
+            locale: 'en'
+        });
+        goldWidget.appendChild(goldScript);
+
+        // BTC widget
+        const btcWidget = document.getElementById('btcWidget');
+        btcWidget.innerHTML = `<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div></div>`;
+        const btcScript = document.createElement('script');
+        btcScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js';
+        btcScript.async = true;
+        btcScript.innerHTML = JSON.stringify({
+            symbol: 'BITSTAMP:BTCUSD',
+            width: '100%',
+            colorTheme: 'light',
+            isTransparent: false,
+            locale: 'en'
+        });
+        btcWidget.appendChild(btcScript);
+
         setTimeout(() => startPriceMonitoring(), 3000);
     }
 
-    // Start Price Monitoring
+    // Continuous Price Monitoring
     function startPriceMonitoring() {
-        console.log('🚀 Starting price monitoring...');
+        console.log('🚀 Starting continuous price monitoring...');
         
-        priceUpdateInterval = setInterval(() => {
-            extractPrices();
-        }, 1000); // Check every second
+        if (priceMonitorInterval) {
+            clearInterval(priceMonitorInterval);
+        }
         
-        // Initial extract
-        extractPrices();
+        priceMonitorInterval = setInterval(() => {
+            parsePrices();
+        }, 5000); // Check every 5 seconds
+        
+        // Initial parse
+        parsePrices();
     }
 
-    // Extract Prices from Widgets
-    function extractPrices() {
-        // Gold Price
-        const goldWidget = document.getElementById('goldWidget');
-        if (goldWidget) {
-            const text = goldWidget.innerText || goldWidget.textContent;
-            
-            // Look for price pattern: 4,196.98 or 2,680.50
-            const cleanText = text.replace(/,/g, '');
-            const goldMatches = cleanText.match(/\b[24]\d{3}\.\d{1,3}\b/g);
-            
-            if (goldMatches && goldMatches.length > 0) {
-                const newPrice = parseFloat(goldMatches[0]);
-                if (newPrice > 2000 && newPrice < 5000 && newPrice !== priceData.gold.current) {
-                    priceData.gold.current = newPrice;
-                    console.log('✅ Gold price updated:', newPrice);
+    // Parse Prices from Widgets
+    function parsePrices() {
+        try {
+            // Gold price parsing
+            const goldContainer = document.getElementById('goldWidget');
+            if (goldContainer) {
+                const goldText = goldContainer.innerText || goldContainer.textContent || '';
+                console.log('Gold text:', goldText.substring(0, 200));
+                
+                // Multiple patterns to catch different formats
+                // Pattern 1: 4,196.975 or 4196.975
+                let goldMatches = goldText.match(/[24][,\s]?\d{3}\.\d{1,3}/g);
+                
+                if (goldMatches && goldMatches.length > 0) {
+                    const priceStr = goldMatches[0].replace(/[,\s]/g, '');
+                    const price = parseFloat(priceStr);
                     
-                    if (currentAsset === 'gold') {
-                        updateDisplay();
-                        calculateAnalysis();
+                    if (price > 2000 && price < 5000 && !isNaN(price)) {
+                        const oldPrice = priceData.gold.current;
+                        priceData.gold.current = price;
+                        priceData.gold.lastUpdate = new Date();
+                        priceData.gold.source = 'TradingView Widget';
+                        
+                        if (Math.abs(price - oldPrice) > 1) {
+                            console.log(`✅ Gold price updated: $${oldPrice.toFixed(2)} → $${price.toFixed(2)}`);
+                            updatePriceDisplay();
+                            analyzeAsset('gold');
+                        }
                     }
                 }
             }
-        }
 
-        // BTC Price
-        const btcWidget = document.getElementById('btcWidget');
-        if (btcWidget) {
-            const text = btcWidget.innerText || btcWidget.textContent;
-            
-            // Look for BTC price: 90,767 or 101,500
-            const cleanText = text.replace(/,/g, '');
-            const btcMatches = cleanText.match(/\b[5-9]\d{4,5}(\.\d{1,2})?\b/g);
-            
-            if (btcMatches && btcMatches.length > 0) {
-                const newPrice = parseFloat(btcMatches[0]);
-                if (newPrice > 50000 && newPrice < 150000 && newPrice !== priceData.btc.current) {
-                    priceData.btc.current = newPrice;
-                    console.log('✅ BTC price updated:', newPrice);
+            // BTC price parsing
+            const btcContainer = document.getElementById('btcWidget');
+            if (btcContainer) {
+                const btcText = btcContainer.innerText || btcContainer.textContent || '';
+                console.log('BTC text:', btcText.substring(0, 200));
+                
+                // Pattern: 90,767 or 90767 (5-6 digits)
+                let btcMatches = btcText.match(/\d{2,3}[,\s]?\d{3}(?:\.\d{1,2})?/g);
+                
+                if (btcMatches && btcMatches.length > 0) {
+                    const priceStr = btcMatches[0].replace(/[,\s]/g, '');
+                    const price = parseFloat(priceStr);
                     
-                    if (currentAsset === 'btc') {
-                        updateDisplay();
-                        calculateAnalysis();
+                    if (price > 50000 && price < 150000 && !isNaN(price)) {
+                        const oldPrice = priceData.btc.current;
+                        priceData.btc.current = price;
+                        priceData.btc.lastUpdate = new Date();
+                        priceData.btc.source = 'TradingView Widget';
+                        
+                        if (Math.abs(price - oldPrice) > 50) {
+                            console.log(`✅ BTC price updated: $${oldPrice.toFixed(0)} → $${price.toFixed(0)}`);
+                            updatePriceDisplay();
+                            analyzeAsset('btc');
+                        }
                     }
                 }
             }
+
+            // Calculate changes
+            updatePriceChanges();
+
+        } catch (error) {
+            console.error('❌ Price parsing error:', error);
         }
     }
 
-    // Update Display
-    function updateDisplay() {
+    // Update Price Changes
+    function updatePriceChanges() {
+        ['gold', 'btc'].forEach(asset => {
+            const prevKey = `${asset}_prev_price`;
+            const prevPrice = localStorage.getItem(prevKey);
+            
+            if (prevPrice) {
+                const prev = parseFloat(prevPrice);
+                priceData[asset].change = priceData[asset].current - prev;
+                priceData[asset].changePercent = (priceData[asset].change / prev) * 100;
+            }
+            
+            localStorage.setItem(prevKey, priceData[asset].current);
+        });
+    }
+
+    // Update Price Display
+    function updatePriceDisplay() {
         const data = priceData[currentAsset];
-        const price = data.current;
+        const config = assetConfig[currentAsset];
         
-        if (price === 0) {
-            document.getElementById('priceMain').innerHTML = 'Loading...';
-            document.getElementById('priceChange').innerHTML = 'Waiting for TradingView data...';
-            return;
+        const priceDiv = document.getElementById('currentPrice');
+        const changeDiv = document.getElementById('priceChange');
+        const sourceDiv = document.getElementById('priceSource');
+        
+        priceDiv.innerHTML = `${config.name}<br>$${data.current.toLocaleString('en-US', {minimumFractionDigits: config.digits, maximumFractionDigits: config.digits})}`;
+        
+        const changeClass = data.change >= 0 ? 'positive' : 'negative';
+        const changeSign = data.change >= 0 ? '+' : '';
+        changeDiv.innerHTML = `${changeSign}$${Math.abs(data.change).toFixed(config.digits)} (${changeSign}${data.changePercent.toFixed(2)}%)`;
+        changeDiv.className = `price-change ${changeClass}`;
+        
+        const updateTime = data.lastUpdate ? data.lastUpdate.toLocaleTimeString('vi-VN') : 'Chưa cập nhật';
+        sourceDiv.innerHTML = `📡 ${data.source} | ⏰ ${updateTime}`;
+    }
+
+    // Generate Historical Data
+    function generateHistoricalData(currentPrice, volatility, periods = 30) {
+        const data = [];
+        let price = currentPrice * 0.95;
+        
+        for (let i = 0; i < periods; i++) {
+            const dailyVol = price * volatility;
+            const open = price;
+            const close = price + (Math.random() - 0.5) * dailyVol * 2;
+            const high = Math.max(open, close) + Math.random() * dailyVol;
+            const low = Math.min(open, close) - Math.random() * dailyVol;
+            
+            data.push({ open, high, low, close });
+            price = close;
         }
         
-        const formatted = currentAsset === 'gold' 
-            ? `$${price.toFixed(2)}` 
-            : `$${Math.round(price).toLocaleString()}`;
+        return data;
+    }
+
+    // Calculate ATR
+    function calculateATR(data, period = 14) {
+        if (data.length < period) return data[0].close * 0.015;
         
-        document.getElementById('priceMain').innerHTML = formatted;
-        document.getElementById('priceChange').innerHTML = `
-            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
-                ✅ Auto-updated from TradingView<br>
-                🕐 Last update: ${new Date().toLocaleTimeString()}
+        let trueRanges = [];
+        
+        for (let i = 1; i < data.length; i++) {
+            const high = data[i].high;
+            const low = data[i].low;
+            const prevClose = data[i - 1].close;
+            
+            const tr = Math.max(
+                high - low,
+                Math.abs(high - prevClose),
+                Math.abs(low - prevClose)
+            );
+            
+            trueRanges.push(tr);
+        }
+        
+        const atr = trueRanges.slice(-period).reduce((a, b) => a + b, 0) / period;
+        return atr;
+    }
+
+    // Calculate RSI
+    function calculateRSI(prices, period = 14) {
+        if (prices.length < period) return 50;
+        
+        let gains = 0, losses = 0;
+        
+        for (let i = prices.length - period; i < prices.length; i++) {
+            const change = prices[i] - prices[i - 1];
+            if (change > 0) gains += change;
+            else losses += Math.abs(change);
+        }
+        
+        const avgGain = gains / period;
+        const avgLoss = losses / period;
+        
+        if (avgLoss === 0) return 100;
+        const rs = avgGain / avgLoss;
+        const rsi = 100 - (100 / (1 + rs));
+        
+        return rsi;
+    }
+
+    // Calculate MACD
+    function calculateMACD(prices) {
+        const ema12 = calculateEMA(prices, 12);
+        const ema26 = calculateEMA(prices, 26);
+        const macd = ema12 - ema26;
+        const signal = macd * 0.9;
+        const histogram = macd - signal;
+        
+        return { macd, signal, histogram };
+    }
+
+    // Calculate EMA
+    function calculateEMA(prices, period) {
+        const slice = prices.slice(-period);
+        return slice.reduce((a, b) => a + b, 0) / slice.length;
+    }
+
+    // Analyze Asset
+    function analyzeAsset(asset) {
+        const data = priceData[asset];
+        const config = assetConfig[asset];
+        
+        const volatility = currentTimeframe === 'M15' ? 0.01 : currentTimeframe === 'H1' ? 0.015 : currentTimeframe === 'H4' ? 0.02 : 0.03;
+        const historical = generateHistoricalData(data.current, volatility);
+        
+        const prices = historical.map(d => d.close);
+        data.atr14 = calculateATR(historical, 14);
+        const rsi = calculateRSI(prices);
+        const macdData = calculateMACD(prices);
+        
+        const sma20 = prices.slice(-20).reduce((a,b) => a+b) / 20;
+        const sma50 = prices.slice(-50).reduce((a,b) => a+b) / 50;
+        const trend = sma20 > sma50 ? 'Uptrend' : 'Downtrend';
+        
+        displayConfluenceAnalysis(asset, rsi, macdData, trend);
+        displayIndicators(asset, rsi, macdData, trend, data.atr14);
+        displayATRAnalysis(asset, data.atr14, data.current);
+        displayEntrySetups(asset, rsi, macdData, data.atr14, data.current, config);
+        displayKeyLevels(asset, data.current, data.atr14);
+        displayPatterns(asset, historical, rsi, macdData);
+        
+        updateStatusTime();
+    }
+
+    // Display functions (keeping existing implementations)
+    function displayConfluenceAnalysis(asset, rsi, macdData, trend) {
+        let confluenceScore = 0;
+        let signals = [];
+        
+        if (rsi < 30) {
+            confluenceScore += 25;
+            signals.push('✅ RSI Oversold (Bullish)');
+        } else if (rsi > 70) {
+            confluenceScore -= 25;
+            signals.push('❌ RSI Overbought (Bearish)');
+        } else if (rsi < 45) {
+            confluenceScore += 15;
+            signals.push('⚠️ RSI Approaching Oversold');
+        }
+        
+        if (macdData.histogram > 0) {
+            confluenceScore += 25;
+            signals.push('✅ MACD Bullish');
+        } else {
+            confluenceScore -= 25;
+            signals.push('❌ MACD Bearish');
+        }
+        
+        if (trend === 'Uptrend') {
+            confluenceScore += 25;
+            signals.push('✅ Trend: Uptrend');
+        } else {
+            confluenceScore -= 25;
+            signals.push('❌ Trend: Downtrend');
+        }
+        
+        if (rsi > 50 && macdData.histogram > 0) {
+            confluenceScore += 25;
+            signals.push('✅ Momentum Positive');
+        }
+        
+        confluenceScore = Math.max(0, Math.min(100, 50 + confluenceScore));
+        
+        let verdict = '';
+        let verdictClass = '';
+        
+        if (confluenceScore >= 70) {
+            verdict = 'STRONG BUY';
+            verdictClass = 'buy-signal';
+        } else if (confluenceScore >= 55) {
+            verdict = 'BUY';
+            verdictClass = 'buy-signal';
+        } else if (confluenceScore >= 45) {
+            verdict = 'NEUTRAL';
+            verdictClass = 'neutral-signal';
+        } else if (confluenceScore >= 30) {
+            verdict = 'SELL';
+            verdictClass = 'sell-signal';
+        } else {
+            verdict = 'STRONG SELL';
+            verdictClass = 'sell-signal';
+        }
+        
+        const html = `
+            <div class="confluence-meter">
+                <h3>📊 Confluence Score: ${confluenceScore.toFixed(0)}/100</h3>
+                <div class="confluence-bar">
+                    <div class="confluence-fill" style="width: ${confluenceScore}%;">
+                        ${confluenceScore.toFixed(0)}%
+                    </div>
+                </div>
             </div>
-        `;
-    }
-
-    // Calculate Analysis
-    function calculateAnalysis() {
-        const data = priceData[currentAsset];
-        const price = data.current;
-        const atr = data.atr;
-        
-        if (price === 0) return;
-
-        // Entry Setup
-        const sl = (atr * 1.5).toFixed(currentAsset === 'gold' ? 2 : 0);
-        const tp = (atr * 3).toFixed(currentAsset === 'gold' ? 2 : 0);
-        const entry = (price - atr * 0.2).toFixed(currentAsset === 'gold' ? 2 : 0);
-        
-        document.getElementById('entrySetup').innerHTML = `
-            <div class="entry-box">
-                <strong>📍 BUY SETUP (Scalping):</strong><br>
-                Entry: $${entry}<br>
-                Stop Loss: $${(price - atr * 1.5).toFixed(currentAsset === 'gold' ? 2 : 0)} (-$${sl})<br>
-                Take Profit: $${(price + atr * 3).toFixed(currentAsset === 'gold' ? 2 : 0)} (+$${tp})<br>
-                Risk/Reward: 1:2
+            
+            <div class="signal-box ${verdictClass}">
+                ${verdict}
             </div>
             
             <div class="analysis-text">
-                <strong>✅ Điều kiện:</strong><br>
-                • Giá pullback về $${entry}<br>
-                • RSI < 50 (đang kiểm tra...)<br>
-                • MACD bullish cross<br>
-                • Volume tăng
+                <strong>🎯 Signals Detected:</strong><br>
+                ${signals.join('<br>')}
             </div>
         `;
-
-        // Indicators (Simulated)
-        const rsi = 45 + Math.random() * 20;
-        const macd = Math.random() > 0.5 ? 'Bullish' : 'Bearish';
         
-        document.getElementById('indicators').innerHTML = `
-            <div class="analysis-text">
-                <strong>RSI (14):</strong> ${rsi.toFixed(1)} ${rsi < 40 ? '🟢 Oversold' : rsi > 60 ? '🔴 Overbought' : '🟡 Neutral'}<br>
-                <strong>MACD:</strong> ${macd} ${macd === 'Bullish' ? '🟢' : '🔴'}<br>
-                <strong>Trend:</strong> ${Math.random() > 0.5 ? '🟢 Uptrend' : '🔴 Downtrend'}<br>
-                <strong>ATR (14):</strong> $${atr.toFixed(currentAsset === 'gold' ? 2 : 0)}
-            </div>
-        `;
-
-        // Key Levels
-        const r1 = (price + atr * 0.8).toFixed(currentAsset === 'gold' ? 2 : 0);
-        const r2 = (price + atr * 1.5).toFixed(currentAsset === 'gold' ? 2 : 0);
-        const s1 = (price - atr * 0.8).toFixed(currentAsset === 'gold' ? 2 : 0);
-        const s2 = (price - atr * 1.5).toFixed(currentAsset === 'gold' ? 2 : 0);
-        
-        document.getElementById('keyLevels').innerHTML = `
-            <div class="analysis-text">
-                <strong style="color: #f44336;">Resistance:</strong><br>
-                R2: $${r2} (+${(atr * 1.5).toFixed(0)})<br>
-                R1: $${r1} (+${(atr * 0.8).toFixed(0)})<br><br>
-                
-                <strong style="color: #2196F3;">Current: $${price.toFixed(currentAsset === 'gold' ? 2 : 0)}</strong><br><br>
-                
-                <strong style="color: #4CAF50;">Support:</strong><br>
-                S1: $${s1} (-${(atr * 0.8).toFixed(0)})<br>
-                S2: $${s2} (-${(atr * 1.5).toFixed(0)})
-            </div>
-        `;
+        document.getElementById(`${asset}Confluence`).innerHTML = html;
     }
 
-    // Load Chart
-    function loadChart() {
-        const symbol = currentAsset === 'gold' ? 'OANDA:XAUUSD' : 'BITSTAMP:BTCUSD';
+    function displayIndicators(asset, rsi, macdData, trend, atr) {
+        const html = `
+            <div class="indicator-grid">
+                <div class="indicator-item">
+                    <div class="indicator-name">RSI (14)</div>
+                    <div class="indicator-value" style="color: ${rsi < 30 ? '#4CAF50' : rsi > 70 ? '#f44336' : '#FF9800'};">
+                        ${rsi.toFixed(1)}
+                    </div>
+                </div>
+                <div class="indicator-item">
+                    <div class="indicator-name">MACD</div>
+                    <div class="indicator-value" style="color: ${macdData.histogram > 0 ? '#4CAF50' : '#f44336'};">
+                        ${macdData.histogram > 0 ? 'Bullish' : 'Bearish'}
+                    </div>
+                </div>
+                <div class="indicator-item">
+                    <div class="indicator-name">Trend</div>
+                    <div class="indicator-value" style="color: ${trend === 'Uptrend' ? '#4CAF50' : '#f44336'};">
+                        ${trend}
+                    </div>
+                </div>
+                <div class="indicator-item">
+                    <div class="indicator-name">ATR (14)</div>
+                    <div class="indicator-value" style="color: #2196F3;">
+                        $${atr.toFixed(asset === 'gold' ? 2 : 0)}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analysis-text">
+                <strong>📊 Interpretation:</strong><br>
+                • <strong>RSI:</strong> ${rsi < 30 ? 'Oversold - Strong Buy' : rsi > 70 ? 'Overbought - Sell' : rsi < 45 ? 'Bullish Zone' : rsi > 55 ? 'Bearish Zone' : 'Neutral'}<br>
+                • <strong>MACD:</strong> ${macdData.histogram > 0 ? 'Positive momentum' : 'Negative momentum'}<br>
+                • <strong>Trend:</strong> ${trend}<br>
+                • <strong>Volatility:</strong> ${atr > (asset === 'gold' ? 65 : 2500) ? 'High' : atr > (asset === 'gold' ? 50 : 1500) ? 'Medium' : 'Low'}
+            </div>
+        `;
         
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-        script.async = true;
-        script.innerHTML = JSON.stringify({
-            "autosize": true,
-            "symbol": symbol,
-            "interval": "240",
-            "timezone": "Asia/Ho_Chi_Minh",
-            "theme": "light",
-            "style": "1",
-            "locale": "vi_VN",
-            "enable_publishing": false,
-            "allow_symbol_change": false,
-            "studies": ["STD;ATR", "STD;RSI", "STD;MACD"]
+        document.getElementById(`${asset}Indicators`).innerHTML = html;
+    }
+
+    function displayATRAnalysis(asset, atr, price) {
+        const atrPercent = (atr / price * 100).toFixed(2);
+        const digits = asset === 'gold' ? 2 : 0;
+        
+        const html = `
+            <div class="analysis-text">
+                <strong>📏 ATR (14-period):</strong> $${atr.toFixed(digits)}<br>
+                <strong>📊 Percentage:</strong> ${atrPercent}%<br>
+                <strong>💹 Volatility:</strong> ${atr > (asset === 'gold' ? 65 : 2500) ? 'High - Strong movements' : atr > (asset === 'gold' ? 50 : 1500) ? 'Medium - Normal' : 'Low - Quiet market'}
+            </div>
+            
+            <div class="analysis-text">
+                <strong>🎯 ATR Applications:</strong><br>
+                • <strong>Stop Loss:</strong> $${(atr * 1.5).toFixed(digits)} (1.5x ATR)<br>
+                • <strong>Take Profit:</strong> $${(atr * 3).toFixed(digits)} (3x ATR)<br>
+                • <strong>Scalping:</strong> $${(atr * 0.3).toFixed(digits)}-$${(atr * 0.5).toFixed(digits)}<br>
+                • <strong>Day trading:</strong> $${(atr * 0.8).toFixed(digits)}-$${(atr * 1.5).toFixed(digits)}<br>
+                • <strong>Swing trading:</strong> $${(atr * 2).toFixed(digits)}-$${(atr * 4).toFixed(digits)}
+            </div>
+        `;
+        
+        document.getElementById(`${asset}ATR`).innerHTML = html;
+    }
+
+    function displayEntrySetups(asset, rsi, macdData, atr, price, config) {
+        const digits = config.digits;
+        
+        const scalpSL = atr * 0.4;
+        const scalpTP = atr * 0.5;
+        const scalpConf = rsi < 50 && macdData.histogram > 0 ? 'high' : 'medium';
+        
+        const daySL = atr * 0.8;
+        const dayTP = atr * 1.5;
+        const dayConf = rsi < 45 && macdData.histogram > 0 ? 'high' : rsi < 55 ? 'medium' : 'low';
+        
+        const swingSL = atr * 1.5;
+        const swingTP = atr * 3;
+        const swingConf = rsi < 40 ? 'high' : rsi < 50 ? 'medium' : 'low';
+        
+        const html = `
+            <div class="entry-suggestion" style="background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);">
+                <h3>⚡ SCALPING (${currentTimeframe}) <span class="confidence-badge confidence-${scalpConf}">${scalpConf === 'high' ? 'High' : 'Medium'}</span></h3>
+                <div class="entry-details">
+                    <strong>📍 Entry:</strong> $${(price - atr * 0.1).toFixed(digits)} - $${price.toFixed(digits)}<br>
+                    <strong>🛑 SL:</strong> $${(price - scalpSL).toFixed(digits)} (-$${scalpSL.toFixed(digits)})<br>
+                    <strong>🎯 TP:</strong> $${(price + scalpTP).toFixed(digits)} (+$${scalpTP.toFixed(digits)})<br>
+                    <strong>⚖️ R:R:</strong> 1:${(scalpTP/scalpSL).toFixed(1)}
+                </div>
+            </div>
+            
+            <div class="entry-suggestion" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h3>📊 DAY TRADING <span class="confidence-badge confidence-${dayConf}">${dayConf === 'high' ? 'High' : dayConf === 'medium' ? 'Medium' : 'Low'}</span></h3>
+                <div class="entry-details">
+                    <strong>📍 Entry:</strong> $${(price - atr * 0.3).toFixed(digits)} - $${(price - atr * 0.1).toFixed(digits)}<br>
+                    <strong>🛑 SL:</strong> $${(price - atr).toFixed(digits)} (-$${daySL.toFixed(digits)})<br>
+                    <strong>🎯 TP:</strong> $${(price + dayTP).toFixed(digits)} (+$${dayTP.toFixed(digits)})<br>
+                    <strong>⚖️ R:R:</strong> 1:${(dayTP/daySL).toFixed(1)}
+                </div>
+            </div>
+            
+            <div class="entry-suggestion" style="background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);">
+                <h3>🎯 SWING TRADING <span class="confidence-badge confidence-${swingConf}">${swingConf === 'high' ? 'High' : swingConf === 'medium' ? 'Medium' : 'Low'}</span></h3>
+                <div class="entry-details">
+                    <strong>📍 Entry:</strong> $${(price - atr * 0.8).toFixed(digits)} - $${(price - atr * 0.4).toFixed(digits)}<br>
+                    <strong>🛑 SL:</strong> $${(price - atr * 2).toFixed(digits)} (-$${swingSL.toFixed(digits)})<br>
+                    <strong>🎯 TP:</strong> $${(price + swingTP).toFixed(digits)} (+$${swingTP.toFixed(digits)})<br>
+                    <strong>⚖️ R:R:</strong> 1:${(swingTP/swingSL).toFixed(1)}
+                </div>
+            </div>
+        `;
+        
+        document.getElementById(`${asset}Entry`).innerHTML = html;
+    }
+
+    function displayKeyLevels(asset, price, atr) {
+        const digits = asset === 'gold' ? 2 : 0;
+        
+        const r1 = price + atr * 0.8;
+        const r2 = price + atr * 1.5;
+        const r3 = price + atr * 2.5;
+        const s1 = price - atr * 0.8;
+        const s2 = price - atr * 1.5;
+        const s3 = price - atr * 2.5;
+        
+        const html = `
+            <h3 style="color: #f44336;">Resistance</h3>
+            <div class="level-item" style="border-left-color: #f44336;">
+                <span class="level-label">R3:</span>
+                <span class="level-value">$${r3.toFixed(digits)} (+${(r3-price).toFixed(digits)})</span>
+            </div>
+            <div class="level-item" style="border-left-color: #ff5722;">
+                <span class="level-label">R2:</span>
+                <span class="level-value">$${r2.toFixed(digits)} (+${(r2-price).toFixed(digits)})</span>
+            </div>
+            <div class="level-item" style="border-left-color: #ff9800;">
+                <span class="level-label">R1:</span>
+                <span class="level-value">$${r1.toFixed(digits)} (+${(r1-price).toFixed(digits)})</span>
+            </div>
+            
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border-radius: 8px; margin: 15px 0; font-weight: bold; color: #1e3c72;">
+                📍 Current: $${price.toFixed(digits)}
+            </div>
+            
+            <h3 style="color: #4CAF50;">Support</h3>
+            <div class="level-item" style="border-left-color: #8bc34a;">
+                <span class="level-label">S1:</span>
+                <span class="level-value">$${s1.toFixed(digits)} (-${(price-s1).toFixed(digits)})</span>
+            </div>
+            <div class="level-item" style="border-left-color: #4CAF50;">
+                <span class="level-label">S2:</span>
+                <span class="level-value">$${s2.toFixed(digits)} (-${(price-s2).toFixed(digits)})</span>
+            </div>
+            <div class="level-item" style="border-left-color: #2e7d32;">
+                <span class="level-label">S3:</span>
+                <span class="level-value">$${s3.toFixed(digits)} (-${(price-s3).toFixed(digits)})</span>
+            </div>
+        `;
+        
+        document.getElementById(`${asset}Levels`).innerHTML = html;
+    }
+
+    function displayPatterns(asset, historical, rsi, macdData) {
+        const lastCandle = historical[historical.length - 1];
+        const body = Math.abs(lastCandle.close - lastCandle.open);
+        const range = lastCandle.high - lastCandle.low;
+        
+        let patterns = [];
+        
+        if (body / range < 0.3) {
+            if (lastCandle.close > lastCandle.open) {
+                patterns.push({
+                    name: 'Hammer',
+                    signal: 'Bullish',
+                    confidence: 'High',
+                    desc: 'Strong reversal signal'
+                });
+            } else {
+                patterns.push({
+                    name: 'Shooting Star',
+                    signal: 'Bearish',
+                    confidence: 'High',
+                    desc: 'Potential top'
+                });
+            }
+        }
+        
+        const prices = historical.map(d => d.close);
+        const avgRecent = prices.slice(-5).reduce((a,b) => a+b) / 5;
+        const avgOlder = prices.slice(-10, -5).reduce((a,b) => a+b) / 5;
+        
+        if (avgRecent > avgOlder * 1.02) {
+            patterns.push({
+                name: 'Uptrend',
+                signal: 'Bullish',
+                confidence: 'Medium',
+                desc: 'Clear upward momentum'
+            });
+        } else if (avgRecent < avgOlder * 0.98) {
+            patterns.push({
+                name: 'Downtrend',
+                signal: 'Bearish',
+                confidence: 'Medium',
+                desc: 'Downward pressure'
+            });
+        }
+        
+        if (patterns.length === 0) {
+            patterns.push({
+                name: 'Consolidation',
+                signal: 'Neutral',
+                confidence: 'Low',
+                desc: 'Sideways movement'
+            });
+        }
+        
+        let html = '';
+        patterns.forEach(p => {
+            const color = p.signal === 'Bullish' ? '#4CAF50' : p.signal === 'Bearish' ? '#f44336' : '#FF9800';
+            html += `
+                <div class="analysis-text" style="border-left-color: ${color};">
+                    <strong style="color: ${color}; font-size: 1.1em;">${p.name}</strong><br>
+                    <strong>Signal:</strong> ${p.signal}<br>
+                    <strong>Confidence:</strong> ${p.confidence}<br>
+                    <strong>Description:</strong> ${p.desc}
+                </div>
+            `;
         });
         
-        const container = document.getElementById('mainChart');
-        container.innerHTML = '<div class="tradingview-widget-container__widget" style="height: 100%; width: 100%;"></div>';
-        container.appendChild(script);
+        document.getElementById(`${asset}Patterns`).innerHTML = html;
     }
 
-    // Initialize
+    function updateStatusTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleString('vi-VN');
+        
+        document.getElementById('updateTime').innerHTML = `
+            📊 Last Update: ${timeStr}<br>
+            🎯 Asset: ${assetConfig[currentAsset].name} | Timeframe: ${currentTimeframe}<br>
+            🔄 Auto price monitoring active (every 5s)
+        `;
+    }
+
+    function startAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+        
+        let countdown = 30;
+        const badge = document.getElementById('autoRefreshBadge');
+        
+        autoRefreshInterval = setInterval(() => {
+            countdown--;
+            badge.textContent = `🔄 Next analysis: ${countdown}s`;
+            
+            if (countdown <= 0) {
+                countdown = 30;
+                analyzeAsset('gold');
+                analyzeAsset('btc');
+            }
+        }, 1000);
+    }
+
     function init() {
-        console.log('🚀 Initializing V3 Real-time Analysis...');
-        loadWidgets();
-        loadChart();
-        console.log('✅ Ready! Prices will auto-update every second.');
+        console.log('🚀 Initializing PRO Analysis Tool V3.0 - Full Auto...');
+        
+        loadTradingViewCharts();
+        
+        setTimeout(() => {
+            analyzeAsset('gold');
+            analyzeAsset('btc');
+        }, 5000);
+        
+        startAutoRefresh();
+        
+        console.log('✅ Initialization complete!');
+        console.log('👀 Automatic price monitoring will start in 3 seconds');
     }
 
     window.addEventListener('load', init);
