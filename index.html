@@ -696,51 +696,43 @@
 <script>
     // Global variables
     let marketData = {
-        price: 0,
-        bid: 0,
-        ask: 0,
+        price: 2650.50,
+        bid: 2650.25,
+        ask: 2650.75,
         change: 0,
         changePercent: 0,
-        high: 0,
-        low: 0,
-        volume: 0
+        high: 2655.00,
+        low: 2645.00,
+        volume: 0,
+        previousPrice: 2650.50,
+        sessionHigh: 2655.00,
+        sessionLow: 2645.00
     };
 
     let technicalData = {};
 
     // Initialize on page load
     window.addEventListener('load', function() {
-        fetchMarketData();
-        // Update every 2 seconds for realistic live trading feel
-        setInterval(fetchMarketData, 2000);
+        // Display initial prices immediately
+        updatePriceDisplay();
+        analyzeAllTimeframes();
+        
+        // Then start live updates
+        setInterval(function() {
+            simulateMarketData();
+        }, 2000);
     });
-
-    // Fetch real-time market data
-    async function fetchMarketData() {
-        // Use simulated data with realistic price movements
-        // This provides immediate, smooth updates without API dependencies
-        simulateMarketData();
-    }
 
     // Simulate market data with realistic movements
     function simulateMarketData() {
-        // Initialize with current market price if first time
-        if (!marketData.price || marketData.price === 0) {
-            // Get realistic starting price based on recent gold market
-            marketData.price = 2645 + (Math.random() * 10); // Around $2645-2655
-            marketData.previousPrice = marketData.price;
-            marketData.sessionHigh = marketData.price + 5;
-            marketData.sessionLow = marketData.price - 5;
-        }
-        
         // Simulate realistic tick-by-tick price movement
-        // Gold typically moves in small increments
-        const tickSize = 0.1; // $0.10 minimum movement
-        const maxTicks = 5; // Max 5 ticks per update
+        const tickSize = 0.10; // $0.10 minimum movement
+        const maxTicks = 8; // Max 8 ticks per update
         const direction = Math.random() > 0.5 ? 1 : -1;
         const ticks = Math.floor(Math.random() * maxTicks) + 1;
         const priceChange = direction * ticks * tickSize;
         
+        // Update price
         marketData.previousPrice = marketData.price;
         marketData.price = parseFloat((marketData.price + priceChange).toFixed(2));
         
@@ -764,9 +756,11 @@
         marketData.high = marketData.sessionHigh;
         marketData.low = marketData.sessionLow;
         
+        // Update display
         updatePriceDisplay();
         analyzeAllTimeframes();
         
+        // Update status badge
         document.getElementById('dataStatus').textContent = '● LIVE SIMULATION';
         document.getElementById('dataStatus').style.background = '#3498db';
     }
