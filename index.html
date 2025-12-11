@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XAU/USD - Advanced Technical Analysis</title>
+    <title>XAU/USD Analysis - Multiple Timeframe Confluence</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -16,7 +16,7 @@
         min-height: 100vh;
     }
     
-    .container { max-width: 1800px; margin: 0 auto; }
+    .container { max-width: 1600px; margin: 0 auto; }
     
     .header {
         background: white;
@@ -39,10 +39,25 @@
         width: fit-content;
     }
     
-    .price-status.real { background: #d4edda; color: #155724; }
-    .price-status.loading { background: #fff3cd; color: #856404; }
-    .price-status.cached { background: #d1ecf1; color: #0c5460; }
-    .price-status.simulated { background: #f8d7da; color: #721c24; }
+    .price-status.real {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .price-status.loading {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .price-status.cached {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .price-status.simulated {
+        background: #f8d7da;
+        color: #721c24;
+    }
     
     .status-dot {
         width: 8px;
@@ -95,16 +110,11 @@
     
     .main-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 20px;
-        margin-bottom: 20px;
     }
     
-    @media (max-width: 1400px) {
-        .main-grid { grid-template-columns: 1fr 1fr; }
-    }
-    
-    @media (max-width: 900px) {
+    @media (max-width: 1200px) {
         .main-grid { grid-template-columns: 1fr; }
     }
     
@@ -120,47 +130,7 @@
         margin-bottom: 15px;
         padding-bottom: 10px;
         border-bottom: 3px solid #667eea;
-        font-size: 1.2em;
     }
-    
-    .indicator-grid {
-        display: grid;
-        gap: 10px;
-    }
-    
-    .indicator-item {
-        background: #f8f9fa;
-        padding: 12px;
-        border-radius: 8px;
-        border-left: 4px solid #667eea;
-    }
-    
-    .indicator-name {
-        font-size: 0.9em;
-        color: #666;
-        margin-bottom: 5px;
-    }
-    
-    .indicator-value {
-        font-weight: bold;
-        font-size: 1.1em;
-        color: #2c3e50;
-    }
-    
-    .signal-badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 12px;
-        font-size: 0.8em;
-        font-weight: bold;
-        margin-left: 8px;
-    }
-    
-    .badge-buy { background: #28a745; color: white; }
-    .badge-sell { background: #dc3545; color: white; }
-    .badge-neutral { background: #ffc107; color: #333; }
-    .badge-strong { background: #007bff; color: white; }
-    .badge-weak { background: #6c757d; color: white; }
     
     .tf-card {
         border: 2px solid #e0e0e0;
@@ -189,6 +159,35 @@
     
     .tf-name { font-weight: bold; font-size: 1.05em; }
     
+    .tf-signal {
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 0.85em;
+    }
+    
+    .signal-buy { background: #28a745; color: white; }
+    .signal-sell { background: #dc3545; color: white; }
+    .signal-neutral { background: #ffc107; color: #333; }
+    
+    .tf-indicators {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+    }
+    
+    .indicator {
+        text-align: center;
+        padding: 6px;
+        background: white;
+        border-radius: 5px;
+        font-size: 0.8em;
+    }
+    
+    .indicator-label { color: #666; font-size: 0.9em; }
+    .indicator-value { font-weight: bold; color: #2c3e50; margin-top: 2px; }
+    
     .confluence-section {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -202,6 +201,26 @@
         font-size: 2.5em;
         font-weight: bold;
         margin: 10px 0;
+    }
+    
+    .confluence-bars {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    .confluence-bar {
+        background: rgba(255,255,255,0.2);
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 0.9em;
+    }
+    
+    .confluence-bar.active {
+        background: rgba(255,255,255,0.9);
+        color: #667eea;
+        font-weight: bold;
     }
     
     .setup-card {
@@ -232,7 +251,7 @@
     
     .setup-details {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 8px;
     }
     
@@ -246,38 +265,105 @@
     .setup-label { font-size: 0.75em; opacity: 0.9; }
     .setup-value { font-size: 1.1em; font-weight: bold; margin-top: 3px; }
     
+    .reasoning {
+        margin-top: 12px;
+        padding: 12px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 8px;
+        font-size: 0.85em;
+        line-height: 1.5;
+    }
+    
+    .reasoning-title { font-weight: bold; margin-bottom: 6px; }
+    
+    /* New Technical Analysis Styles */
+    .tech-analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+    }
+    
+    .tech-indicator {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .tech-indicator-header {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .tech-indicator-value {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #667eea;
+        margin: 5px 0;
+    }
+    
+    .tech-indicator-signal {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.85em;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+    
+    .bullish-signal {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .bearish-signal {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .neutral-signal {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    /* AI Analysis Section */
     .ai-section {
         background: white;
-        padding: 25px;
+        padding: 20px;
         border-radius: 15px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         margin-top: 20px;
     }
     
-    .ai-section h2 {
-        color: #2c3e50;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 3px solid #667eea;
-    }
-    
     .ai-input-group {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
+        display: flex;
         gap: 10px;
-        margin-bottom: 20px;
-        align-items: center;
+        margin: 15px 0;
+        flex-wrap: wrap;
     }
     
-    .ai-select, .ai-input {
+    .ai-select {
         padding: 12px;
         border: 2px solid #667eea;
         border-radius: 8px;
         font-size: 1em;
+        background: white;
+        cursor: pointer;
+        min-width: 150px;
     }
     
     .ai-input {
-        min-width: 300px;
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        font-size: 1em;
+        min-width: 250px;
     }
     
     .ai-button {
@@ -286,6 +372,7 @@
         color: white;
         border: none;
         border-radius: 8px;
+        font-size: 1em;
         font-weight: bold;
         cursor: pointer;
         transition: transform 0.2s;
@@ -321,7 +408,8 @@
     }
     
     @keyframes spin {
-        to { transform: rotate(360deg); }
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     
     .ai-response {
@@ -329,7 +417,7 @@
         padding: 20px;
         border-radius: 10px;
         border-left: 4px solid #667eea;
-        margin-top: 20px;
+        margin-top: 15px;
         white-space: pre-wrap;
         line-height: 1.6;
         display: none;
@@ -339,59 +427,17 @@
         display: block;
     }
     
-    .json-preview {
+    .json-data {
         background: #2d2d2d;
         color: #f8f8f2;
         padding: 15px;
         border-radius: 8px;
         font-family: 'Courier New', monospace;
         font-size: 0.85em;
+        overflow-x: auto;
+        margin: 10px 0;
         max-height: 300px;
         overflow-y: auto;
-        margin-top: 15px;
-    }
-    
-    .json-preview::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .json-preview::-webkit-scrollbar-track {
-        background: #1a1a1a;
-    }
-    
-    .json-preview::-webkit-scrollbar-thumb {
-        background: #667eea;
-        border-radius: 4px;
-    }
-    
-    .toggle-json {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.9em;
-        margin-top: 10px;
-    }
-    
-    .pattern-box {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-    }
-    
-    .pattern-name {
-        font-weight: bold;
-        font-size: 1.1em;
-        margin-bottom: 8px;
-    }
-    
-    .pattern-desc {
-        font-size: 0.9em;
-        opacity: 0.95;
     }
 </style>
 ```
@@ -401,7 +447,7 @@
     <div class="container">
         <div class="header">
             <h1 style="text-align:center; color:#2c3e50; margin-bottom:15px;">
-                🎯 XAU/USD - Advanced Technical Analysis
+                🎯 XAU/USD - Multiple Timeframe Confluence
             </h1>
 
 ```
@@ -423,78 +469,50 @@
                 <div class="price-label">Ask</div>
                 <div class="price-value" id="askPrice">--</div>
             </div>
-            <div class="price-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                <div class="price-label">24h Change</div>
-                <div class="price-value" id="priceChange">--</div>
-            </div>
         </div>
         
         <div style="text-align:center; color:#666; font-size:0.85em; margin:10px 0;" id="updateTime">--</div>
-        <button class="refresh-btn" onclick="updatePrice()">🔄 Cập Nhật Dữ Liệu</button>
+        <button class="refresh-btn" onclick="updatePrice()">🔄 Làm mới</button>
     </div>
 
     <div class="main-grid">
-        <!-- Column 1: Oscillators & Momentum -->
         <div class="card">
-            <h2>⚡ Oscillators & Momentum</h2>
-            <div class="indicator-grid" id="oscillators"></div>
-        </div>
-
-        <!-- Column 2: Moving Averages & Trend -->
-        <div class="card">
-            <h2>📈 Moving Averages & Trend</h2>
-            <div class="indicator-grid" id="movingAverages"></div>
-        </div>
-
-        <!-- Column 3: Pivot Points & Fibonacci -->
-        <div class="card">
-            <h2>🎯 Pivot Points & Fibonacci</h2>
-            <div class="indicator-grid" id="pivotFib"></div>
-        </div>
-    </div>
-
-    <!-- Volume & Market Structure -->
-    <div class="main-grid">
-        <div class="card">
-            <h2>📊 Volume & Volatility</h2>
-            <div class="indicator-grid" id="volumeVolatility"></div>
-        </div>
-
-        <div class="card">
-            <h2>🔍 Chart Patterns</h2>
-            <div id="chartPatterns"></div>
-        </div>
-
-        <div class="card">
-            <h2>💡 Market Sentiment</h2>
-            <div class="indicator-grid" id="marketSentiment"></div>
-        </div>
-    </div>
-
-    <!-- Timeframe Analysis -->
-    <div class="main-grid">
-        <div class="card">
-            <h2>📊 Multi-Timeframe Analysis</h2>
+            <h2>📊 Phân Tích Timeframes</h2>
             <div id="timeframeAnalysis"></div>
             
             <div class="confluence-section">
                 <h3 style="margin-bottom:5px;">Confluence Score</h3>
                 <div class="confluence-score" id="confluenceScore">--</div>
-                <div style="font-size:0.85em;">Độ tin cậy tín hiệu tổng hợp</div>
+                <div style="font-size:0.85em;">Độ tin cậy tín hiệu</div>
+                
+                <div class="confluence-bars">
+                    <div class="confluence-bar" id="conf_m15"><div>M15</div><div id="conf_m15_val">--</div></div>
+                    <div class="confluence-bar" id="conf_h1"><div>H1</div><div id="conf_h1_val">--</div></div>
+                    <div class="confluence-bar" id="conf_h4"><div>H4</div><div id="conf_h4_val">--</div></div>
+                    <div class="confluence-bar" id="conf_d1"><div>D1</div><div id="conf_d1_val">--</div></div>
+                </div>
             </div>
         </div>
 
-        <div class="card" style="grid-column: span 2;">
-            <h2>💡 Trading Setups</h2>
+        <div class="card">
+            <h2>💡 Entry Points</h2>
             <div id="entrySetups"></div>
+        </div>
+    </div>
+
+    <!-- New Technical Analysis Section -->
+    <div class="card" style="margin-top: 20px;">
+        <h2>🔬 Phân Tích Kỹ Thuật Nâng Cao</h2>
+        <div class="tech-analysis-grid" id="technicalAnalysis">
+            <!-- Will be populated by JavaScript -->
         </div>
     </div>
 
     <!-- AI Analysis Section -->
     <div class="ai-section">
-        <h2>🤖 AI Analysis - Phân Tích Chuyên Sâu</h2>
-        <p style="color: #666; margin-bottom: 15px; font-size: 0.95em;">
-            AI sẽ nhận toàn bộ dữ liệu kỹ thuật dưới dạng JSON để phân tích sâu hơn
+        <h2>🤖 Phân Tích AI Chuyên Sâu</h2>
+        <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">
+            AI sẽ nhận JSON đầy đủ về thị trường và đưa ra phân tích chuyên nghiệp
         </p>
         
         <div class="ai-input-group">
@@ -502,35 +520,40 @@
                 <option value="claude">Claude API</option>
                 <option value="openai">OpenAI API</option>
             </select>
-            <input type="password" class="ai-input" id="apiKey" placeholder="Nhập API Key của bạn (sk-ant-... hoặc sk-...)">
-            <button class="ai-button" id="aiAnalyzeBtn" onclick="analyzeWithAI()">🔍 Phân Tích Với AI</button>
+            <input type="password" class="ai-input" id="apiKey" placeholder="Nhập API Key của bạn...">
+            <button class="ai-button" onclick="analyzeWithAI()" id="aiAnalyzeBtn">
+                🔍 Phân Tích Với AI
+            </button>
         </div>
-        
-        <button class="toggle-json" onclick="toggleJSON()">👁️ Xem JSON Data Gửi Cho AI</button>
-        <div class="json-preview" id="jsonPreview" style="display:none;"></div>
         
         <div class="ai-loading" id="aiLoading">
             <div class="spinner"></div>
-            <p>Đang gửi dữ liệu và chờ AI phân tích...</p>
+            <p>Đang gửi dữ liệu và phân tích với AI...</p>
         </div>
         
         <div class="ai-response" id="aiResponse"></div>
+        
+        <details style="margin-top: 15px;">
+            <summary style="cursor: pointer; font-weight: bold; color: #667eea; padding: 10px 0;">
+                📊 Xem JSON Data được gửi cho AI
+            </summary>
+            <div class="json-data" id="jsonData"></div>
+        </details>
     </div>
 </div>
 
 <script>
     let currentPrice = null;
     let marketData = {};
-    let technicalData = {};
     let priceSource = 'LOADING';
     let retryAttempt = 0;
 
-    // Fetch price
+    // Fetch price with multiple sources and clear status
     async function fetchPrice() {
         console.log(`🔄 Fetching price (attempt ${retryAttempt + 1})...`);
         updatePriceStatus('loading', 'Đang tải giá real-time...');
         
-        // Binance
+        // Source 1: Binance
         try {
             const controller = new AbortController();
             setTimeout(() => controller.abort(), 4000);
@@ -552,13 +575,13 @@
             console.log('❌ Binance failed:', e.message);
         }
 
-        // CoinGecko
+        // Source 2: CoinGecko  
         try {
             const controller = new AbortController();
             setTimeout(() => controller.abort(), 4000);
             
             const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pax-gold&vs_currencies=usd', {
-                signal: controller.signal
+                signal: controller.abort
             });
             const data = await res.json();
             
@@ -574,13 +597,14 @@
             console.log('❌ CoinGecko failed:', e.message);
         }
 
-        // Cached
+        // Source 3: Use cached price
         try {
             const cached = JSON.parse(localStorage.getItem('xau_last_price'));
             if (cached && (Date.now() - cached.time < 3600000)) {
                 console.log('⚠️ Using cached:', cached.price);
                 updatePriceStatus('cached', 'Giá từ cache (< 1h)');
                 
+                // Retry in background
                 retryAttempt++;
                 if (retryAttempt < 3) {
                     setTimeout(() => fetchPrice().then(p => p && updatePrice()), 10000);
@@ -590,7 +614,7 @@
             }
         } catch (e) {}
 
-        // Simulated
+        // Final: Simulated
         console.log('⚠️ Using simulation');
         updatePriceStatus('simulated', 'Giá mô phỏng (API offline)');
         
@@ -613,216 +637,6 @@
         textEl.textContent = text;
     }
 
-    // Calculate all technical indicators
-    function calculateTechnicalIndicators(price) {
-        const atr = 8 + Math.random() * 4;
-        
-        // Oscillators
-        const rsi = 35 + Math.floor(Math.random() * 30);
-        const stochastic = 30 + Math.floor(Math.random() * 40);
-        const cci = -100 + Math.floor(Math.random() * 200);
-        const williams = -80 + Math.floor(Math.random() * 60);
-        const momentum = (Math.random() - 0.5) * 20;
-        const roc = (Math.random() - 0.5) * 3;
-        
-        // Moving Averages
-        const ema20 = price - (Math.random() - 0.5) * 10;
-        const ema50 = price - (Math.random() - 0.3) * 20;
-        const ema200 = price - (Math.random() - 0.2) * 50;
-        const sma20 = price - (Math.random() - 0.5) * 12;
-        const sma50 = price - (Math.random() - 0.3) * 22;
-        const sma200 = price - (Math.random() - 0.2) * 52;
-        const vwap = price - (Math.random() - 0.5) * 5;
-        
-        // Bollinger Bands
-        const bbUpper = price + atr * 2;
-        const bbLower = price - atr * 2;
-        const bbPosition = ((price - bbLower) / (bbUpper - bbLower) * 100).toFixed(0);
-        
-        // Ichimoku
-        const tenkan = price - (Math.random() - 0.5) * 8;
-        const kijun = price - (Math.random() - 0.5) * 15;
-        const senkouA = (tenkan + kijun) / 2;
-        const senkouB = price - (Math.random() - 0.3) * 25;
-        
-        // Pivot Points (Standard)
-        const high = price + atr * 0.8;
-        const low = price - atr * 0.8;
-        const close = price;
-        const pivot = (high + low + close) / 3;
-        const r1 = 2 * pivot - low;
-        const r2 = pivot + (high - low);
-        const r3 = high + 2 * (pivot - low);
-        const s1 = 2 * pivot - high;
-        const s2 = pivot - (high - low);
-        const s3 = low - 2 * (high - pivot);
-        
-        // Fibonacci Retracement (from recent high/low)
-        const recentHigh = price + atr * 2;
-        const recentLow = price - atr * 2;
-        const range = recentHigh - recentLow;
-        const fib236 = recentHigh - range * 0.236;
-        const fib382 = recentHigh - range * 0.382;
-        const fib50 = recentHigh - range * 0.5;
-        const fib618 = recentHigh - range * 0.618;
-        const fib786 = recentHigh - range * 0.786;
-        
-        // Volume & Volatility
-        const volume = 1000000 + Math.floor(Math.random() * 500000);
-        const avgVolume = 1200000;
-        const volumeRatio = (volume / avgVolume * 100).toFixed(0);
-        const atrPercent = (atr / price * 100).toFixed(2);
-        
-        // ADX (Trend Strength)
-        const adx = 20 + Math.floor(Math.random() * 40);
-        const plusDI = 20 + Math.floor(Math.random() * 30);
-        const minusDI = 20 + Math.floor(Math.random() * 30);
-        
-        // Chart Patterns Detection
-        const patterns = detectPatterns(price, ema20, ema50, rsi);
-        
-        // Market Sentiment
-        const bullPower = (Math.random() - 0.5) * 10;
-        const bearPower = (Math.random() - 0.5) * 10;
-        const fearGreedIndex = 40 + Math.floor(Math.random() * 30);
-        
-        return {
-            price,
-            atr,
-            oscillators: {
-                rsi: { value: rsi, signal: rsi > 70 ? 'SELL' : rsi < 30 ? 'BUY' : 'NEUTRAL' },
-                stochastic: { value: stochastic, signal: stochastic > 80 ? 'SELL' : stochastic < 20 ? 'BUY' : 'NEUTRAL' },
-                cci: { value: cci, signal: cci > 100 ? 'SELL' : cci < -100 ? 'BUY' : 'NEUTRAL' },
-                williams: { value: williams, signal: williams > -20 ? 'SELL' : williams < -80 ? 'BUY' : 'NEUTRAL' },
-                momentum: { value: momentum.toFixed(2), signal: momentum > 5 ? 'BUY' : momentum < -5 ? 'SELL' : 'NEUTRAL' },
-                roc: { value: roc.toFixed(2), signal: roc > 0 ? 'BUY' : 'SELL' }
-            },
-            movingAverages: {
-                ema20: { value: ema20.toFixed(2), signal: price > ema20 ? 'BUY' : 'SELL' },
-                ema50: { value: ema50.toFixed(2), signal: price > ema50 ? 'BUY' : 'SELL' },
-                ema200: { value: ema200.toFixed(2), signal: price > ema200 ? 'BUY' : 'SELL' },
-                sma20: { value: sma20.toFixed(2), signal: price > sma20 ? 'BUY' : 'SELL' },
-                sma50: { value: sma50.toFixed(2), signal: price > sma50 ? 'BUY' : 'SELL' },
-                sma200: { value: sma200.toFixed(2), signal: price > sma200 ? 'BUY' : 'SELL' },
-                vwap: { value: vwap.toFixed(2), signal: price > vwap ? 'BUY' : 'SELL' }
-            },
-            bollingerBands: {
-                upper: bbUpper.toFixed(2),
-                lower: bbLower.toFixed(2),
-                position: bbPosition,
-                signal: bbPosition > 80 ? 'SELL' : bbPosition < 20 ? 'BUY' : 'NEUTRAL'
-            },
-            ichimoku: {
-                tenkan: tenkan.toFixed(2),
-                kijun: kijun.toFixed(2),
-                senkouA: senkouA.toFixed(2),
-                senkouB: senkouB.toFixed(2),
-                signal: price > senkouA && price > senkouB ? 'BUY' : price < senkouA && price < senkouB ? 'SELL' : 'NEUTRAL'
-            },
-            pivotPoints: {
-                pivot: pivot.toFixed(2),
-                r1: r1.toFixed(2),
-                r2: r2.toFixed(2),
-                r3: r3.toFixed(2),
-                s1: s1.toFixed(2),
-                s2: s2.toFixed(2),
-                s3: s3.toFixed(2)
-            },
-            fibonacci: {
-                '0%': recentHigh.toFixed(2),
-                '23.6%': fib236.toFixed(2),
-                '38.2%': fib382.toFixed(2),
-                '50%': fib50.toFixed(2),
-                '61.8%': fib618.toFixed(2),
-                '78.6%': fib786.toFixed(2),
-                '100%': recentLow.toFixed(2)
-            },
-            volume: {
-                current: volume,
-                average: avgVolume,
-                ratio: volumeRatio,
-                signal: volumeRatio > 120 ? 'STRONG' : volumeRatio < 80 ? 'WEAK' : 'NORMAL'
-            },
-            volatility: {
-                atr: atr.toFixed(2),
-                atrPercent: atrPercent,
-                signal: atrPercent > 0.5 ? 'HIGH' : atrPercent < 0.3 ? 'LOW' : 'NORMAL'
-            },
-            adx: {
-                value: adx,
-                plusDI: plusDI,
-                minusDI: minusDI,
-                trendStrength: adx > 25 ? 'STRONG' : adx > 20 ? 'MODERATE' : 'WEAK',
-                signal: plusDI > minusDI ? 'BUY' : 'SELL'
-            },
-            patterns: patterns,
-            sentiment: {
-                bullPower: bullPower.toFixed(2),
-                bearPower: bearPower.toFixed(2),
-                fearGreedIndex: fearGreedIndex,
-                signal: fearGreedIndex > 60 ? 'GREED' : fearGreedIndex < 40 ? 'FEAR' : 'NEUTRAL'
-            }
-        };
-    }
-
-    function detectPatterns(price, ema20, ema50, rsi) {
-        const patterns = [];
-        
-        // Golden Cross
-        if (ema20 > ema50 && Math.abs(ema20 - ema50) < 5) {
-            patterns.push({
-                name: 'Golden Cross',
-                type: 'BULLISH',
-                description: 'EMA20 vừa cắt lên trên EMA50 - Tín hiệu tăng mạnh'
-            });
-        }
-        
-        // Death Cross
-        if (ema20 < ema50 && Math.abs(ema20 - ema50) < 5) {
-            patterns.push({
-                name: 'Death Cross',
-                type: 'BEARISH',
-                description: 'EMA20 vừa cắt xuống dưới EMA50 - Tín hiệu giảm mạnh'
-            });
-        }
-        
-        // RSI Divergence
-        if (rsi < 30) {
-            patterns.push({
-                name: 'RSI Oversold',
-                type: 'BULLISH',
-                description: `RSI ${rsi} - Vùng quá bán, có thể phục hồi`
-            });
-        }
-        
-        if (rsi > 70) {
-            patterns.push({
-                name: 'RSI Overbought',
-                type: 'BEARISH',
-                description: `RSI ${rsi} - Vùng quá mua, có thể điều chỉnh`
-            });
-        }
-        
-        // Trend Continuation
-        if (price > ema20 && ema20 > ema50) {
-            patterns.push({
-                name: 'Strong Uptrend',
-                type: 'BULLISH',
-                description: 'Xu hướng tăng mạnh, giá trên các MA chính'
-            });
-        }
-        
-        if (price < ema20 && ema20 < ema50) {
-            patterns.push({
-                name: 'Strong Downtrend',
-                type: 'BEARISH',
-                description: 'Xu hướng giảm mạnh, giá dưới các MA chính'
-            });
-        }
-        
-        return patterns;
-    }
-
     function calculateTFData(price, tf) {
         let atr;
         switch(tf) {
@@ -834,7 +648,6 @@
         
         const ema20 = price - (Math.random() - 0.5) * atr * 2;
         const ema50 = price - (Math.random() - 0.3) * atr * 3;
-        const rsi = 35 + Math.floor(Math.random() * 30);
         
         const bullish = price > ema20 && ema20 > ema50;
         const bearish = price < ema20 && ema20 < ema50;
@@ -843,300 +656,234 @@
         const trend = bullish ? 'BULLISH' : bearish ? 'BEARISH' : 'NEUTRAL';
         const confidence = bullish || bearish ? 60 + Math.floor(Math.random() * 25) : 45 + Math.floor(Math.random() * 15);
         
+        const rsi = 35 + Math.floor(Math.random() * 30);
+        
         return {
             tf, atr: atr.toFixed(1), ema20: ema20.toFixed(2), ema50: ema50.toFixed(2),
-            rsi, signal, trend, confidence
+            rsi, signal, trend, confidence,
+            support: (price - atr * 1.5).toFixed(2),
+            resistance: (price + atr * 1.5).toFixed(2)
         };
     }
 
-    function renderIndicators() {
-        const tech = technicalData;
+    // New: Calculate advanced technical indicators
+    function calculateAdvancedIndicators(price) {
+        // Fibonacci Retracement Levels
+        const recentHigh = price + (15 + Math.random() * 10);
+        const recentLow = price - (15 + Math.random() * 10);
+        const fibLevels = {
+            '0%': recentLow.toFixed(2),
+            '23.6%': (recentLow + (recentHigh - recentLow) * 0.236).toFixed(2),
+            '38.2%': (recentLow + (recentHigh - recentLow) * 0.382).toFixed(2),
+            '50%': (recentLow + (recentHigh - recentLow) * 0.5).toFixed(2),
+            '61.8%': (recentLow + (recentHigh - recentLow) * 0.618).toFixed(2),
+            '100%': recentHigh.toFixed(2)
+        };
         
-        // Oscillators
-        let oscHTML = '';
-        Object.entries(tech.oscillators).forEach(([key, data]) => {
-            const badgeClass = data.signal === 'BUY' ? 'badge-buy' : data.signal === 'SELL' ? 'badge-sell' : 'badge-neutral';
-            oscHTML += `
-                <div class="indicator-item">
-                    <div class="indicator-name">${key.toUpperCase()}</div>
-                    <div class="indicator-value">
-                        ${data.value}
-                        <span class="signal-badge ${badgeClass}">${data.signal}</span>
-                    </div>
-                </div>
-            `;
-        });
-        document.getElementById('oscillators').innerHTML = oscHTML;
+        // Bollinger Bands
+        const sma20 = price - (Math.random() - 0.5) * 3;
+        const stdDev = 4 + Math.random() * 3;
+        const bollingerBands = {
+            upper: (sma20 + stdDev * 2).toFixed(2),
+            middle: sma20.toFixed(2),
+            lower: (sma20 - stdDev * 2).toFixed(2),
+            bandwidth: (stdDev * 4 / sma20 * 100).toFixed(2)
+        };
         
-        // Moving Averages
-        let maHTML = '';
-        Object.entries(tech.movingAverages).forEach(([key, data]) => {
-            const badgeClass = data.signal === 'BUY' ? 'badge-buy' : 'badge-sell';
-            maHTML += `
-                <div class="indicator-item">
-                    <div class="indicator-name">${key.toUpperCase()}</div>
-                    <div class="indicator-value">
-                        $${data.value}
-                        <span class="signal-badge ${badgeClass}">${data.signal}</span>
-                    </div>
-                </div>
-            `;
-        });
+        // Pivot Points (Classic)
+        const prevHigh = price + (8 + Math.random() * 5);
+        const prevLow = price - (8 + Math.random() * 5);
+        const prevClose = price - (Math.random() - 0.5) * 3;
+        const pivot = (prevHigh + prevLow + prevClose) / 3;
+        const pivotPoints = {
+            r3: (pivot + 2 * (prevHigh - prevLow)).toFixed(2),
+            r2: (pivot + (prevHigh - prevLow)).toFixed(2),
+            r1: (2 * pivot - prevLow).toFixed(2),
+            pivot: pivot.toFixed(2),
+            s1: (2 * pivot - prevHigh).toFixed(2),
+            s2: (pivot - (prevHigh - prevLow)).toFixed(2),
+            s3: (pivot - 2 * (prevHigh - prevLow)).toFixed(2)
+        };
         
-        // Add Bollinger & Ichimoku
-        maHTML += `
-            <div class="indicator-item">
-                <div class="indicator-name">BOLLINGER BANDS</div>
-                <div class="indicator-value">
-                    Position: ${tech.bollingerBands.position}%
-                    <span class="signal-badge ${tech.bollingerBands.signal === 'BUY' ? 'badge-buy' : tech.bollingerBands.signal === 'SELL' ? 'badge-sell' : 'badge-neutral'}">${tech.bollingerBands.signal}</span>
-                </div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">ICHIMOKU</div>
-                <div class="indicator-value">
-                    <span class="signal-badge ${tech.ichimoku.signal === 'BUY' ? 'badge-buy' : tech.ichimoku.signal === 'SELL' ? 'badge-sell' : 'badge-neutral'}">${tech.ichimoku.signal}</span>
-                </div>
-            </div>
-        `;
-        document.getElementById('movingAverages').innerHTML = maHTML;
+        // ADX (Average Directional Index)
+        const adx = 20 + Math.floor(Math.random() * 40);
+        const adxSignal = adx > 25 ? 'Strong Trend' : 'Weak Trend';
         
-        // Pivot & Fib
-        let pivotHTML = `
-            <div class="indicator-item">
-                <div class="indicator-name">PIVOT POINT</div>
-                <div class="indicator-value">$${tech.pivotPoints.pivot}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">R1 / R2 / R3</div>
-                <div class="indicator-value">$${tech.pivotPoints.r1} / $${tech.pivotPoints.r2} / $${tech.pivotPoints.r3}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">S1 / S2 / S3</div>
-                <div class="indicator-value">$${tech.pivotPoints.s1} / $${tech.pivotPoints.s2} / $${tech.pivotPoints.s3}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">FIB 61.8%</div>
-                <div class="indicator-value">$${tech.fibonacci['61.8%']}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">FIB 50%</div>
-                <div class="indicator-value">$${tech.fibonacci['50%']}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">FIB 38.2%</div>
-                <div class="indicator-value">$${tech.fibonacci['38.2%']}</div>
-            </div>
-        `;
-        document.getElementById('pivotFib').innerHTML = pivotHTML;
+        // Stochastic Oscillator
+        const stochK = 20 + Math.floor(Math.random() * 60);
+        const stochD = stochK - 3 + Math.floor(Math.random() * 6);
+        const stochSignal = stochK > 80 ? 'Overbought' : stochK < 20 ? 'Oversold' : 'Neutral';
         
-        // Volume & Volatility
-        let volHTML = `
-            <div class="indicator-item">
-                <div class="indicator-name">VOLUME</div>
-                <div class="indicator-value">
-                    ${(tech.volume.current / 1000000).toFixed(2)}M
-                    <span class="signal-badge ${tech.volume.signal === 'STRONG' ? 'badge-strong' : tech.volume.signal === 'WEAK' ? 'badge-weak' : 'badge-neutral'}">${tech.volume.signal}</span>
-                </div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">VOLUME RATIO</div>
-                <div class="indicator-value">${tech.volume.ratio}%</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">ATR</div>
-                <div class="indicator-value">$${tech.volatility.atr}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">ATR %</div>
-                <div class="indicator-value">
-                    ${tech.volatility.atrPercent}%
-                    <span class="signal-badge ${tech.volatility.signal === 'HIGH' ? 'badge-strong' : 'badge-neutral'}">${tech.volatility.signal}</span>
-                </div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">ADX (Trend Strength)</div>
-                <div class="indicator-value">
-                    ${tech.adx.value}
-                    <span class="signal-badge ${tech.adx.trendStrength === 'STRONG' ? 'badge-strong' : 'badge-neutral'}">${tech.adx.trendStrength}</span>
-                </div>
-            </div>
-        `;
-        document.getElementById('volumeVolatility').innerHTML = volHTML;
+        // CCI (Commodity Channel Index)
+        const cci = -100 + Math.floor(Math.random() * 200);
+        const cciSignal = cci > 100 ? 'Overbought' : cci < -100 ? 'Oversold' : 'Neutral';
         
-        // Chart Patterns
-        let patternHTML = '';
-        if (tech.patterns.length === 0) {
-            patternHTML = '<p style="color:#666; text-align:center; padding:20px;">Không phát hiện pattern rõ ràng</p>';
-        } else {
-            tech.patterns.forEach(p => {
-                patternHTML += `
-                    <div class="pattern-box">
-                        <div class="pattern-name">${p.type === 'BULLISH' ? '📈' : '📉'} ${p.name}</div>
-                        <div class="pattern-desc">${p.description}</div>
-                    </div>
-                `;
-            });
-        }
-        document.getElementById('chartPatterns').innerHTML = patternHTML;
+        // Ichimoku Cloud
+        const tenkan = price - (Math.random() - 0.5) * 5;
+        const kijun = price - (Math.random() - 0.5) * 8;
+        const senkouA = (tenkan + kijun) / 2;
+        const senkouB = price - (Math.random() - 0.5) * 12;
+        const ichimokuSignal = price > Math.max(senkouA, senkouB) ? 'Bullish' : 
+                              price < Math.min(senkouA, senkouB) ? 'Bearish' : 'Neutral';
         
-        // Market Sentiment
-        let sentHTML = `
-            <div class="indicator-item">
-                <div class="indicator-name">BULL POWER</div>
-                <div class="indicator-value">${tech.sentiment.bullPower}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">BEAR POWER</div>
-                <div class="indicator-value">${tech.sentiment.bearPower}</div>
-            </div>
-            <div class="indicator-item">
-                <div class="indicator-name">FEAR & GREED INDEX</div>
-                <div class="indicator-value">
-                    ${tech.sentiment.fearGreedIndex}
-                    <span class="signal-badge ${tech.sentiment.signal === 'GREED' ? 'badge-buy' : tech.sentiment.signal === 'FEAR' ? 'badge-sell' : 'badge-neutral'}">${tech.sentiment.signal}</span>
-                </div>
-            </div>
-        `;
-        document.getElementById('marketSentiment').innerHTML = sentHTML;
+        // Volume Profile (simulated)
+        const volumeProfile = {
+            poc: price.toFixed(2), // Point of Control
+            vah: (price + 8).toFixed(2), // Value Area High
+            val: (price - 8).toFixed(2)  // Value Area Low
+        };
+        
+        // Williams %R
+        const williamsR = -100 + Math.floor(Math.random() * 100);
+        const williamsSignal = williamsR > -20 ? 'Overbought' : williamsR < -80 ? 'Oversold' : 'Neutral';
+        
+        return {
+            fibonacci: fibLevels,
+            bollingerBands,
+            pivotPoints,
+            adx: { value: adx, signal: adxSignal },
+            stochastic: { k: stochK, d: stochD, signal: stochSignal },
+            cci: { value: cci, signal: cciSignal },
+            ichimoku: { 
+                tenkan: tenkan.toFixed(2), 
+                kijun: kijun.toFixed(2),
+                senkouA: senkouA.toFixed(2),
+                senkouB: senkouB.toFixed(2),
+                signal: ichimokuSignal
+            },
+            volumeProfile,
+            williamsR: { value: williamsR, signal: williamsSignal }
+        };
     }
 
-    function renderTimeframes() {
-        let html = '';
-        Object.values(marketData).forEach(d => {
-            const trendClass = d.trend === 'BULLISH' ? 'bullish' : d.trend === 'BEARISH' ? 'bearish' : '';
-            const signalClass = d.signal === 'BUY' ? 'badge-buy' : d.signal === 'SELL' ? 'badge-sell' : 'badge-neutral';
-            
-            html += `
-                <div class="tf-card ${trendClass}">
-                    <div class="tf-header">
-                        <div class="tf-name">${d.tf}</div>
-                        <span class="signal-badge ${signalClass}">${d.signal}</span>
-                    </div>
-                    <div style="font-size:0.85em; color:#666; margin-top:5px;">
-                        EMA20: $${d.ema20} | RSI: ${d.rsi} | Confidence: ${d.confidence}%
-                    </div>
+    // Render advanced technical analysis
+    function renderAdvancedTechnicalAnalysis() {
+        const indicators = calculateAdvancedIndicators(currentPrice);
+        
+        let html = `
+            <!-- Fibonacci Levels -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>📊 Fibonacci Retracement</span>
                 </div>
-            `;
-        });
-        document.getElementById('timeframeAnalysis').innerHTML = html;
-    }
+                <div style="font-size: 0.85em; color: #666;">
+                    <div style="margin: 5px 0;">61.8%: <strong>$${indicators.fibonacci['61.8%']}</strong></div>
+                    <div style="margin: 5px 0;">50%: <strong>$${indicators.fibonacci['50%']}</strong></div>
+                    <div style="margin: 5px 0;">38.2%: <strong>$${indicators.fibonacci['38.2%']}</strong></div>
+                    <div style="margin: 5px 0;">23.6%: <strong>$${indicators.fibonacci['23.6%']}</strong></div>
+                </div>
+            </div>
 
-    function renderConfluence() {
-        const signals = Object.values(marketData).map(d => d.signal);
-        const buyCount = signals.filter(s => s === 'BUY').length;
-        const sellCount = signals.filter(s => s === 'SELL').length;
-        
-        let score = 50;
-        if (buyCount >= 3) {
-            score = Math.floor(Object.values(marketData).reduce((sum, d) => sum + d.confidence, 0) / 4);
-        } else if (sellCount >= 3) {
-            score = Math.floor(Object.values(marketData).reduce((sum, d) => sum + d.confidence, 0) / 4);
-        }
-        
-        document.getElementById('confluenceScore').textContent = score + '%';
-        return score;
-    }
+            <!-- Bollinger Bands -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>📈 Bollinger Bands</span>
+                </div>
+                <div style="font-size: 0.85em; color: #666;">
+                    <div style="margin: 5px 0;">Upper: <strong>$${indicators.bollingerBands.upper}</strong></div>
+                    <div style="margin: 5px 0;">Middle: <strong>$${indicators.bollingerBands.middle}</strong></div>
+                    <div style="margin: 5px 0;">Lower: <strong>$${indicators.bollingerBands.lower}</strong></div>
+                    <div style="margin: 5px 0;">Bandwidth: <strong>${indicators.bollingerBands.bandwidth}%</strong></div>
+                </div>
+                <div class="tech-indicator-signal ${currentPrice > indicators.bollingerBands.upper ? 'bearish-signal' : currentPrice < indicators.bollingerBands.lower ? 'bullish-signal' : 'neutral-signal'}">
+                    ${currentPrice > indicators.bollingerBands.upper ? 'Overbought' : currentPrice < indicators.bollingerBands.lower ? 'Oversold' : 'Normal'}
+                </div>
+            </div>
 
-    function renderSetups() {
-        const conf = renderConfluence();
-        const h4 = marketData.H4;
-        const h1 = marketData.H1;
-        const m15 = marketData.M15;
-        
-        let html = '';
-        
-        // High probability setup
-        if (conf >= 65) {
-            const buyCount = Object.values(marketData).filter(d => d.signal === 'BUY').length;
-            const dir = buyCount >= 3 ? 'BUY' : 'SELL';
-            const atr = parseFloat(h4.atr);
-            const entry = currentPrice;
-            const sl = dir === 'BUY' ? entry - atr * 2 : entry + atr * 2;
-            const tp1 = dir === 'BUY' ? entry + atr * 3 : entry - atr * 3;
-            const tp2 = dir === 'BUY' ? entry + atr * 5 : entry - atr * 5;
-            
-            html += `
-                <div class="setup-card high">
-                    <div class="setup-header">
-                        <div class="setup-title">🔥 HIGH PROBABILITY - ${dir}</div>
-                        <div class="setup-confidence">${conf}%</div>
-                    </div>
-                    <div class="setup-details">
-                        <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">Stop Loss</div><div class="setup-value">$${sl.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">TP1</div><div class="setup-value">$${tp1.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">TP2</div><div class="setup-value">$${tp2.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">R:R</div><div class="setup-value">1:2.5</div></div>
-                    </div>
+            <!-- Pivot Points -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>🎯 Pivot Points</span>
                 </div>
-            `;
-        }
-        
-        // Medium setup
-        if (h1.confidence >= 55) {
-            const atr = parseFloat(h1.atr);
-            const entry = currentPrice;
-            const sl = h1.signal === 'BUY' ? entry - atr * 1.5 : entry + atr * 1.5;
-            const tp = h1.signal === 'BUY' ? entry + atr * 3 : entry - atr * 3;
-            
-            html += `
-                <div class="setup-card medium">
-                    <div class="setup-header">
-                        <div class="setup-title">📊 INTRADAY - ${h1.signal}</div>
-                        <div class="setup-confidence">${h1.confidence}%</div>
-                    </div>
-                    <div class="setup-details">
-                        <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">Stop Loss</div><div class="setup-value">$${sl.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">TP</div><div class="setup-value">$${tp.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">R:R</div><div class="setup-value">1:2</div></div>
-                    </div>
+                <div style="font-size: 0.85em; color: #666;">
+                    <div style="color: #dc3545;">R3: $${indicators.pivotPoints.r3} | R2: $${indicators.pivotPoints.r2} | R1: $${indicators.pivotPoints.r1}</div>
+                    <div style="margin: 8px 0; font-weight: bold;">Pivot: $${indicators.pivotPoints.pivot}</div>
+                    <div style="color: #28a745;">S1: $${indicators.pivotPoints.s1} | S2: $${indicators.pivotPoints.s2} | S3: $${indicators.pivotPoints.s3}</div>
                 </div>
-            `;
-        }
-        
-        // Scalping setup
-        const atr = parseFloat(m15.atr);
-        const entry = currentPrice;
-        html += `
-            <div class="setup-card low">
-                <div class="setup-header">
-                    <div class="setup-title">⚡ SCALPING - ${m15.signal}</div>
-                    <div class="setup-confidence">${m15.confidence}%</div>
+            </div>
+
+            <!-- ADX -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>💪 ADX (Trend Strength)</span>
                 </div>
-                <div class="setup-details">
-                    <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
-                    <div class="setup-item"><div class="setup-label">Stop Loss</div><div class="setup-value">$${(entry - (m15.signal === 'BUY' ? atr : -atr)).toFixed(2)}</div></div>
-                    <div class="setup-item"><div class="setup-label">TP</div><div class="setup-value">$${(entry + (m15.signal === 'BUY' ? atr * 2 : -atr * 2)).toFixed(2)}</div></div>
-                    <div class="setup-item"><div class="setup-label">R:R</div><div class="setup-value">1:2</div></div>
+                <div class="tech-indicator-value">${indicators.adx.value}</div>
+                <div class="tech-indicator-signal ${indicators.adx.value > 25 ? 'bullish-signal' : 'neutral-signal'}">
+                    ${indicators.adx.signal}
+                </div>
+            </div>
+
+            <!-- Stochastic -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>⚡ Stochastic Oscillator</span>
+                </div>
+                <div style="font-size: 0.85em; color: #666;">
+                    <div style="margin: 5px 0;">%K: <strong>${indicators.stochastic.k}</strong></div>
+                    <div style="margin: 5px 0;">%D: <strong>${indicators.stochastic.d}</strong></div>
+                </div>
+                <div class="tech-indicator-signal ${indicators.stochastic.signal === 'Overbought' ? 'bearish-signal' : indicators.stochastic.signal === 'Oversold' ? 'bullish-signal' : 'neutral-signal'}">
+                    ${indicators.stochastic.signal}
+                </div>
+            </div>
+
+            <!-- CCI -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>📉 CCI</span>
+                </div>
+                <div class="tech-indicator-value">${indicators.cci.value}</div>
+                <div class="tech-indicator-signal ${indicators.cci.signal === 'Overbought' ? 'bearish-signal' : indicators.cci.signal === 'Oversold' ? 'bullish-signal' : 'neutral-signal'}">
+                    ${indicators.cci.signal}
+                </div>
+            </div>
+
+            <!-- Ichimoku -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>☁️ Ichimoku Cloud</span>
+                </div>
+                <div style="font-size: 0.85em; color: #666;">
+                    <div style="margin: 5px 0;">Tenkan: $${indicators.ichimoku.tenkan}</div>
+                    <div style="margin: 5px 0;">Kijun: $${indicators.ichimoku.kijun}</div>
+                    <div style="margin: 5px 0;">Senkou A: $${indicators.ichimoku.senkouA}</div>
+                    <div style="margin: 5px 0;">Senkou B: $${indicators.ichimoku.senkouB}</div>
+                </div>
+                <div class="tech-indicator-signal ${indicators.ichimoku.signal === 'Bullish' ? 'bullish-signal' : indicators.ichimoku.signal === 'Bearish' ? 'bearish-signal' : 'neutral-signal'}">
+                    ${indicators.ichimoku.signal}
+                </div>
+            </div>
+
+            <!-- Williams %R -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>📊 Williams %R</span>
+                </div>
+                <div class="tech-indicator-value">${indicators.williamsR.value}</div>
+                <div class="tech-indicator-signal ${indicators.williamsR.signal === 'Overbought' ? 'bearish-signal' : indicators.williamsR.signal === 'Oversold' ? 'bullish-signal' : 'neutral-signal'}">
+                    ${indicators.williamsR.signal}
+                </div>
+            </div>
+
+            <!-- Volume Profile -->
+            <div class="tech-indicator">
+                <div class="tech-indicator-header">
+                    <span>📊 Volume Profile</span>
+                </div>
+                <div style="font-size: 0.85em; color: #666;">
+                    <div style="margin: 5px 0;">POC: <strong>$${indicators.volumeProfile.poc}</strong></div>
+                    <div style="margin: 5px 0;">VAH: <strong>$${indicators.volumeProfile.vah}</strong></div>
+                    <div style="margin: 5px 0;">VAL: <strong>$${indicators.volumeProfile.val}</strong></div>
                 </div>
             </div>
         `;
         
-        document.getElementById('entrySetups').innerHTML = html;
+        document.getElementById('technicalAnalysis').innerHTML = html;
+        
+        return indicators;
     }
 
-    async function updatePrice() {
-        currentPrice = await fetchPrice();
-        
-        document.getElementById('currentPrice').textContent = '$' + currentPrice.toFixed(2);
-        document.getElementById('bidPrice').textContent = '$' + (currentPrice - 0.25).toFixed(2);
-        document.getElementById('askPrice').textContent = '$' + (currentPrice + 0.25).toFixed(2);
-        
-        // Mock 24h change
-        const change = (Math.random() - 0.5) * 50;
-        const changePercent = (change / currentPrice * 100).toFixed(2);
-        const changeText = (change >= 0 ? '+' : '') + change.toFixed(2) + ' (' + (changePercent >= 0 ? '+' : '') + changePercent + '%)';
-        document.getElementById('priceChange').textContent = changeText;
-        document.getElementById('priceChange').style.color = change >= 0 ? '#28a745' : '#dc3545';
-        
-        document.getElementById('updateTime').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
-        
-        // Calculate all indicators
-        technicalData = calculateTechnicalIndicators(currentPrice);
-        
-        // Calculate timeframe data
+    function analyzeMarket() {
         marketData = {
             M15: calculateTFData(currentPrice, 'M15'),
             H1: calculateTFData(currentPrice, 'H1'),
@@ -1144,107 +891,136 @@
             D1: calculateTFData(currentPrice, 'D1')
         };
         
-        renderIndicators();
         renderTimeframes();
+        renderConfluence();
         renderSetups();
+        renderAdvancedTechnicalAnalysis();
     }
 
-    function toggleJSON() {
-        const preview = document.getElementById('jsonPreview');
-        if (preview.style.display === 'none') {
-            const fullData = {
-                timestamp: new Date().toISOString(),
-                symbol: 'XAU/USD',
-                currentPrice: currentPrice,
-                priceSource: priceSource,
-                technicalIndicators: technicalData,
-                multiTimeframeAnalysis: marketData,
-                confluenceScore: renderConfluence()
-            };
-            
-            preview.textContent = JSON.stringify(fullData, null, 2);
-            preview.style.display = 'block';
-        } else {
-            preview.style.display = 'none';
-        }
-    }
-
+    // AI Analysis Function
     async function analyzeWithAI() {
-        const apiKey = document.getElementById('apiKey').value.trim();
+        const apiKey = document.getElementById('apiKey').value;
         const provider = document.getElementById('aiProvider').value;
         
         if (!apiKey) {
-            alert('Vui lòng nhập API Key!');
+            alert('⚠️ Vui lòng nhập API Key!');
             return;
         }
         
         if (!currentPrice) {
-            alert('Vui lòng đợi dữ liệu tải xong!');
+            alert('⚠️ Vui lòng đợi giá tải xong!');
             return;
         }
+
+        // Prepare comprehensive JSON data
+        const advancedIndicators = calculateAdvancedIndicators(currentPrice);
+        const confluenceData = renderConfluence();
         
-        const btn = document.getElementById('aiAnalyzeBtn');
-        const loading = document.getElementById('aiLoading');
-        const response = document.getElementById('aiResponse');
-        
-        btn.disabled = true;
-        loading.classList.add('show');
-        response.classList.remove('show');
-        
-        const fullData = {
+        const analysisData = {
             timestamp: new Date().toISOString(),
             symbol: 'XAU/USD',
             currentPrice: currentPrice,
             priceSource: priceSource,
-            technicalIndicators: technicalData,
-            multiTimeframeAnalysis: marketData,
-            confluenceScore: renderConfluence()
+            
+            timeframeAnalysis: marketData,
+            
+            confluence: {
+                score: confluenceData.score,
+                direction: confluenceData.direction,
+                alignedTimeframes: Object.keys(marketData).filter(
+                    tf => marketData[tf].signal === confluenceData.direction
+                )
+            },
+            
+            advancedIndicators: {
+                fibonacci: advancedIndicators.fibonacci,
+                bollingerBands: advancedIndicators.bollingerBands,
+                pivotPoints: advancedIndicators.pivotPoints,
+                adx: advancedIndicators.adx,
+                stochastic: advancedIndicators.stochastic,
+                cci: advancedIndicators.cci,
+                ichimoku: advancedIndicators.ichimoku,
+                volumeProfile: advancedIndicators.volumeProfile,
+                williamsR: advancedIndicators.williamsR
+            },
+            
+            keyLevels: {
+                resistance: [
+                    advancedIndicators.pivotPoints.r3,
+                    advancedIndicators.pivotPoints.r2,
+                    advancedIndicators.pivotPoints.r1
+                ],
+                support: [
+                    advancedIndicators.pivotPoints.s1,
+                    advancedIndicators.pivotPoints.s2,
+                    advancedIndicators.pivotPoints.s3
+                ],
+                pivot: advancedIndicators.pivotPoints.pivot
+            }
         };
-        
-        const prompt = `Bạn là chuyên gia phân tích kỹ thuật XAU/USD. Dưới đây là dữ liệu đầy đủ từ phân tích kỹ thuật:
+
+        // Display JSON data
+        document.getElementById('jsonData').textContent = JSON.stringify(analysisData, null, 2);
+
+        // Show loading
+        document.getElementById('aiLoading').classList.add('show');
+        document.getElementById('aiResponse').classList.remove('show');
+        document.getElementById('aiAnalyzeBtn').disabled = true;
+
+        const prompt = `Bạn là chuyên gia phân tích kỹ thuật XAU/USD với 15 năm kinh nghiệm trading.
 ```
 
-${JSON.stringify(fullData, null, 2)}
+Dữ liệu thị trường đầy đủ (JSON):
+${JSON.stringify(analysisData, null, 2)}
 
-Hãy phân tích chi tiết và đưa ra:
+YÊU CẦU PHÂN TÍCH CHI TIẾT:
 
-1. **ĐÁNH GIÁ XU HƯỚNG TỔNG QUAN**
-- Xu hướng hiện tại (bullish/bearish/sideways)
-- Độ mạnh xu hướng
-- Các yếu tố hỗ trợ xu hướng này
-1. **PHÂN TÍCH CÁC CHỈ BÁO KỸ THUẬT**
-- Oscillators (RSI, Stochastic, CCI, etc.)
-- Moving Averages alignment
-- Bollinger Bands, Ichimoku
-- Volume và Volatility
-- ADX và trend strength
-1. **CONFLUENCE ANALYSIS**
-- Đánh giá độ tin cậy của các entry points
-- Timeframes nào đang align
-- Xác suất thành công của setup hiện tại
-1. **ENTRY RECOMMENDATIONS**
-- Entry price tốt nhất
-- Stop Loss hợp lý
-- Take Profit targets (TP1, TP2)
-- Risk/Reward ratio
-- Timeframe phù hợp (scalping/intraday/swing)
-1. **RISK MANAGEMENT**
-- % vốn nên sử dụng
-- Cảnh báo rủi ro
-- Điều kiện để exit sớm
-1. **DỰ ĐOÁN NGẮN HẠN**
-- 4-8 giờ tới
-- 1-3 ngày tới
-- Key levels cần chú ý
+1. **TỔNG QUAN THỊ TRƯỜNG**
+- Đánh giá xu hướng tổng thể (bullish/bearish/ranging)
+- Độ mạnh của xu hướng dựa trên ADX và các timeframe
+- Vị trí giá hiện tại so với các mức quan trọng
+1. **PHÂN TÍCH ĐA KHUNG THỜI GIAN (MTF CONFLUENCE)**
+- Confluence score: ${confluenceData.score}% - Ý nghĩa gì?
+- ${confluenceData.alignedTimeframes ? confluenceData.alignedTimeframes.length : 0} timeframes align ${confluenceData.direction}
+- Timeframes nào đang xung đột? Tại sao?
+- Đánh giá độ tin cậy của các tín hiệu
+1. **PHÂN TÍCH CHỈ BÁO KỸ THUẬT**
+- **Fibonacci**: Giá đang ở vùng nào? Có phản ứng tại mức Fib nào không?
+- **Bollinger Bands**: Bandwidth ${advancedIndicators.bollingerBands.bandwidth}% - squeeze hay expansion?
+- **Pivot Points**: Giá đang trading ở trên/dưới pivot? Các R/S levels quan trọng?
+- **Ichimoku**: Giá vs Cloud - tín hiệu gì?
+- **Stochastic**: K=${advancedIndicators.stochastic.k}, D=${advancedIndicators.stochastic.d} - divergence?
+- **CCI**: ${advancedIndicators.cci.value} - extreme levels?
+- **Williams %R**: ${advancedIndicators.williamsR.value} - reversal signal?
+1. **GỢI Ý ENTRY POINTS CỤ THỂ**
+- Entry price chính xác
+- Stop Loss dựa trên ATR và structure
+- Take Profit levels (TP1, TP2, TP3)
+- Tỷ lệ Risk/Reward
+- Lý do chi tiết cho từng entry
+1. **QUẢN LÝ RỦI RO**
+- % vốn nên dùng cho mỗi lệnh
+- Trailing stop strategy
+- Điều kiện để close sớm hoặc hold
+- Red flags cần lưu ý
+1. **KỊCH BẢN THỊ TRƯỜNG**
+- **Kịch bản Bull**: Giá sẽ đi đâu? Target nào?
+- **Kịch bản Bear**: Giá sẽ test mức nào?
+- **Kịch bản Ranging**: Vùng giá nào?
+- Xác suất từng kịch bản (%)
+1. **LỜI KHUYÊN CUỐI CÙNG**
+- Setup nào tốt nhất HIỆN TẠI?
+- Nên trade hay đợi?
+- Lưu ý quan trọng về news/sự kiện
 
-Hãy viết bằng tiếng Việt, chi tiết, thực tế và dễ hiểu cho trader.`;
+HÃY PHÂN TÍCH THẬT CHI TIẾT, THỰC TẾ VÀ CHUYÊN NGHIỆP. Sử dụng tiếng Việt dễ hiểu nhưng vẫn chuyên sâu.`;
 
 ```
         try {
-            let apiResponse;
+            let response;
             
             if (provider === 'claude') {
-                apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                response = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1261,16 +1037,16 @@ Hãy viết bằng tiếng Việt, chi tiết, thực tế và dễ hiểu cho t
                     })
                 });
                 
-                if (!apiResponse.ok) {
-                    const error = await apiResponse.json();
-                    throw new Error(error.error?.message || 'API request failed');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'API Error');
                 }
                 
-                const data = await apiResponse.json();
-                response.textContent = data.content[0].text;
+                const data = await response.json();
+                displayAIResponse(data.content[0].text);
                 
             } else if (provider === 'openai') {
-                apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1280,7 +1056,7 @@ Hãy viết bằng tiếng Việt, chi tiết, thực tế và dễ hiểu cho t
                         model: 'gpt-4',
                         messages: [{
                             role: 'system',
-                            content: 'Bạn là chuyên gia phân tích kỹ thuật XAU/USD với nhiều năm kinh nghiệm.'
+                            content: 'Bạn là chuyên gia phân tích kỹ thuật XAU/USD với 15 năm kinh nghiệm. Phân tích chi tiết, thực tế và chuyên sâu.'
                         }, {
                             role: 'user',
                             content: prompt
@@ -1289,31 +1065,190 @@ Hãy viết bằng tiếng Việt, chi tiết, thực tế và dễ hiểu cho t
                     })
                 });
                 
-                if (!apiResponse.ok) {
-                    const error = await apiResponse.json();
-                    throw new Error(error.error?.message || 'API request failed');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'API Error');
                 }
                 
-                const data = await apiResponse.json();
-                response.textContent = data.choices[0].message.content;
+                const data = await response.json();
+                displayAIResponse(data.choices[0].message.content);
             }
-            
-            response.classList.add('show');
-            console.log('✅ AI analysis completed');
             
         } catch (error) {
             console.error('AI Analysis Error:', error);
-            response.textContent = `❌ LỖI: ${error.message}\n\nVui lòng kiểm tra:\n- API Key đúng chưa?\n- API Key còn credits không?\n- Kết nối internet ổn định không?`;
-            response.classList.add('show');
-        } finally {
-            btn.disabled = false;
-            loading.classList.remove('show');
+            displayAIResponse(`❌ LỖI: ${error.message}\n\nVui lòng kiểm tra:\n1. API Key có đúng không?\n2. Có đủ credits không?\n3. Kết nối internet ổn định không?`);
         }
+        
+        document.getElementById('aiLoading').classList.remove('show');
+        document.getElementById('aiAnalyzeBtn').disabled = false;
     }
 
-    // Initialize
+    function displayAIResponse(text) {
+        const responseDiv = document.getElementById('aiResponse');
+        responseDiv.textContent = text;
+        responseDiv.classList.add('show');
+    }
+
+    function renderTimeframes() {
+        let html = '';
+        Object.values(marketData).forEach(d => {
+            const trendClass = d.trend === 'BULLISH' ? 'bullish' : d.trend === 'BEARISH' ? 'bearish' : '';
+            const signalClass = d.signal === 'BUY' ? 'signal-buy' : d.signal === 'SELL' ? 'signal-sell' : 'signal-neutral';
+            
+            html += `
+                <div class="tf-card ${trendClass}">
+                    <div class="tf-header">
+                        <div class="tf-name">${d.tf}</div>
+                        <div class="tf-signal ${signalClass}">${d.signal}</div>
+                    </div>
+                    <div class="tf-indicators">
+                        <div class="indicator"><div class="indicator-label">EMA20</div><div class="indicator-value">$${d.ema20}</div></div>
+                        <div class="indicator"><div class="indicator-label">RSI</div><div class="indicator-value">${d.rsi}</div></div>
+                        <div class="indicator"><div class="indicator-label">Conf</div><div class="indicator-value">${d.confidence}%</div></div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('timeframeAnalysis').innerHTML = html;
+    }
+
+    function renderConfluence() {
+        const signals = Object.values(marketData).map(d => d.signal);
+        const buyCount = signals.filter(s => s === 'BUY').length;
+        const sellCount = signals.filter(s => s === 'SELL').length;
+        
+        let score = 50;
+        let direction = 'NEUTRAL';
+        
+        if (buyCount >= 3) {
+            score = Math.floor(Object.values(marketData).reduce((sum, d) => sum + d.confidence, 0) / 4);
+            direction = 'BUY';
+        } else if (sellCount >= 3) {
+            score = Math.floor(Object.values(marketData).reduce((sum, d) => sum + d.confidence, 0) / 4);
+            direction = 'SELL';
+        }
+        
+        document.getElementById('confluenceScore').textContent = score + '%';
+        
+        Object.keys(marketData).forEach(tf => {
+            const bar = document.getElementById(`conf_${tf.toLowerCase()}`);
+            const val = document.getElementById(`conf_${tf.toLowerCase()}_val`);
+            
+            if (marketData[tf].signal === direction) {
+                bar.classList.add('active');
+                val.textContent = '✓';
+            } else {
+                bar.classList.remove('active');
+                val.textContent = '—';
+            }
+        });
+        
+        return {score, direction};
+    }
+
+    function renderSetups() {
+        const conf = renderConfluence();
+        const h4 = marketData.H4;
+        let html = '';
+        
+        if (conf.score >= 65) {
+            const dir = conf.direction;
+            const atr = parseFloat(h4.atr);
+            const entry = currentPrice;
+            const sl = dir === 'BUY' ? entry - atr * 2 : entry + atr * 2;
+            const tp1 = dir === 'BUY' ? entry + atr * 3 : entry - atr * 3;
+            const tp2 = dir === 'BUY' ? entry + atr * 5 : entry - atr * 5;
+            
+            html += `
+                <div class="setup-card high">
+                    <div class="setup-header">
+                        <div class="setup-title">🔥 HIGH PROBABILITY - ${dir}</div>
+                        <div class="setup-confidence">${conf.score}%</div>
+                    </div>
+                    <div class="setup-details">
+                        <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
+                        <div class="setup-item"><div class="setup-label">SL</div><div class="setup-value">$${sl.toFixed(2)}</div></div>
+                        <div class="setup-item"><div class="setup-label">TP1</div><div class="setup-value">$${tp1.toFixed(2)}</div></div>
+                        <div class="setup-item"><div class="setup-label">TP2</div><div class="setup-value">$${tp2.toFixed(2)}</div></div>
+                    </div>
+                    <div class="reasoning">
+                        <div class="reasoning-title">📋 Lý do:</div>
+                        ✓ 3-4 timeframes xác nhận ${dir}<br>
+                        ✓ Confluence score cao: ${conf.score}%<br>
+                        ✓ Setup H4 với ATR ${atr.toFixed(1)}<br>
+                        ✓ R:R tỷ lệ 1:2.5
+                    </div>
+                </div>
+            `;
+        }
+        
+        const h1 = marketData.H1;
+        if (h1.confidence >= 55) {
+            const atr = parseFloat(h1.atr);
+            const entry = currentPrice;
+            const sl = h1.signal === 'BUY' ? entry - atr * 1.5 : entry + atr * 1.5;
+            const tp = h1.signal === 'BUY' ? entry + atr * 3 : entry - atr * 3;
+            
+            html += `
+                <div class="setup-card medium">
+                    <div class="setup-header">
+                        <div class="setup-title">📊 INTRADAY - ${h1.signal}</div>
+                        <div class="setup-confidence">${h1.confidence}%</div>
+                    </div>
+                    <div class="setup-details">
+                        <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
+                        <div class="setup-item"><div class="setup-label">SL</div><div class="setup-value">$${sl.toFixed(2)}</div></div>
+                        <div class="setup-item"><div class="setup-label">TP</div><div class="setup-value">$${tp.toFixed(2)}</div></div>
+                    </div>
+                    <div class="reasoning">
+                        <div class="reasoning-title">📋 Lý do:</div>
+                        • H1 timeframe setup<br>
+                        • RSI: ${h1.rsi}<br>
+                        • Phù hợp intraday
+                    </div>
+                </div>
+            `;
+        }
+        
+        const m15 = marketData.M15;
+        const atr = parseFloat(m15.atr);
+        const entry = currentPrice;
+        html += `
+            <div class="setup-card low">
+                <div class="setup-header">
+                    <div class="setup-title">⚡ SCALPING - ${m15.signal}</div>
+                    <div class="setup-confidence">${m15.confidence}%</div>
+                </div>
+                <div class="setup-details">
+                    <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
+                    <div class="setup-item"><div class="setup-label">SL</div><div class="setup-value">$${(entry - (m15.signal === 'BUY' ? atr : -atr)).toFixed(2)}</div></div>
+                    <div class="setup-item"><div class="setup-label">TP</div><div class="setup-value">$${(entry + (m15.signal === 'BUY' ? atr * 2 : -atr * 2)).toFixed(2)}</div></div>
+                </div>
+                <div class="reasoning">
+                    <div class="reasoning-title">📋 Lý do:</div>
+                    • M15 scalping setup<br>
+                    • Quick in/out<br>
+                    • Theo dõi sát
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('entrySetups').innerHTML = html;
+    }
+
+    async function updatePrice() {
+        currentPrice = await fetchPrice();
+        
+        document.getElementById('currentPrice').textContent = '$' + currentPrice.toFixed(2);
+        document.getElementById('bidPrice').textContent = '$' + (currentPrice - 0.25).toFixed(2);
+        document.getElementById('askPrice').textContent = '$' + (currentPrice + 0.25).toFixed(2);
+        document.getElementById('updateTime').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
+        
+        analyzeMarket();
+    }
+
     window.addEventListener('load', () => {
-        console.log('🎯 Advanced Technical Analysis Started');
+        console.log('🎯 Starting Multiple Timeframe Confluence Analysis');
         updatePrice();
         setInterval(updatePrice, 30000);
     });
