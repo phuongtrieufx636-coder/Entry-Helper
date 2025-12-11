@@ -768,35 +768,71 @@
         changePercent: 0
     };
 
-    // Fetch real-time XAU/USD price from multiple sources
+    // Twelve Data API Key
+    const TWELVE_DATA_API_KEY = '8df381c935924d048bf0b3ac73d3de1f';
+
+    // Fetch real-time XAU/USD price from Twelve Data
     async function fetchGoldPrice() {
-        // Try Method 1: GoldAPI (free tier)
+        // Method 1: Twelve Data - Real-time Quote (BEST)
         try {
-            const response = await fetch('https://www.goldapi.io/api/XAU/USD', {
-                method: 'GET',
-                headers: {
-                    'x-access-token': 'goldapi-a6hq8ysmj0y3mgu-io',
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await fetch(`https://api.twelvedata.com/quote?symbol=XAU/USD&apikey=${TWELVE_DATA_API_KEY}`);
             const data = await response.json();
             
-            if (data.price) {
-                marketData.price = parseFloat(data.price);
-                marketData.bid = data.bid || marketData.price - 0.5;
-                marketData.ask = data.ask || marketData.price + 0.5;
-                marketData.high = data.high_price || marketData.price * 1.005;
-                marketData.low = data.low_price || marketData.price * 0.995;
+            if (data.close && !data.status) {
+                marketData.price = parseFloat(data.close);
+                marketData.open = parseFloat(data.open);
+                marketData.high = parseFloat(data.high);
+                marketData.low = parseFloat(data.low);
+                marketData.previousClose = parseFloat(data.previous_close);
                 
-                fetchDetailedData();
+                // Calculate bid/ask with realistic spread
+                const spread = 0.5;
+                marketData.bid = marketData.price - spread / 2;
+                marketData.ask = marketData.price + spread / 2;
+                
+                // Calculate change
+                marketData.change = marketData.price - marketData.previousClose;
+                marketData.changePercent = ((marketData.change / marketData.previousClose) * 100);
+                
                 updatePriceDisplay();
+                console.log('✓ Twelve Data Quote - Price loaded:', marketData.price);
                 return true;
             }
         } catch (error) {
-            console.log('GoldAPI failed, trying next source...', error);
+            console.log('Twelve Data Quote failed, trying time series...', error);
         }
 
-        // Method 2: Fetch from Financial Modeling Prep
+        // Method 2: Twelve Data - Time Series (alternative)
+        try {
+            const response = await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=1min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`);
+            const data = await response.json();
+            
+            if (data.values && data.values.length > 0 && !data.status) {
+                const latest = data.values[0];
+                const previous = data.values[1] || latest;
+                
+                marketData.price = parseFloat(latest.close);
+                marketData.open = parseFloat(latest.open);
+                marketData.high = parseFloat(latest.high);
+                marketData.low = parseFloat(latest.low);
+                marketData.previousClose = parseFloat(previous.close);
+                
+                const spread = 0.5;
+                marketData.bid = marketData.price - spread / 2;
+                marketData.ask = marketData.price + spread / 2;
+                
+                marketData.change = marketData.price - marketData.previousClose;
+                marketData.changePercent = ((marketData.change / marketData.previousClose) * 100);
+                
+                updatePriceDisplay();
+                console.log('✓ Twelve Data Time Series - Price loaded:', marketData.price);
+                return true;
+            }
+        } catch (error) {
+            console.log('Twelve Data Time Series failed, trying backup...', error);
+        }
+
+        // Method 3: Financial Modeling Prep (backup)
         try {
             const response = await fetch('https://financialmodelingprep.com/api/v3/quote/XAUUSD?apikey=demo');
             const data = await response.json();
@@ -808,58 +844,33 @@
                 marketData.ask = goldData.ask || marketData.price + 0.5;
                 marketData.high = goldData.dayHigh || marketData.price * 1.005;
                 marketData.low = goldData.dayLow || marketData.price * 0.995;
-                marketData.previousClose = goldData.previousClose || marketData.price;
+                marketData.previousClose = goldData.previousClose || marketData.price * 0.998;
                 marketData.change = goldData.change || 0;
                 marketData.changePercent = goldData.changesPercentage || 0;
                 
                 updatePriceDisplay();
+                console.log('✓ FMP Backup - Price loaded:', marketData.price);
                 return true;
             }
         } catch (error) {
-            console.log('FMP failed, trying next source...', error);
+            console.log('FMP failed, using estimated...', error);
         }
 
-        // Method 3: Alpha Vantage (another backup)
-        try {
-            const response = await fetch('https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=demo');
-            const data = await response.json();
-            
-            if (data['Realtime Currency Exchange Rate']) {
-                const rate = data['Realtime Currency Exchange Rate'];
-                marketData.price = parseFloat(rate['5. Exchange Rate']);
-                marketData.bid = parseFloat(rate['8. Bid Price']) || marketData.price - 0.5;
-                marketData.ask = parseFloat(rate['9. Ask Price']) || marketData.price + 0.5;
-                
-                // Estimate high/low
-                marketData.high = marketData.price * 1.005;
-                marketData.low = marketData.price * 0.995;
-                marketData.change = marketData.price * 0.002;
-                marketData.changePercent = 0.2;
-                
-                updatePriceDisplay();
-                return true;
-            }
-        } catch (error) {
-            console.log('Alpha Vantage failed, using estimated price...', error);
-        }
-
-        // Fallback: Use realistic estimated price based on current market
-        console.log('All APIs failed, using estimated current market price');
-        const estimatedPrice = 2650; // Base estimate
-        const randomVariation = (Math.random() - 0.5) * 20; // +/- 10
+        // Fallback: Use realistic estimated price
+        console.warn('⚠ All APIs unavailable, using estimated price');
+        const estimatedPrice = 2650;
+        const randomVariation = (Math.random() - 0.5) * 20;
         
         marketData.price = estimatedPrice + randomVariation;
         marketData.bid = marketData.price - 0.5;
         marketData.ask = marketData.price + 0.5;
         marketData.high = marketData.price * 1.005;
         marketData.low = marketData.price * 0.995;
+        marketData.previousClose = marketData.price * 0.998;
         marketData.change = marketData.price * 0.002;
         marketData.changePercent = 0.2;
         
         updatePriceDisplay();
-        
-        // Show warning but continue
-        console.warn('Using estimated prices - some APIs may be rate limited');
         return true;
     }
 
