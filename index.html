@@ -548,85 +548,144 @@
     let priceSource = 'LOADING';
     let retryAttempt = 0;
 
-    // Fetch price with multiple sources and clear status
+    // Fetch price with immediate fallback
     async function fetchPrice() {
         console.log(`🔄 Fetching price (attempt ${retryAttempt + 1})...`);
-        updatePriceStatus('loading', 'Đang tải giá real-time...');
         
-        // Source 1: Binance
-        try {
-            const controller = new AbortController();
-            setTimeout(() => controller.abort(), 4000);
-            
-            const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT', {
-                signal: controller.signal
-            });
-            const data = await res.json();
-            
-            if (data && data.price) {
-                const price = parseFloat(data.price);
-                console.log('✅ Binance:', price);
-                updatePriceStatus('real', 'Giá thực từ Binance');
-                retryAttempt = 0;
-                localStorage.setItem('xau_last_price', JSON.stringify({price, time: Date.now()}));
-                return price;
-            }
-        } catch (e) {
-            console.log('❌ Binance failed:', e.message);
-        }
-
-        // Source 2: CoinGecko  
-        try {
-            const controller = new AbortController();
-            setTimeout(() => controller.abort(), 4000);
-            
-            const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pax-gold&vs_currencies=usd', {
-                signal: controller.abort
-            });
-            const data = await res.json();
-            
-            if (data && data['pax-gold']?.usd) {
-                const price = data['pax-gold'].usd;
-                console.log('✅ CoinGecko:', price);
-                updatePriceStatus('real', 'Giá thực từ CoinGecko');
-                retryAttempt = 0;
-                localStorage.setItem('xau_last_price', JSON.stringify({price, time: Date.now()}));
-                return price;
-            }
-        } catch (e) {
-            console.log('❌ CoinGecko failed:', e.message);
-        }
-
-        // Source 3: Use cached price
+        // IMMEDIATE: Use cached or realistic price FIRST
+        let immediatePrice = null;
+        
+        // Try cache first
         try {
             const cached = JSON.parse(localStorage.getItem('xau_last_price'));
-            if (cached && (Date.now() - cached.time < 3600000)) {
-                console.log('⚠️ Using cached:', cached.price);
-                updatePriceStatus('cached', 'Giá từ cache (< 1h)');
-                
-                // Retry in background
-                retryAttempt++;
-                if (retryAttempt < 3) {
-                    setTimeout(() => fetchPrice().then(p => p && updatePrice()), 10000);
-                }
-                
-                return cached.price;
+            if (cached && cached.price) {
+                immediatePrice = cached.price;
+                const age = Math.floor((Date.now() - cached.time) / 60000);
+                console.log(`📦 Immediate cache: ${immediatePrice} (${age}m ago)`);
+                updatePriceStatus('cached', `💾 Cache (${age}p trước)`);
             }
         } catch (e) {}
-
-        // Final: Simulated
-        console.log('⚠️ Using simulation');
-        updatePriceStatus('simulated', 'Giá mô phỏng (API offline)');
         
-        const basePrice = currentPrice || 2656;
-        const variation = (Math.sin(Date.now() / 10000) * 10) + (Math.random() - 0.5) * 4;
-        
-        retryAttempt++;
-        if (retryAttempt < 3) {
-            setTimeout(() => fetchPrice().then(p => p && updatePrice()), 15000);
+        // If no cache, use realistic price immediately
+        if (!immediatePrice) {
+            const realisticBasePrice = 2656; // Current XAU/USD price
+            const hourOfDay = new Date().getHours();
+            const dayVariation = Math.sin(hourOfDay / 24 * Math.PI * 2) * 8;
+            const minuteVariation = (Math.random() - 0.5) * 4;
+            immediatePrice = realisticBasePrice + dayVariation + minuteVariation;
+            console.log(`📊 Immediate realistic: ${immediatePrice}`);
+            updatePriceStatus('simulated', '⚠️ Giá mô phỏng - Đang thử API...');
+            
+            // Save for next time
+            localStorage.setItem('xau_last_price', JSON.stringify({
+                price: immediatePrice,
+                time: Date.now(),
+                source: 'SIMULATED'
+            }));
         }
         
-        return basePrice + variation;
+        // Return immediate price right away
+        const displayPrice = immediatePrice;
+        
+        // NOW try to fetch real price in background (non-blocking)
+        (async () => {
+            try {
+                console.log('🌐 Background: Trying Binance...');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                
+                const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT', {
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                clearTimeout(timeoutId);
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.price) {
+                        const realPrice = parseFloat(data.price);
+                        console.log('✅ Real price from Binance:', realPrice);
+                        
+                        // Update display with real price
+                        currentPrice = realPrice;
+                        document.getElementById('currentPrice').textContent = '$' + realPrice.toFixed(2);
+                        document.getElementById('bidPrice').textContent = '$' + (realPrice - 0.25).toFixed(2);
+                        document.getElementById('askPrice').textContent = '$' + (realPrice + 0.25).toFixed(2);
+                        
+                        updatePriceStatus('real', '✅ Giá thực từ Binance');
+                        localStorage.setItem('xau_last_price', JSON.stringify({
+                            price: realPrice,
+                            time: Date.now(),
+                            source: 'BINANCE'
+                        }));
+                        
+                        // Re-analyze with real price
+                        analyzeMarket();
+                        retryAttempt = 0;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('❌ Background Binance failed:', e.message);
+            }
+            
+            // Try CoinGecko
+            try {
+                console.log('🌐 Background: Trying CoinGecko...');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pax-gold&vs_currencies=usd', {
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                clearTimeout(timeoutId);
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data['pax-gold']?.usd) {
+                        const realPrice = data['pax-gold'].usd;
+                        console.log('✅ Real price from CoinGecko:', realPrice);
+                        
+                        // Update display with real price
+                        currentPrice = realPrice;
+                        document.getElementById('currentPrice').textContent = '$' + realPrice.toFixed(2);
+                        document.getElementById('bidPrice').textContent = '$' + (realPrice - 0.25).toFixed(2);
+                        document.getElementById('askPrice').textContent = '$' + (realPrice + 0.25).toFixed(2);
+                        
+                        updatePriceStatus('real', '✅ Giá thực từ CoinGecko');
+                        localStorage.setItem('xau_last_price', JSON.stringify({
+                            price: realPrice,
+                            time: Date.now(),
+                            source: 'COINGECKO'
+                        }));
+                        
+                        // Re-analyze with real price
+                        analyzeMarket();
+                        retryAttempt = 0;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('❌ Background CoinGecko failed:', e.message);
+            }
+            
+            // Both failed - schedule retry
+            console.log('⚠️ All APIs failed, will retry later');
+            retryAttempt++;
+            if (retryAttempt < 3) {
+                setTimeout(() => {
+                    fetchPrice().then(p => {
+                        if (p && Math.abs(p - currentPrice) > 1) {
+                            updatePrice();
+                        }
+                    });
+                }, 10000);
+            }
+        })();
+        
+        // Return immediate price (don't wait for API)
+        return displayPrice;
     }
 
     function updatePriceStatus(type, text) {
@@ -1237,20 +1296,45 @@ HÃY PHÂN TÍCH THẬT CHI TIẾT, THỰC TẾ VÀ CHUYÊN NGHIỆP. Sử dụn
     }
 
     async function updatePrice() {
+        console.log('🔄 updatePrice called');
+        
+        // Get price (immediate return)
         currentPrice = await fetchPrice();
         
+        console.log('💰 Got price:', currentPrice);
+        
+        // Update display immediately
         document.getElementById('currentPrice').textContent = '$' + currentPrice.toFixed(2);
         document.getElementById('bidPrice').textContent = '$' + (currentPrice - 0.25).toFixed(2);
         document.getElementById('askPrice').textContent = '$' + (currentPrice + 0.25).toFixed(2);
         document.getElementById('updateTime').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
         
+        console.log('📊 Analyzing market...');
         analyzeMarket();
+        console.log('✅ Update complete');
     }
 
+    // Initialize immediately on page load
     window.addEventListener('load', () => {
-        console.log('🎯 Starting Multiple Timeframe Confluence Analysis');
-        updatePrice();
-        setInterval(updatePrice, 30000);
+        console.log('🎯 ===== XAU/USD Analysis Tool Started =====');
+        console.log('📱 Device:', navigator.userAgent);
+        console.log('🌐 Online:', navigator.onLine);
+        
+        // Show loading state
+        updatePriceStatus('loading', '⏳ Đang khởi động...');
+        
+        // Start immediately
+        updatePrice().then(() => {
+            console.log('✅ Initial load complete');
+        }).catch(err => {
+            console.error('❌ Initial load error:', err);
+        });
+        
+        // Auto refresh every 30 seconds
+        setInterval(() => {
+            console.log('🔄 Auto refresh triggered');
+            updatePrice();
+        }, 30000);
     });
 </script>
 ```
