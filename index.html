@@ -691,6 +691,269 @@
         return atr;
     }
 
+    // ============ HÀM TÍNH TP/SL KẾT HỢP TẤT CẢ PHƯƠNG PHÁP ============
+    
+    function calculateSwingPoints(prices, lookback = 50) {
+        const recentPrices = prices.slice(-lookback);
+        const swingHigh = Math.max(...recentPrices);
+        const swingLow = Math.min(...recentPrices);
+        return { swingHigh, swingLow };
+    }
+    
+    function calculateFibonacciLevels(swingHigh, swingLow, direction) {
+        const range = swingHigh - swingLow;
+        if (direction === 'BUY') {
+            return {
+                fib_236: swingLow + range * 0.236,
+                fib_382: swingLow + range * 0.382,
+                fib_500: swingLow + range * 0.500,
+                fib_618: swingLow + range * 0.618,
+                fib_786: swingLow + range * 0.786,
+                fib_1000: swingHigh,
+                fib_1272: swingHigh + range * 0.272,
+                fib_1618: swingHigh + range * 0.618
+            };
+        } else {
+            return {
+                fib_236: swingHigh - range * 0.236,
+                fib_382: swingHigh - range * 0.382,
+                fib_500: swingHigh - range * 0.500,
+                fib_618: swingHigh - range * 0.618,
+                fib_786: swingHigh - range * 0.786,
+                fib_1000: swingLow,
+                fib_1272: swingLow - range * 0.272,
+                fib_1618: swingLow - range * 0.618
+            };
+        }
+    }
+    
+    function findSupportResistance(prices, currentPrice, tolerance = 0.002) {
+        const levels = [];
+        const priceRange = Math.max(...prices) - Math.min(...prices);
+        const clusterTolerance = priceRange * tolerance;
+        
+        // Tìm các pivot points
+        for (let i = 5; i < prices.length - 5; i++) {
+            const isHigh = prices[i] > prices[i-1] && prices[i] > prices[i-2] && 
+                          prices[i] > prices[i+1] && prices[i] > prices[i+2];
+            const isLow = prices[i] < prices[i-1] && prices[i] < prices[i-2] && 
+                         prices[i] < prices[i+1] && prices[i] < prices[i+2];
+            
+            if (isHigh || isLow) {
+                levels.push(prices[i]);
+            }
+        }
+        
+        // Gộp các level gần nhau
+        const clusteredLevels = [];
+        levels.sort((a, b) => a - b);
+        
+        for (let level of levels) {
+            const existing = clusteredLevels.find(l => Math.abs(l - level) < clusterTolerance);
+            if (!existing) {
+                clusteredLevels.push(level);
+            }
+        }
+        
+        // Tìm support/resistance gần nhất
+        const resistance = clusteredLevels.filter(l => l > currentPrice).sort((a, b) => a - b)[0];
+        const support = clusteredLevels.filter(l => l < currentPrice).sort((a, b) => b - a)[0];
+        
+        return { support, resistance, allLevels: clusteredLevels };
+    }
+    
+    function calculateAdvancedTPSL(signal, entry, prices, rsiValues, atr, high, low) {
+        if (signal === 'NEUTRAL') {
+            return { tp: entry, sl: entry, method: 'Neutral - No Trade' };
+        }
+        
+        const currentRSI = rsiValues[rsiValues.length - 1];
+        const { swingHigh, swingLow } = calculateSwingPoints(prices);
+        const srLevels = findSupportResistance(prices, entry);
+        
+        let tpCandidates = [];
+        let slCandidates = [];
+        let methods = [];
+        
+        if (signal === 'BUY') {
+            // === PHƯƠNG PHÁP 1: ATR (2:1 R:R) ===
+            tpCandidates.push({ value: entry + (atr * 2), weight: 1.0, name: 'ATR 2x' });
+            slCandidates.push({ value: entry - (atr * 1), weight: 1.0, name: 'ATR 1x' });
+            
+            // === PHƯƠNG PHÁP 2: RSI-Based ===
+            if (currentRSI < 30) {
+                // Oversold - mục tiêu RSI 70
+                const rsiTarget = entry * 1.015; // ~1.5% tăng
+                tpCandidates.push({ value: rsiTarget, weight: 1.5, name: 'RSI Target 70' });
+                slCandidates.push({ value: entry * 0.995, weight: 1.2, name: 'RSI SL' });
+            } else if (currentRSI < 50) {
+                tpCandidates.push({ value: entry * 1.01, weight: 1.2, name: 'RSI Target 60' });
+                slCandidates.push({ value: entry * 0.997, weight: 1.0, name: 'RSI SL' });
+            }
+            
+            // === PHƯƠNG PHÁP 3: Fibonacci ===
+            const fibs = calculateFibonacciLevels(swingHigh, swingLow, 'BUY');
+            if (fibs.fib_1618 > entry) {
+                tpCandidates.push({ value: fibs.fib_1618, weight: 1.3, name: 'Fib 161.8%' });
+            }
+            if (fibs.fib_1272 > entry) {
+                tpCandidates.push({ value: fibs.fib_1272, weight: 1.2, name: 'Fib 127.2%' });
+            }
+            if (fibs.fib_382 < entry) {
+                slCandidates.push({ value: fibs.fib_382, weight: 1.1, name: 'Fib 38.2% SL' });
+            }
+            
+            // === PHƯƠNG PHÁP 4: Support/Resistance ===
+            if (srLevels.resistance && srLevels.resistance > entry) {
+                const distanceToR = srLevels.resistance - entry;
+                if (distanceToR > atr * 0.5) { // Đủ xa để đáng trade
+                    tpCandidates.push({ 
+                        value: srLevels.resistance - (atr * 0.2), // Trước resistance 1 chút
+                        weight: 2.0, 
+                        name: 'Resistance' 
+                    });
+                }
+            }
+            if (srLevels.support && srLevels.support < entry) {
+                slCandidates.push({ 
+                    value: srLevels.support - (atr * 0.1), // Dưới support 1 chút
+                    weight: 2.0, 
+                    name: 'Support' 
+                });
+            }
+            
+            // === PHƯƠNG PHÁP 5: Fixed Percentage ===
+            tpCandidates.push({ value: entry * 1.012, weight: 0.8, name: '1.2% Gain' });
+            slCandidates.push({ value: entry * 0.994, weight: 0.8, name: '0.6% Loss' });
+            
+            // === PHƯƠNG PHÁP 6: Swing High/Low ===
+            if (swingHigh > entry) {
+                tpCandidates.push({ value: swingHigh, weight: 1.5, name: 'Swing High' });
+            }
+            slCandidates.push({ value: swingLow - (atr * 0.2), weight: 1.3, name: 'Swing Low' });
+            
+            // === PHƯƠNG PHÁP 7: Trailing với EMA ===
+            const ema20 = calculateEMA(prices, 20);
+            const currentEMA20 = ema20[ema20.length - 1];
+            if (currentEMA20 < entry) {
+                slCandidates.push({ value: currentEMA20, weight: 1.2, name: 'EMA20 Trail' });
+            }
+            
+        } else if (signal === 'SELL') {
+            // === PHƯƠNG PHÁP 1: ATR (2:1 R:R) ===
+            tpCandidates.push({ value: entry - (atr * 2), weight: 1.0, name: 'ATR 2x' });
+            slCandidates.push({ value: entry + (atr * 1), weight: 1.0, name: 'ATR 1x' });
+            
+            // === PHƯƠNG PHÁP 2: RSI-Based ===
+            if (currentRSI > 70) {
+                // Overbought - mục tiêu RSI 30
+                const rsiTarget = entry * 0.985; // ~1.5% giảm
+                tpCandidates.push({ value: rsiTarget, weight: 1.5, name: 'RSI Target 30' });
+                slCandidates.push({ value: entry * 1.005, weight: 1.2, name: 'RSI SL' });
+            } else if (currentRSI > 50) {
+                tpCandidates.push({ value: entry * 0.99, weight: 1.2, name: 'RSI Target 40' });
+                slCandidates.push({ value: entry * 1.003, weight: 1.0, name: 'RSI SL' });
+            }
+            
+            // === PHƯƠNG PHÁP 3: Fibonacci ===
+            const fibs = calculateFibonacciLevels(swingHigh, swingLow, 'SELL');
+            if (fibs.fib_1618 < entry) {
+                tpCandidates.push({ value: fibs.fib_1618, weight: 1.3, name: 'Fib 161.8%' });
+            }
+            if (fibs.fib_1272 < entry) {
+                tpCandidates.push({ value: fibs.fib_1272, weight: 1.2, name: 'Fib 127.2%' });
+            }
+            if (fibs.fib_382 > entry) {
+                slCandidates.push({ value: fibs.fib_382, weight: 1.1, name: 'Fib 38.2% SL' });
+            }
+            
+            // === PHƯƠNG PHÁP 4: Support/Resistance ===
+            if (srLevels.support && srLevels.support < entry) {
+                const distanceToS = entry - srLevels.support;
+                if (distanceToS > atr * 0.5) {
+                    tpCandidates.push({ 
+                        value: srLevels.support + (atr * 0.2),
+                        weight: 2.0, 
+                        name: 'Support' 
+                    });
+                }
+            }
+            if (srLevels.resistance && srLevels.resistance > entry) {
+                slCandidates.push({ 
+                    value: srLevels.resistance + (atr * 0.1),
+                    weight: 2.0, 
+                    name: 'Resistance' 
+                });
+            }
+            
+            // === PHƯƠNG PHÁP 5: Fixed Percentage ===
+            tpCandidates.push({ value: entry * 0.988, weight: 0.8, name: '1.2% Gain' });
+            slCandidates.push({ value: entry * 1.006, weight: 0.8, name: '0.6% Loss' });
+            
+            // === PHƯƠNG PHÁP 6: Swing High/Low ===
+            if (swingLow < entry) {
+                tpCandidates.push({ value: swingLow, weight: 1.5, name: 'Swing Low' });
+            }
+            slCandidates.push({ value: swingHigh + (atr * 0.2), weight: 1.3, name: 'Swing High' });
+            
+            // === PHƯƠNG PHÁP 7: Trailing với EMA ===
+            const ema20 = calculateEMA(prices, 20);
+            const currentEMA20 = ema20[ema20.length - 1];
+            if (currentEMA20 > entry) {
+                slCandidates.push({ value: currentEMA20, weight: 1.2, name: 'EMA20 Trail' });
+            }
+        }
+        
+        // === TÍNH TRUNG BÌNH CÓ TRỌNG SỐ (WEIGHTED AVERAGE) ===
+        const calculateWeightedAverage = (candidates) => {
+            if (candidates.length === 0) return null;
+            
+            let sumWeightedValues = 0;
+            let sumWeights = 0;
+            
+            candidates.forEach(c => {
+                sumWeightedValues += c.value * c.weight;
+                sumWeights += c.weight;
+            });
+            
+            return sumWeightedValues / sumWeights;
+        };
+        
+        const tp = calculateWeightedAverage(tpCandidates);
+        const sl = calculateWeightedAverage(slCandidates);
+        
+        // Tạo danh sách methods đã dùng
+        const tpMethods = tpCandidates.map(c => c.name).join(', ');
+        const slMethods = slCandidates.map(c => c.name).join(', ');
+        
+        // === KIỂM TRA RISK:REWARD RATIO ===
+        let finalTP = tp;
+        let finalSL = sl;
+        
+        const risk = Math.abs(entry - sl);
+        const reward = Math.abs(tp - entry);
+        const rrRatio = reward / risk;
+        
+        // Đảm bảo tối thiểu R:R = 1.5:1
+        if (rrRatio < 1.5) {
+            if (signal === 'BUY') {
+                finalTP = entry + (risk * 2); // Force R:R = 2:1
+            } else {
+                finalTP = entry - (risk * 2);
+            }
+        }
+        
+        return {
+            tp: finalTP,
+            sl: finalSL,
+            rrRatio: ((Math.abs(finalTP - entry)) / Math.abs(entry - finalSL)).toFixed(2),
+            tpMethods: tpMethods,
+            slMethods: slMethods,
+            tpCount: tpCandidates.length,
+            slCount: slCandidates.length
+        };
+    }
+
     async function analyzeTimeframe(tf) {
         const data = await fetchTradingViewData(tf.interval);
         const prices = data.prices;
@@ -733,20 +996,8 @@
         const currentMarketPrice = prices[prices.length - 1];
         const atr = calculateATR(data.high, data.low, prices, 14);
         
-        let entry, tp, sl;
-        if (signal === 'BUY') {
-            entry = currentMarketPrice;
-            tp = entry + (atr * 2);
-            sl = entry - (atr * 1);
-        } else if (signal === 'SELL') {
-            entry = currentMarketPrice;
-            tp = entry - (atr * 2);
-            sl = entry + (atr * 1);
-        } else {
-            entry = currentMarketPrice;
-            tp = entry;
-            sl = entry;
-        }
+        // === SỬ DỤNG HỆ THỐNG TP/SL KẾT HỢP ===
+        const tpslData = calculateAdvancedTPSL(signal, currentMarketPrice, prices, rsiValues, atr, data.high, data.low);
         
         return {
             timeframe: tf.label,
@@ -755,9 +1006,13 @@
             lwma: currentLWMA.toFixed(2),
             signal: signal,
             signalStrength: signalStrength,
-            entry: entry.toFixed(2),
-            tp: tp.toFixed(2),
-            sl: sl.toFixed(2),
+            entry: currentMarketPrice.toFixed(2),
+            tp: tpslData.tp.toFixed(2),
+            sl: tpslData.sl.toFixed(2),
+            rrRatio: tpslData.rrRatio,
+            tpMethods: tpslData.tpMethods,
+            slMethods: tpslData.slMethods,
+            methodCount: `TP:${tpslData.tpCount} SL:${tpslData.slCount}`,
             isCross: emaCrossAbove || emaCrossBelow
         };
     }
@@ -794,6 +1049,15 @@
                           analysis.signal === 'SELL' ? '📉' : '➖';
         const crossIndicator = analysis.isCross ? ' 🔥 (CẮT NHAU!)' : '';
         
+        // Tính toán pips và %
+        const entry = parseFloat(analysis.entry);
+        const tp = parseFloat(analysis.tp);
+        const sl = parseFloat(analysis.sl);
+        const tpPips = Math.abs(tp - entry).toFixed(2);
+        const slPips = Math.abs(sl - entry).toFixed(2);
+        const tpPercent = ((Math.abs(tp - entry) / entry) * 100).toFixed(2);
+        const slPercent = ((Math.abs(sl - entry) / entry) * 100).toFixed(2);
+        
         card.innerHTML = `
             <div class="timeframe-header">${analysis.timeframe}</div>
             <div class="indicator-values">
@@ -819,12 +1083,26 @@
                     <span>$${analysis.entry}</span>
                 </div>
                 <div class="level-row tp">
-                    <span>🎯 Take Profit:</span>
-                    <span>$${analysis.tp}</span>
+                    <span>🎯 TP:</span>
+                    <span>$${analysis.tp} (+${tpPips} / ${tpPercent}%)</span>
                 </div>
                 <div class="level-row sl">
-                    <span>🛑 Stop Loss:</span>
-                    <span>$${analysis.sl}</span>
+                    <span>🛑 SL:</span>
+                    <span>$${analysis.sl} (-${slPips} / ${slPercent}%)</span>
+                </div>
+                <div class="indicator-row" style="margin-top: 10px; background: #fff3cd; border-left: 4px solid #ffc107;">
+                    <span class="indicator-label">⚖️ R:R Ratio:</span>
+                    <span class="indicator-value" style="color: #856404; font-size: 1.1em;">1:${analysis.rrRatio}</span>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding: 12px; background: #e7f3ff; border-radius: 8px; font-size: 0.85em;">
+                <div style="margin-bottom: 8px;">
+                    <strong>🎯 TP Methods (${analysis.methodCount.split(' ')[0].split(':')[1]}):</strong>
+                    <div style="color: #0066cc; margin-top: 4px;">${analysis.tpMethods || 'ATR-based'}</div>
+                </div>
+                <div>
+                    <strong>🛑 SL Methods (${analysis.methodCount.split(' ')[1].split(':')[1]}):</strong>
+                    <div style="color: #cc0000; margin-top: 4px;">${analysis.slMethods || 'ATR-based'}</div>
                 </div>
             </div>
         `;
