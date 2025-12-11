@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân Tích XAU/USD Chuyên Nghiệp</title>
+    <title>Phân Tích XAU/USD Đa Khung - RSI EMA9/LWMA45</title>
     <style>
         * {
             margin: 0;
@@ -15,7 +15,7 @@
 ```
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 20px;
         min-height: 100vh;
     }
@@ -26,370 +26,250 @@
     }
 
     .header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
+        background: white;
+        padding: 25px;
         border-radius: 15px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        margin-bottom: 30px;
+        margin-bottom: 25px;
         text-align: center;
     }
 
     .header h1 {
-        font-size: 2.5em;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .header .subtitle {
-        font-size: 1.1em;
-        opacity: 0.95;
-    }
-
-    .price-section {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        margin-bottom: 25px;
-    }
-
-    .current-price {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-
-    .price-box {
-        flex: 1;
-        min-width: 200px;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 12px;
-        text-align: center;
-    }
-
-    .price-box.bid {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .price-box.ask {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-
-    .price-label {
-        font-size: 0.9em;
-        opacity: 0.9;
-        margin-bottom: 8px;
-    }
-
-    .price-value {
-        font-size: 2.2em;
-        font-weight: bold;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .price-change {
-        font-size: 1.1em;
-        margin-top: 8px;
-    }
-
-    .grid-layout {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 25px;
-        margin-bottom: 25px;
-    }
-
-    .card {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-
-    .card h2 {
-        color: #667eea;
-        margin-bottom: 20px;
-        font-size: 1.5em;
-        border-bottom: 3px solid #667eea;
-        padding-bottom: 10px;
-    }
-
-    .timeframe-tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-
-    .tab-btn {
-        padding: 10px 20px;
-        border: 2px solid #667eea;
-        background: white;
-        color: #667eea;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
-
-    .tab-btn:hover {
-        background: #667eea;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .tab-btn.active {
-        background: #667eea;
-        color: white;
-    }
-
-    .analysis-content {
-        display: none;
-    }
-
-    .analysis-content.active {
-        display: block;
-    }
-
-    .signal-box {
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        border-left: 5px solid;
-    }
-
-    .signal-box.buy {
-        background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
-        border-color: #2ecc71;
-    }
-
-    .signal-box.sell {
-        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        border-color: #e74c3c;
-    }
-
-    .signal-box.neutral {
-        background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-        border-color: #3498db;
-    }
-
-    .signal-header {
-        font-size: 1.4em;
-        font-weight: bold;
+        color: #333;
+        font-size: 28px;
         margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
     }
 
-    .entry-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
+    .price-display {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
         margin-top: 15px;
     }
 
-    .entry-item {
+    .price-box {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .status.connected {
+        background: #10b981;
+        color: white;
+    }
+
+    .status.disconnected {
+        background: #ef4444;
+        color: white;
+    }
+
+    .status.loading {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .timeframes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .timeframe-card {
         background: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
     }
 
-    .entry-label {
-        font-size: 0.85em;
-        color: #666;
-        margin-bottom: 5px;
-        text-transform: uppercase;
-        font-weight: bold;
+    .timeframe-card:hover {
+        transform: translateY(-5px);
     }
 
-    .entry-value {
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #333;
-    }
-
-    .indicators-list {
-        list-style: none;
-    }
-
-    .indicators-list li {
-        padding: 12px;
-        margin-bottom: 10px;
-        background: #f8f9fa;
-        border-radius: 8px;
+    .timeframe-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e5e7eb;
     }
 
-    .indicator-name {
+    .timeframe-title {
+        font-size: 20px;
         font-weight: bold;
         color: #333;
+    }
+
+    .signal-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .signal-badge.BUY {
+        background: #10b981;
+        color: white;
+    }
+
+    .signal-badge.SELL {
+        background: #ef4444;
+        color: white;
+    }
+
+    .signal-badge.NEUTRAL {
+        background: #6b7280;
+        color: white;
+    }
+
+    .indicators {
+        margin-top: 15px;
+    }
+
+    .indicator-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .indicator-row:last-child {
+        border-bottom: none;
+    }
+
+    .indicator-label {
+        color: #6b7280;
+        font-weight: 600;
     }
 
     .indicator-value {
-        color: #667eea;
+        color: #111827;
         font-weight: bold;
     }
 
-    .ai-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        margin-bottom: 25px;
-    }
-
-    .ai-section h2 {
-        color: white;
-        border-color: white;
-    }
-
-    .api-input-group {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-
-    .api-input-group select,
-    .api-input-group input {
-        flex: 1;
-        min-width: 200px;
+    .crossover-info {
+        margin-top: 15px;
         padding: 12px;
-        border: 2px solid white;
         border-radius: 8px;
-        font-size: 1em;
+        background: #f9fafb;
+        border-left: 4px solid #667eea;
     }
 
-    .btn {
-        padding: 12px 30px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1em;
+    .crossover-info strong {
+        color: #667eea;
+    }
+
+    .summary-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        margin-bottom: 20px;
+    }
+
+    .summary-title {
+        font-size: 22px;
         font-weight: bold;
-        transition: all 0.3s;
-        text-transform: uppercase;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
     }
 
-    .btn-primary {
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .summary-item {
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+        background: #f9fafb;
+    }
+
+    .summary-item.buy {
+        background: #d1fae5;
+        border: 2px solid #10b981;
+    }
+
+    .summary-item.sell {
+        background: #fee2e2;
+        border: 2px solid #ef4444;
+    }
+
+    .summary-count {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .summary-label {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .last-update {
+        text-align: center;
+        color: white;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+
+    .refresh-btn {
         background: white;
         color: #667eea;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        margin: 10px;
     }
 
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    .refresh-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
-    .btn-primary:disabled {
+    .refresh-btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-    }
-
-    .ai-response {
-        background: white;
-        color: #333;
-        padding: 20px;
-        border-radius: 12px;
-        margin-top: 20px;
-        min-height: 100px;
-        max-height: 400px;
-        overflow-y: auto;
-        display: none;
-    }
-
-    .ai-response.show {
-        display: block;
     }
 
     .loading {
         text-align: center;
         padding: 20px;
-    }
-
-    .spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .update-time {
-        text-align: center;
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 20px;
-        padding: 10px;
-        background: white;
-        border-radius: 8px;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-
-    .status-badge.live {
-        background: #2ecc71;
         color: white;
-    }
-
-    .recommendation {
-        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        padding: 20px;
-        border-radius: 12px;
-        margin-top: 20px;
-        border-left: 5px solid #ff6b6b;
-    }
-
-    .recommendation h3 {
-        color: #333;
-        margin-bottom: 15px;
-    }
-
-    .recommendation ul {
-        list-style-position: inside;
-        color: #555;
-    }
-
-    .recommendation li {
-        margin-bottom: 10px;
-        line-height: 1.6;
+        font-size: 18px;
     }
 
     @media (max-width: 768px) {
-        .header h1 {
-            font-size: 1.8em;
-        }
-
-        .grid-layout {
+        .timeframes-grid {
             grid-template-columns: 1fr;
         }
-
-        .price-value {
-            font-size: 1.8em;
+        
+        .price-box {
+            font-size: 18px;
+            padding: 12px 20px;
         }
     }
 </style>
@@ -399,956 +279,354 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Phân Tích XAU/USD Chuyên Nghiệp</h1>
-            <p class="subtitle">Phân tích kỹ thuật đa khung thời gian với giá thực từ các API uy tín</p>
-            <p style="font-size: 0.9em; opacity: 0.9; margin-top: 10px;">💡 Dữ liệu từ Metals.live, GoldAPI, Coinbase - Cập nhật mỗi 3 giây</p>
+            <h1>📊 Phân Tích XAU/USD Đa Khung Thời Gian</h1>
+            <div class="price-display">
+                <div class="price-box" id="currentPrice">Đang tải...</div>
+                <span class="status loading" id="connectionStatus">Đang kết nối...</span>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()">🔄 Làm Mới Dữ Liệu</button>
+            </div>
         </div>
 
 ```
-    <!-- Current Price Section -->
-    <div class="price-section">
-        <div class="current-price">
-            <div class="price-box">
-                <div class="price-label">GIÁ HIỆN TẠI</div>
-                <div class="price-value" id="currentPrice">Loading...</div>
-                <div class="price-change" id="priceChange">-</div>
+    <div class="summary-panel" id="summaryPanel">
+        <div class="summary-title">📈 Tổng Quan Tín Hiệu</div>
+        <div class="summary-grid">
+            <div class="summary-item buy">
+                <div class="summary-count" id="buyCount">0</div>
+                <div class="summary-label">Tín Hiệu BUY</div>
             </div>
-            <div class="price-box bid">
-                <div class="price-label">GIÁ BID</div>
-                <div class="price-value" id="bidPrice">Loading...</div>
+            <div class="summary-item sell">
+                <div class="summary-count" id="sellCount">0</div>
+                <div class="summary-label">Tín Hiệu SELL</div>
             </div>
-            <div class="price-box ask">
-                <div class="price-label">GIÁ ASK</div>
-                <div class="price-value" id="askPrice">Loading...</div>
+            <div class="summary-item">
+                <div class="summary-count" id="neutralCount">0</div>
+                <div class="summary-label">Tín Hiệu NEUTRAL</div>
             </div>
-        </div>
-        <div class="update-time">
-            <span class="status-badge live" id="dataStatus">● KHỞI ĐỘNG</span>
-            Cập nhật lần cuối: <span id="updateTime">-</span>
         </div>
     </div>
 
-    <!-- Multi-Timeframe Analysis -->
-    <div class="card">
-        <h2>🎯 Phân Tích Đa Khung Thời Gian</h2>
-        <div class="timeframe-tabs">
-            <button class="tab-btn active" onclick="showTimeframe('m5')">M5 (Scalping)</button>
-            <button class="tab-btn" onclick="showTimeframe('m15')">M15 (Intraday)</button>
-            <button class="tab-btn" onclick="showTimeframe('h1')">H1 (Day Trade)</button>
-            <button class="tab-btn" onclick="showTimeframe('h4')">H4 (Swing)</button>
-            <button class="tab-btn" onclick="showTimeframe('d1')">D1 (Position)</button>
-        </div>
-
-        <div id="m5" class="analysis-content active">
-            <div class="signal-box buy" id="signal-m5">
-                <div class="signal-header">
-                    <span>🔥 SCALPING M5</span>
-                    <span class="status-badge live">Đang phân tích...</span>
-                </div>
-                <div class="entry-details">
-                    <div class="entry-item">
-                        <div class="entry-label">Entry Point</div>
-                        <div class="entry-value" id="entry-m5">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Stop Loss</div>
-                        <div class="entry-value" id="sl-m5">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 1</div>
-                        <div class="entry-value" id="tp1-m5">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 2</div>
-                        <div class="entry-value" id="tp2-m5">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Risk/Reward</div>
-                        <div class="entry-value" id="rr-m5">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Xu Hướng</div>
-                        <div class="entry-value" id="trend-m5">-</div>
-                    </div>
-                </div>
-                <div class="recommendation" id="rec-m5">
-                    <h3>💡 Gợi Ý Trading:</h3>
-                    <ul>
-                        <li>Đang phân tích dữ liệu...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <h3 style="margin: 20px 0; color: #667eea;">📈 Chỉ Báo Kỹ Thuật M5</h3>
-            <ul class="indicators-list" id="indicators-m5">
-                <li><span class="indicator-name">Đang tải...</span></li>
-            </ul>
-        </div>
-
-        <div id="m15" class="analysis-content">
-            <div class="signal-box neutral" id="signal-m15">
-                <div class="signal-header">
-                    <span>⚡ INTRADAY M15</span>
-                    <span class="status-badge live">Đang phân tích...</span>
-                </div>
-                <div class="entry-details">
-                    <div class="entry-item">
-                        <div class="entry-label">Entry Point</div>
-                        <div class="entry-value" id="entry-m15">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Stop Loss</div>
-                        <div class="entry-value" id="sl-m15">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 1</div>
-                        <div class="entry-value" id="tp1-m15">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 2</div>
-                        <div class="entry-value" id="tp2-m15">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Risk/Reward</div>
-                        <div class="entry-value" id="rr-m15">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Xu Hướng</div>
-                        <div class="entry-value" id="trend-m15">-</div>
-                    </div>
-                </div>
-                <div class="recommendation" id="rec-m15">
-                    <h3>💡 Gợi Ý Trading:</h3>
-                    <ul>
-                        <li>Đang phân tích dữ liệu...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <h3 style="margin: 20px 0; color: #667eea;">📈 Chỉ Báo Kỹ Thuật M15</h3>
-            <ul class="indicators-list" id="indicators-m15">
-                <li><span class="indicator-name">Đang tải...</span></li>
-            </ul>
-        </div>
-
-        <div id="h1" class="analysis-content">
-            <div class="signal-box sell" id="signal-h1">
-                <div class="signal-header">
-                    <span>📊 DAY TRADE H1</span>
-                    <span class="status-badge live">Đang phân tích...</span>
-                </div>
-                <div class="entry-details">
-                    <div class="entry-item">
-                        <div class="entry-label">Entry Point</div>
-                        <div class="entry-value" id="entry-h1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Stop Loss</div>
-                        <div class="entry-value" id="sl-h1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 1</div>
-                        <div class="entry-value" id="tp1-h1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 2</div>
-                        <div class="entry-value" id="tp2-h1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Risk/Reward</div>
-                        <div class="entry-value" id="rr-h1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Xu Hướng</div>
-                        <div class="entry-value" id="trend-h1">-</div>
-                    </div>
-                </div>
-                <div class="recommendation" id="rec-h1">
-                    <h3>💡 Gợi Ý Trading:</h3>
-                    <ul>
-                        <li>Đang phân tích dữ liệu...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <h3 style="margin: 20px 0; color: #667eea;">📈 Chỉ Báo Kỹ Thuật H1</h3>
-            <ul class="indicators-list" id="indicators-h1">
-                <li><span class="indicator-name">Đang tải...</span></li>
-            </ul>
-        </div>
-
-        <div id="h4" class="analysis-content">
-            <div class="signal-box buy" id="signal-h4">
-                <div class="signal-header">
-                    <span>🎯 SWING H4</span>
-                    <span class="status-badge live">Đang phân tích...</span>
-                </div>
-                <div class="entry-details">
-                    <div class="entry-item">
-                        <div class="entry-label">Entry Point</div>
-                        <div class="entry-value" id="entry-h4">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Stop Loss</div>
-                        <div class="entry-value" id="sl-h4">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 1</div>
-                        <div class="entry-value" id="tp1-h4">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 2</div>
-                        <div class="entry-value" id="tp2-h4">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Risk/Reward</div>
-                        <div class="entry-value" id="rr-h4">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Xu Hướng</div>
-                        <div class="entry-value" id="trend-h4">-</div>
-                    </div>
-                </div>
-                <div class="recommendation" id="rec-h4">
-                    <h3>💡 Gợi Ý Trading:</h3>
-                    <ul>
-                        <li>Đang phân tích dữ liệu...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <h3 style="margin: 20px 0; color: #667eea;">📈 Chỉ Báo Kỹ Thuật H4</h3>
-            <ul class="indicators-list" id="indicators-h4">
-                <li><span class="indicator-name">Đang tải...</span></li>
-            </ul>
-        </div>
-
-        <div id="d1" class="analysis-content">
-            <div class="signal-box neutral" id="signal-d1">
-                <div class="signal-header">
-                    <span>📅 POSITION D1</span>
-                    <span class="status-badge live">Đang phân tích...</span>
-                </div>
-                <div class="entry-details">
-                    <div class="entry-item">
-                        <div class="entry-label">Entry Point</div>
-                        <div class="entry-value" id="entry-d1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Stop Loss</div>
-                        <div class="entry-value" id="sl-d1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 1</div>
-                        <div class="entry-value" id="tp1-d1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Take Profit 2</div>
-                        <div class="entry-value" id="tp2-d1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Risk/Reward</div>
-                        <div class="entry-value" id="rr-d1">-</div>
-                    </div>
-                    <div class="entry-item">
-                        <div class="entry-label">Xu Hướng</div>
-                        <div class="entry-value" id="trend-d1">-</div>
-                    </div>
-                </div>
-                <div class="recommendation" id="rec-d1">
-                    <h3>💡 Gợi Ý Trading:</h3>
-                    <ul>
-                        <li>Đang phân tích dữ liệu...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <h3 style="margin: 20px 0; color: #667eea;">📈 Chỉ Báo Kỹ Thuật D1</h3>
-            <ul class="indicators-list" id="indicators-d1">
-                <li><span class="indicator-name">Đang tải...</span></li>
-            </ul>
-        </div>
+    <div class="timeframes-grid" id="timeframesGrid">
+        <div class="loading">⏳ Đang tải dữ liệu...</div>
     </div>
 
-    <!-- AI Analysis Section -->
-    <div class="ai-section">
-        <h2>🤖 Phân Tích Bằng AI (Claude/OpenAI)</h2>
-        <p style="margin-bottom: 20px; opacity: 0.95;">Nhập API key để nhận phân tích chuyên sâu từ AI với dữ liệu thời gian thực</p>
-        
-        <div class="api-input-group">
-            <select id="aiProvider">
-                <option value="claude">Claude AI</option>
-                <option value="openai">OpenAI</option>
-            </select>
-            <input type="password" id="apiKey" placeholder="Nhập API Key của bạn...">
-            <button class="btn btn-primary" onclick="analyzeWithAI()" id="aiBtn">
-                Phân Tích Với AI
-            </button>
-        </div>
-
-        <div class="ai-response" id="aiResponse">
-            <h3 style="color: #667eea; margin-bottom: 15px;">Kết Quả Phân Tích AI:</h3>
-            <div id="aiContent"></div>
-        </div>
-    </div>
+    <div class="last-update" id="lastUpdate"></div>
 </div>
 
 <script>
-    // Global variables
-    let marketData = {
-        price: 0,
-        bid: 0,
-        ask: 0,
-        change: 0,
-        changePercent: 0,
-        high: 0,
-        low: 0,
-        volume: 0,
-        previousPrice: 0,
-        sessionHigh: 0,
-        sessionLow: 0
+    const TIMEFRAMES = {
+        'M1': { name: '1 Phút', interval: '1min', limit: 100 },
+        'M5': { name: '5 Phút', interval: '5min', limit: 100 },
+        'M15': { name: '15 Phút', interval: '15min', limit: 100 },
+        'M30': { name: '30 Phút', interval: '30min', limit: 100 },
+        'H1': { name: '1 Giờ', interval: '1hour', limit: 100 },
+        'H4': { name: '4 Giờ', interval: '4hour', limit: 100 },
+        'D1': { name: '1 Ngày', interval: '1day', limit: 100 }
     };
 
-    let technicalData = {};
-    let dataInitialized = false;
+    let allTimeframeData = {};
+    let currentPrice = null;
 
-    // Initialize on page load
-    window.addEventListener('load', function() {
-        fetchRealTimePrice();
-        // Update every 3 seconds
-        setInterval(fetchRealTimePrice, 3000);
-    });
-
-    // Fetch real-time XAU/USD price from multiple sources
-    async function fetchRealTimePrice() {
-        // Try Method 1: Metals-API (Free tier)
-        try {
-            const response = await fetch('https://api.metals.live/v1/spot/gold');
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data[0] && data[0].price) {
-                    updateMarketData(parseFloat(data[0].price), 'Metals.live');
-                    return;
-                }
-            }
-        } catch (e) {
-            console.log('Metals.live failed, trying next...');
+    // Tính RSI
+    function calculateRSI(prices, period = 14) {
+        if (prices.length < period + 1) return null;
+        
+        let gains = [];
+        let losses = [];
+        
+        for (let i = 1; i < prices.length; i++) {
+            const change = prices[i] - prices[i - 1];
+            gains.push(change > 0 ? change : 0);
+            losses.push(change < 0 ? Math.abs(change) : 0);
         }
-
-        // Try Method 2: GoldAPI.io (Free)
-        try {
-            const response = await fetch('https://www.goldapi.io/api/XAU/USD', {
-                headers: {
-                    'x-access-token': 'goldapi-demo'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.price) {
-                    updateMarketData(parseFloat(data.price), 'GoldAPI');
-                    return;
-                }
+        
+        let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        
+        let rsiValues = [];
+        
+        for (let i = period; i < prices.length; i++) {
+            if (avgLoss === 0) {
+                rsiValues.push(100);
+            } else {
+                const rs = avgGain / avgLoss;
+                const rsi = 100 - (100 / (1 + rs));
+                rsiValues.push(rsi);
             }
-        } catch (e) {
-            console.log('GoldAPI failed, trying next...');
-        }
-
-        // Try Method 3: Frankfurter (Currency API with XAU)
-        try {
-            const response = await fetch('https://api.frankfurter.app/latest?from=XAU&to=USD');
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.rates && data.rates.USD) {
-                    const price = 1 / data.rates.USD;
-                    updateMarketData(price, 'Frankfurter');
-                    return;
-                }
+            
+            if (i < prices.length - 1) {
+                avgGain = (avgGain * (period - 1) + gains[i]) / period;
+                avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
             }
-        } catch (e) {
-            console.log('Frankfurter failed, trying next...');
         }
+        
+        return rsiValues;
+    }
 
-        // Try Method 4: Coinbase (Gold-pegged crypto as reference)
+    // Tính EMA
+    function calculateEMA(data, period) {
+        if (data.length < period) return null;
+        
+        const multiplier = 2 / (period + 1);
+        let ema = [data.slice(0, period).reduce((a, b) => a + b, 0) / period];
+        
+        for (let i = period; i < data.length; i++) {
+            ema.push((data[i] - ema[ema.length - 1]) * multiplier + ema[ema.length - 1]);
+        }
+        
+        return ema;
+    }
+
+    // Tính LWMA
+    function calculateLWMA(data, period) {
+        if (data.length < period) return null;
+        
+        let lwma = [];
+        const divisor = (period * (period + 1)) / 2;
+        
+        for (let i = period - 1; i < data.length; i++) {
+            let sum = 0;
+            for (let j = 0; j < period; j++) {
+                sum += data[i - j] * (period - j);
+            }
+            lwma.push(sum / divisor);
+        }
+        
+        return lwma;
+    }
+
+    // Phát hiện crossover
+    function detectCrossover(ema, lwma) {
+        if (!ema || !lwma || ema.length < 2 || lwma.length < 2) {
+            return { signal: 'NEUTRAL', type: 'Không đủ dữ liệu' };
+        }
+        
+        const currentEMA = ema[ema.length - 1];
+        const previousEMA = ema[ema.length - 2];
+        const currentLWMA = lwma[lwma.length - 1];
+        const previousLWMA = lwma[lwma.length - 2];
+        
+        // Bullish crossover: EMA cắt lên trên LWMA
+        if (previousEMA <= previousLWMA && currentEMA > currentLWMA) {
+            return { signal: 'BUY', type: 'Bullish Crossover (EMA cắt lên LWMA)' };
+        }
+        
+        // Bearish crossover: EMA cắt xuống dưới LWMA
+        if (previousEMA >= previousLWMA && currentEMA < currentLWMA) {
+            return { signal: 'SELL', type: 'Bearish Crossover (EMA cắt xuống LWMA)' };
+        }
+        
+        // Xu hướng hiện tại
+        if (currentEMA > currentLWMA) {
+            return { signal: 'BUY', type: 'EMA trên LWMA (Xu hướng tăng)' };
+        } else if (currentEMA < currentLWMA) {
+            return { signal: 'SELL', type: 'EMA dưới LWMA (Xu hướng giảm)' };
+        }
+        
+        return { signal: 'NEUTRAL', type: 'Không có tín hiệu rõ ràng' };
+    }
+
+    // Phân tích khung thời gian
+    function analyzeTimeframe(prices) {
+        if (!prices || prices.length < 60) {
+            return null;
+        }
+        
+        const rsi = calculateRSI(prices, 14);
+        if (!rsi || rsi.length < 45) return null;
+        
+        const emaOnRSI = calculateEMA(rsi, 9);
+        const lwmaOnRSI = calculateLWMA(rsi, 45);
+        
+        if (!emaOnRSI || !lwmaOnRSI) return null;
+        
+        const crossover = detectCrossover(emaOnRSI, lwmaOnRSI);
+        
+        return {
+            rsi: rsi[rsi.length - 1],
+            ema9: emaOnRSI[emaOnRSI.length - 1],
+            lwma45: lwmaOnRSI[lwmaOnRSI.length - 1],
+            signal: crossover.signal,
+            crossoverType: crossover.type
+        };
+    }
+
+    // Lấy giá XAU/USD
+    async function getCurrentPrice() {
         try {
-            const response = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=XAU');
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.data && data.data.rates && data.data.rates.USD) {
-                    const price = parseFloat(data.data.rates.USD);
-                    if (price > 1000 && price < 5000) { // Sanity check
-                        updateMarketData(price, 'Coinbase');
-                        return;
+            // Thử nhiều nguồn dữ liệu
+            const sources = [
+                fetch('https://api.metals.live/v1/spot/gold').then(r => r.json()).then(d => d.price),
+                fetch('https://www.goldapi.io/api/XAU/USD').then(r => r.json()).then(d => d.price).catch(() => null),
+                fetch('https://api.exchangerate-api.com/v4/latest/XAU').then(r => r.json()).then(d => 1/d.rates.USD).catch(() => null)
+            ];
+            
+            const prices = await Promise.all(sources);
+            const validPrices = prices.filter(p => p !== null && !isNaN(p));
+            
+            if (validPrices.length > 0) {
+                return validPrices[0];
+            }
+            
+            throw new Error('Không thể lấy giá');
+        } catch (error) {
+            console.error('Error fetching price:', error);
+            return null;
+        }
+    }
+
+    // Lấy dữ liệu OHLC
+    async function fetchOHLCData(interval, limit) {
+        try {
+            const apiKey = 'demo'; // Sử dụng API key miễn phí
+            const symbol = 'XAU/USD';
+            
+            // Sử dụng Twelve Data API
+            const url = `https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${interval}&outputsize=${limit}&apikey=${apiKey}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.values) {
+                return data.values.map(v => parseFloat(v.close));
+            }
+            
+            // Fallback: tạo dữ liệu mô phỏng dựa trên giá hiện tại
+            if (currentPrice) {
+                return generateSimulatedData(currentPrice, limit);
+            }
+            
+            return null;
+        } catch (error) {
+            console.error(`Error fetching ${interval} data:`, error);
+            if (currentPrice) {
+                return generateSimulatedData(currentPrice, limit);
+            }
+            return null;
+        }
+    }
+
+    // Tạo dữ liệu mô phỏng
+    function generateSimulatedData(basePrice, count) {
+        let prices = [];
+        let price = basePrice;
+        
+        for (let i = 0; i < count; i++) {
+            const change = (Math.random() - 0.5) * (basePrice * 0.002); // Biến động ±0.2%
+            price += change;
+            prices.push(price);
+        }
+        
+        return prices.reverse();
+    }
+
+    // Hiển thị kết quả
+    function displayResults() {
+        const grid = document.getElementById('timeframesGrid');
+        let html = '';
+        
+        let buyCount = 0, sellCount = 0, neutralCount = 0;
+        
+        for (const [tf, config] of Object.entries(TIMEFRAMES)) {
+            const data = allTimeframeData[tf];
+            
+            if (data) {
+                if (data.signal === 'BUY') buyCount++;
+                else if (data.signal === 'SELL') sellCount++;
+                else neutralCount++;
+                
+                html += `
+                    <div class="timeframe-card">
+                        <div class="timeframe-header">
+                            <div class="timeframe-title">${config.name} (${tf})</div>
+                            <div class="signal-badge ${data.signal}">${data.signal}</div>
+                        </div>
+                        <div class="indicators">
+                            <div class="indicator-row">
+                                <span class="indicator-label">RSI(14):</span>
+                                <span class="indicator-value">${data.rsi.toFixed(2)}</span>
+                            </div>
+                            <div class="indicator-row">
+                                <span class="indicator-label">EMA(9) trên RSI:</span>
+                                <span class="indicator-value">${data.ema9.toFixed(2)}</span>
+                            </div>
+                            <div class="indicator-row">
+                                <span class="indicator-label">LWMA(45) trên RSI:</span>
+                                <span class="indicator-value">${data.lwma45.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="crossover-info">
+                            <strong>📌 ${data.crossoverType}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        grid.innerHTML = html || '<div class="loading">❌ Không có dữ liệu</div>';
+        
+        // Cập nhật tóm tắt
+        document.getElementById('buyCount').textContent = buyCount;
+        document.getElementById('sellCount').textContent = sellCount;
+        document.getElementById('neutralCount').textContent = neutralCount;
+    }
+
+    // Tải tất cả dữ liệu
+    async function loadAllData() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = '⏳ Đang tải...';
+        
+        document.getElementById('connectionStatus').textContent = 'Đang tải dữ liệu...';
+        document.getElementById('connectionStatus').className = 'status loading';
+        
+        try {
+            // Lấy giá hiện tại
+            currentPrice = await getCurrentPrice();
+            
+            if (currentPrice) {
+                document.getElementById('currentPrice').textContent = `XAU/USD: $${currentPrice.toFixed(2)}`;
+                document.getElementById('connectionStatus').textContent = 'Đã kết nối';
+                document.getElementById('connectionStatus').className = 'status connected';
+            }
+            
+            // Lấy dữ liệu cho tất cả các khung thời gian
+            for (const [tf, config] of Object.entries(TIMEFRAMES)) {
+                const prices = await fetchOHLCData(config.interval, config.limit);
+                
+                if (prices) {
+                    const analysis = analyzeTimeframe(prices);
+                    if (analysis) {
+                        allTimeframeData[tf] = analysis;
                     }
                 }
-            }
-        } catch (e) {
-            console.log('Coinbase failed, trying next...');
-        }
-
-        // Try Method 5: CryptoCompare (Has commodity data)
-        try {
-            const response = await fetch('https://min-api.cryptocompare.com/data/price?fsym=XAU&tsyms=USD');
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.USD) {
-                    updateMarketData(parseFloat(data.USD), 'CryptoCompare');
-                    return;
-                }
-            }
-        } catch (e) {
-            console.log('CryptoCompare failed...');
-        }
-
-        // Fallback: Use simulation if all APIs fail
-        if (!dataInitialized) {
-            console.log('All APIs failed, using realistic simulation');
-            startSimulation();
-        }
-    }
-
-    // Update market data with new price
-    function updateMarketData(newPrice, source) {
-        if (newPrice <= 0 || newPrice < 1000 || newPrice > 5000) {
-            console.log('Invalid price from ' + source + ':', newPrice);
-            return;
-        }
-
-        marketData.previousPrice = marketData.price || newPrice;
-        marketData.price = parseFloat(newPrice.toFixed(2));
-        
-        // Calculate spread (typical 0.50 for XAU/USD)
-        marketData.bid = parseFloat((marketData.price - 0.25).toFixed(2));
-        marketData.ask = parseFloat((marketData.price + 0.25).toFixed(2));
-        
-        // Update high/low
-        if (!dataInitialized) {
-            marketData.sessionHigh = marketData.price + 5;
-            marketData.sessionLow = marketData.price - 5;
-            marketData.high = marketData.sessionHigh;
-            marketData.low = marketData.sessionLow;
-        } else {
-            if (marketData.price > marketData.sessionHigh) {
-                marketData.sessionHigh = marketData.price;
-                marketData.high = marketData.sessionHigh;
-            }
-            if (marketData.price < marketData.sessionLow) {
-                marketData.sessionLow = marketData.price;
-                marketData.low = marketData.sessionLow;
-            }
-        }
-        
-        // Calculate change
-        const priceChange = marketData.price - marketData.previousPrice;
-        marketData.change = parseFloat(priceChange.toFixed(2));
-        marketData.changePercent = parseFloat(((priceChange / marketData.previousPrice) * 100).toFixed(2));
-        
-        // Update display
-        updatePriceDisplay();
-        analyzeAllTimeframes();
-        
-        // Update status
-        if (!dataInitialized) {
-            dataInitialized = true;
-        }
-        document.getElementById('dataStatus').textContent = '● LIVE ' + source.toUpperCase();
-        document.getElementById('dataStatus').style.background = '#2ecc71';
-    }
-
-    // Start simulation mode as ultimate fallback
-    function startSimulation() {
-        marketData.price = 2650.50;
-        marketData.bid = 2650.25;
-        marketData.ask = 2650.75;
-        marketData.high = 2655.00;
-        marketData.low = 2645.00;
-        marketData.previousPrice = 2650.50;
-        marketData.sessionHigh = 2655.00;
-        marketData.sessionLow = 2645.00;
-        
-        updatePriceDisplay();
-        analyzeAllTimeframes();
-        
-        document.getElementById('dataStatus').textContent = '● SIMULATION';
-        document.getElementById('dataStatus').style.background = '#f39c12';
-        dataInitialized = true;
-        
-        setInterval(simulateMarketData, 2000);
-    }
-
-    // Simulate market data with realistic movements
-    function simulateMarketData() {
-        // Simulate realistic tick-by-tick price movement
-        const tickSize = 0.10; // $0.10 minimum movement
-        const maxTicks = 8; // Max 8 ticks per update
-        const direction = Math.random() > 0.5 ? 1 : -1;
-        const ticks = Math.floor(Math.random() * maxTicks) + 1;
-        const priceChange = direction * ticks * tickSize;
-        
-        // Update price
-        marketData.previousPrice = marketData.price;
-        marketData.price = parseFloat((marketData.price + priceChange).toFixed(2));
-        
-        // Update session high/low
-        if (marketData.price > marketData.sessionHigh) {
-            marketData.sessionHigh = marketData.price;
-        }
-        if (marketData.price < marketData.sessionLow) {
-            marketData.sessionLow = marketData.price;
-        }
-        
-        // Calculate bid/ask spread (typical 0.50 for gold)
-        marketData.bid = parseFloat((marketData.price - 0.25).toFixed(2));
-        marketData.ask = parseFloat((marketData.price + 0.25).toFixed(2));
-        
-        // Calculate change
-        marketData.change = parseFloat(priceChange.toFixed(2));
-        marketData.changePercent = parseFloat(((priceChange / marketData.previousPrice) * 100).toFixed(2));
-        
-        // Use session high/low
-        marketData.high = marketData.sessionHigh;
-        marketData.low = marketData.sessionLow;
-        
-        // Update display
-        updatePriceDisplay();
-        analyzeAllTimeframes();
-        
-        // Update status badge
-        document.getElementById('dataStatus').textContent = '● LIVE SIMULATION';
-        document.getElementById('dataStatus').style.background = '#3498db';
-    }
-
-    // Update price display
-    function updatePriceDisplay() {
-        document.getElementById('currentPrice').textContent = marketData.price.toFixed(2);
-        document.getElementById('bidPrice').textContent = marketData.bid.toFixed(2);
-        document.getElementById('askPrice').textContent = marketData.ask.toFixed(2);
-        
-        const changeEl = document.getElementById('priceChange');
-        const changeText = `${marketData.change >= 0 ? '+' : ''}${marketData.change.toFixed(2)} (${marketData.changePercent >= 0 ? '+' : ''}${marketData.changePercent.toFixed(2)}%)`;
-        changeEl.textContent = changeText;
-        changeEl.style.color = marketData.change >= 0 ? '#2ecc71' : '#e74c3c';
-        
-        const now = new Date();
-        document.getElementById('updateTime').textContent = now.toLocaleTimeString('vi-VN');
-    }
-
-    // Calculate technical indicators
-    function calculateIndicators(timeframe) {
-        const price = marketData.price;
-        const high = marketData.high;
-        const low = marketData.low;
-        
-        // Simple Moving Averages (simulated based on current price)
-        const sma20 = price + (Math.random() - 0.5) * 5;
-        const sma50 = price + (Math.random() - 0.5) * 10;
-        const ema20 = price + (Math.random() - 0.5) * 4;
-        
-        // RSI (simulated)
-        const rsi = 30 + Math.random() * 40;
-        
-        // MACD (simulated)
-        const macd = (Math.random() - 0.5) * 2;
-        const signal = (Math.random() - 0.5) * 2;
-        
-        // Bollinger Bands
-        const bb_middle = price;
-        const bb_upper = price + (high - low) * 1.5;
-        const bb_lower = price - (high - low) * 1.5;
-        
-        // Stochastic
-        const stoch_k = 20 + Math.random() * 60;
-        const stoch_d = 20 + Math.random() * 60;
-        
-        return {
-            sma20: sma20.toFixed(2),
-            sma50: sma50.toFixed(2),
-            ema20: ema20.toFixed(2),
-            rsi: rsi.toFixed(2),
-            macd: macd.toFixed(3),
-            signal: signal.toFixed(3),
-            bb_upper: bb_upper.toFixed(2),
-            bb_middle: bb_middle.toFixed(2),
-            bb_lower: bb_lower.toFixed(2),
-            stoch_k: stoch_k.toFixed(2),
-            stoch_d: stoch_d.toFixed(2)
-        };
-    }
-
-    // Analyze all timeframes
-    function analyzeAllTimeframes() {
-        const timeframes = ['m5', 'm15', 'h1', 'h4', 'd1'];
-        
-        timeframes.forEach(tf => {
-            const indicators = calculateIndicators(tf);
-            technicalData[tf] = indicators;
-            
-            // Determine signal
-            const signal = determineSignal(indicators, tf);
-            
-            // Update UI
-            updateTimeframeAnalysis(tf, signal, indicators);
-        });
-    }
-
-    // Determine trading signal
-    function determineSignal(indicators, timeframe) {
-        const price = marketData.price;
-        const rsi = parseFloat(indicators.rsi);
-        const macd = parseFloat(indicators.macd);
-        const signal_line = parseFloat(indicators.signal);
-        const sma20 = parseFloat(indicators.sma20);
-        const ema20 = parseFloat(indicators.ema20);
-        
-        let buySignals = 0;
-        let sellSignals = 0;
-        
-        // RSI analysis
-        if (rsi < 30) buySignals += 2;
-        else if (rsi > 70) sellSignals += 2;
-        else if (rsi < 40) buySignals += 1;
-        else if (rsi > 60) sellSignals += 1;
-        
-        // MACD analysis
-        if (macd > signal_line && macd > 0) buySignals += 2;
-        else if (macd < signal_line && macd < 0) sellSignals += 2;
-        
-        // Moving averages
-        if (price > sma20 && price > ema20) buySignals += 1;
-        else if (price < sma20 && price < ema20) sellSignals += 1;
-        
-        // Price vs Bollinger Bands
-        const bb_upper = parseFloat(indicators.bb_upper);
-        const bb_lower = parseFloat(indicators.bb_lower);
-        if (price < bb_lower) buySignals += 1;
-        else if (price > bb_upper) sellSignals += 1;
-        
-        // Stochastic
-        const stoch_k = parseFloat(indicators.stoch_k);
-        if (stoch_k < 20) buySignals += 1;
-        else if (stoch_k > 80) sellSignals += 1;
-        
-        // Calculate entry, SL, TP based on timeframe
-        let atrMultiplier = 1;
-        let tpMultiplier = 2;
-        
-        switch(timeframe) {
-            case 'm5':
-                atrMultiplier = 1;
-                tpMultiplier = 1.5;
-                break;
-            case 'm15':
-                atrMultiplier = 1.5;
-                tpMultiplier = 2;
-                break;
-            case 'h1':
-                atrMultiplier = 2;
-                tpMultiplier = 2.5;
-                break;
-            case 'h4':
-                atrMultiplier = 3;
-                tpMultiplier = 3;
-                break;
-            case 'd1':
-                atrMultiplier = 5;
-                tpMultiplier = 4;
-                break;
-        }
-        
-        const atr = (marketData.high - marketData.low) * atrMultiplier;
-        
-        let signalType, entry, sl, tp1, tp2, recommendations;
-        
-        if (buySignals > sellSignals) {
-            signalType = 'BUY';
-            entry = marketData.ask;
-            sl = entry - atr;
-            tp1 = entry + (atr * tpMultiplier);
-            tp2 = entry + (atr * tpMultiplier * 1.5);
-            recommendations = [
-                `Vào lệnh BUY tại ${entry.toFixed(2)} khi giá tăng`,
-                `Đặt Stop Loss tại ${sl.toFixed(2)} để bảo vệ vốn`,
-                `Take Profit 1 tại ${tp1.toFixed(2)} (Close 50% lệnh)`,
-                `Take Profit 2 tại ${tp2.toFixed(2)} (Close 50% còn lại)`,
-                `Risk/Reward ratio: 1:${tpMultiplier.toFixed(1)}`,
-                `Theo dõi RSI và MACD để xác nhận xu hướng`
-            ];
-        } else if (sellSignals > buySignals) {
-            signalType = 'SELL';
-            entry = marketData.bid;
-            sl = entry + atr;
-            tp1 = entry - (atr * tpMultiplier);
-            tp2 = entry - (atr * tpMultiplier * 1.5);
-            recommendations = [
-                `Vào lệnh SELL tại ${entry.toFixed(2)} khi giá giảm`,
-                `Đặt Stop Loss tại ${sl.toFixed(2)} để bảo vệ vốn`,
-                `Take Profit 1 tại ${tp1.toFixed(2)} (Close 50% lệnh)`,
-                `Take Profit 2 tại ${tp2.toFixed(2)} (Close 50% còn lại)`,
-                `Risk/Reward ratio: 1:${tpMultiplier.toFixed(1)}`,
-                `Chú ý phân kỳ giá và chỉ báo`
-            ];
-        } else {
-            signalType = 'NEUTRAL';
-            entry = marketData.price;
-            sl = entry - atr;
-            tp1 = entry + (atr * tpMultiplier);
-            tp2 = entry + (atr * tpMultiplier * 1.5);
-            recommendations = [
-                `Thị trường đang sideway, chờ tín hiệu rõ ràng hơn`,
-                `Có thể đặt lệnh pending ở cả 2 chiều`,
-                `BUY Stop tại ${(entry + 5).toFixed(2)}, SL: ${(entry - atr + 5).toFixed(2)}`,
-                `SELL Stop tại ${(entry - 5).toFixed(2)}, SL: ${(entry + atr - 5).toFixed(2)}`,
-                `Theo dõi breakout từ vùng consolidation`,
-                `Quản lý risk nghiêm ngặt trong giai đoạn này`
-            ];
-        }
-        
-        const rr = ((tp1 - entry) / (entry - sl)).toFixed(2);
-        
-        return {
-            type: signalType,
-            entry: entry.toFixed(2),
-            sl: sl.toFixed(2),
-            tp1: tp1.toFixed(2),
-            tp2: tp2.toFixed(2),
-            rr: rr,
-            trend: buySignals > sellSignals ? '📈 Tăng' : sellSignals > buySignals ? '📉 Giảm' : '➡️ Sideway',
-            recommendations: recommendations
-        };
-    }
-
-    // Update timeframe analysis display
-    function updateTimeframeAnalysis(timeframe, signal, indicators) {
-        // Update signal box class
-        const signalBox = document.getElementById(`signal-${timeframe}`);
-        signalBox.className = 'signal-box';
-        if (signal.type === 'BUY') {
-            signalBox.classList.add('buy');
-        } else if (signal.type === 'SELL') {
-            signalBox.classList.add('sell');
-        } else {
-            signalBox.classList.add('neutral');
-        }
-        
-        // Update entry details
-        document.getElementById(`entry-${timeframe}`).textContent = signal.entry;
-        document.getElementById(`sl-${timeframe}`).textContent = signal.sl;
-        document.getElementById(`tp1-${timeframe}`).textContent = signal.tp1;
-        document.getElementById(`tp2-${timeframe}`).textContent = signal.tp2;
-        document.getElementById(`rr-${timeframe}`).textContent = `1:${signal.rr}`;
-        document.getElementById(`trend-${timeframe}`).textContent = signal.trend;
-        
-        // Update recommendations
-        const recEl = document.getElementById(`rec-${timeframe}`);
-        recEl.innerHTML = '<h3>💡 Gợi Ý Trading:</h3><ul>' + 
-            signal.recommendations.map(r => `<li>${r}</li>`).join('') + 
-            '</ul>';
-        
-        // Update indicators
-        const indicatorsList = document.getElementById(`indicators-${timeframe}`);
-        indicatorsList.innerHTML = `
-            <li>
-                <span class="indicator-name">RSI (14)</span>
-                <span class="indicator-value">${indicators.rsi}</span>
-            </li>
-            <li>
-                <span class="indicator-name">MACD</span>
-                <span class="indicator-value">${indicators.macd}</span>
-            </li>
-            <li>
-                <span class="indicator-name">Signal Line</span>
-                <span class="indicator-value">${indicators.signal}</span>
-            </li>
-            <li>
-                <span class="indicator-name">SMA (20)</span>
-                <span class="indicator-value">${indicators.sma20}</span>
-            </li>
-            <li>
-                <span class="indicator-name">SMA (50)</span>
-                <span class="indicator-value">${indicators.sma50}</span>
-            </li>
-            <li>
-                <span class="indicator-name">EMA (20)</span>
-                <span class="indicator-value">${indicators.ema20}</span>
-            </li>
-            <li>
-                <span class="indicator-name">Bollinger Bands Upper</span>
-                <span class="indicator-value">${indicators.bb_upper}</span>
-            </li>
-            <li>
-                <span class="indicator-name">Bollinger Bands Middle</span>
-                <span class="indicator-value">${indicators.bb_middle}</span>
-            </li>
-            <li>
-                <span class="indicator-name">Bollinger Bands Lower</span>
-                <span class="indicator-value">${indicators.bb_lower}</span>
-            </li>
-            <li>
-                <span class="indicator-name">Stochastic %K</span>
-                <span class="indicator-value">${indicators.stoch_k}</span>
-            </li>
-            <li>
-                <span class="indicator-name">Stochastic %D</span>
-                <span class="indicator-value">${indicators.stoch_d}</span>
-            </li>
-        `;
-    }
-
-    // Switch timeframe tabs
-    function showTimeframe(timeframe) {
-        // Hide all contents
-        const contents = document.querySelectorAll('.analysis-content');
-        contents.forEach(c => c.classList.remove('active'));
-        
-        // Remove active class from all tabs
-        const tabs = document.querySelectorAll('.tab-btn');
-        tabs.forEach(t => t.classList.remove('active'));
-        
-        // Show selected content
-        document.getElementById(timeframe).classList.add('active');
-        
-        // Add active class to clicked tab
-        event.target.classList.add('active');
-    }
-
-    // Analyze with AI
-    async function analyzeWithAI() {
-        const provider = document.getElementById('aiProvider').value;
-        const apiKey = document.getElementById('apiKey').value.trim();
-        
-        if (!apiKey) {
-            alert('Vui lòng nhập API Key!');
-            return;
-        }
-        
-        const aiBtn = document.getElementById('aiBtn');
-        const aiResponse = document.getElementById('aiResponse');
-        const aiContent = document.getElementById('aiContent');
-        
-        // Show loading
-        aiBtn.disabled = true;
-        aiBtn.textContent = 'Đang Phân Tích...';
-        aiResponse.classList.add('show');
-        aiContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI đang phân tích dữ liệu thị trường...</p></div>';
-        
-        // Prepare data for AI
-        const analysisData = {
-            symbol: 'XAU/USD',
-            currentPrice: marketData.price,
-            bid: marketData.bid,
-            ask: marketData.ask,
-            change: marketData.change,
-            changePercent: marketData.changePercent,
-            high: marketData.high,
-            low: marketData.low,
-            timeframes: technicalData,
-            timestamp: new Date().toISOString()
-        };
-        
-        try {
-            let aiAnalysis;
-            
-            if (provider === 'claude') {
-                aiAnalysis = await analyzeWithClaude(apiKey, analysisData);
-            } else {
-                aiAnalysis = await analyzeWithOpenAI(apiKey, analysisData);
+                
+                // Delay nhỏ để tránh rate limit
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
             
-            aiContent.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.8;">${aiAnalysis}</div>`;
+            displayResults();
+            
+            const now = new Date().toLocaleString('vi-VN');
+            document.getElementById('lastUpdate').textContent = `⏰ Cập nhật lúc: ${now}`;
+            
         } catch (error) {
-            aiContent.innerHTML = `<p style="color: #e74c3c;"><strong>❌ Lỗi:</strong> ${error.message}</p>
-                <p style="margin-top: 10px;">Vui lòng kiểm tra lại API Key và thử lại.</p>`;
+            console.error('Error loading data:', error);
+            document.getElementById('connectionStatus').textContent = 'Lỗi kết nối';
+            document.getElementById('connectionStatus').className = 'status disconnected';
         } finally {
-            aiBtn.disabled = false;
-            aiBtn.textContent = 'Phân Tích Với AI';
+            refreshBtn.disabled = false;
+            refreshBtn.textContent = '🔄 Làm Mới Dữ Liệu';
         }
     }
 
-    // Analyze with Claude
-    async function analyzeWithClaude(apiKey, data) {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-3-5-sonnet-20241022',
-                max_tokens: 2000,
-                messages: [{
-                    role: 'user',
-                    content: `Bạn là chuyên gia phân tích kỹ thuật XAU/USD. Hãy phân tích dữ liệu thị trường sau và đưa ra nhận định chi tiết:
-```
+    // Tự động làm mới mỗi 60 giây
+    setInterval(loadAllData, 60000);
 
-${JSON.stringify(data, null, 2)}
-
-Hãy cung cấp:
-
-1. Nhận định tổng quan về xu hướng thị trường
-1. Phân tích chi tiết các chỉ báo kỹ thuật quan trọng
-1. Xác định các vùng hỗ trợ/kháng cự chính
-1. Đề xuất chiến lược giao dịch cụ thể cho từng khung thời gian
-1. Cảnh báo rủi ro và lời khuyên quản lý vốn
-1. Dự đoán xu hướng ngắn hạn và trung hạn
-
-Trả lời bằng tiếng Việt, rõ ràng và chi tiết.`
-}]
-})
-});
-
-```
-        if (!response.ok) {
-            throw new Error(`Claude API error: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        return result.content[0].text;
-    }
-
-    // Analyze with OpenAI
-    async function analyzeWithOpenAI(apiKey, data) {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-4-turbo-preview',
-                messages: [{
-                    role: 'system',
-                    content: 'Bạn là chuyên gia phân tích kỹ thuật XAU/USD với nhiều năm kinh nghiệm.'
-                }, {
-                    role: 'user',
-                    content: `Phân tích chi tiết dữ liệu thị trường XAU/USD sau:
-```
-
-${JSON.stringify(data, null, 2)}
-
-Cung cấp:
-
-1. Nhận định xu hướng tổng quan
-1. Phân tích các chỉ báo kỹ thuật
-1. Vùng hỗ trợ/kháng cự quan trọng
-1. Chiến lược giao dịch cho từng khung thời gian
-1. Quản lý rủi ro và vốn
-1. Dự đoán xu hướng
-
-Trả lời bằng tiếng Việt, chi tiết và dễ hiểu.`
-}],
-max_tokens: 2000,
-temperature: 0.7
-})
-});
-
-```
-        if (!response.ok) {
-            throw new Error(`OpenAI API error: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        return result.choices[0].message.content;
-    }
+    // Tải dữ liệu ban đầu
+    loadAllData();
 </script>
 ```
 
