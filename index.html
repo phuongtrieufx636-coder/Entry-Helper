@@ -1,1350 +1,497 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XAU/USD Analysis - Multiple Timeframe Confluence</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-```
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        padding: 15px;
-        min-height: 100vh;
-    }
-    
-    .container { max-width: 1600px; margin: 0 auto; }
-    
-    .header {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-    
-    .price-status {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 15px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: bold;
-        margin: 10px auto;
-        width: fit-content;
-    }
-    
-    .price-status.real {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .price-status.loading {
-        background: #fff3cd;
-        color: #856404;
-    }
-    
-    .price-status.cached {
-        background: #d1ecf1;
-        color: #0c5460;
-    }
-    
-    .price-status.simulated {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-    }
-    
-    .real .status-dot { background: #28a745; }
-    .loading .status-dot { background: #ffc107; }
-    .cached .status-dot { background: #17a2b8; }
-    .simulated .status-dot { background: #dc3545; }
-    
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-    
-    .price-display {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin: 15px 0;
-        flex-wrap: wrap;
-    }
-    
-    .price-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 15px 25px;
-        border-radius: 12px;
-        color: white;
-        min-width: 160px;
-        text-align: center;
-    }
-    
-    .price-label { font-size: 0.85em; opacity: 0.9; margin-bottom: 5px; }
-    .price-value { font-size: 1.6em; font-weight: bold; }
-    
-    .refresh-btn {
-        padding: 10px 20px;
-        background: #28a745;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        display: block;
-        margin: 15px auto;
-    }
-    
-    .main-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    
-    @media (max-width: 1200px) {
-        .main-grid { grid-template-columns: 1fr; }
-    }
-    
-    .card {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .card h2 {
-        color: #2c3e50;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 3px solid #667eea;
-    }
-    
-    .tf-card {
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 10px;
-        background: #f8f9fa;
-    }
-    
-    .tf-card.bullish {
-        border-color: #28a745;
-        background: linear-gradient(to right, #d4edda 0%, #f8f9fa 100%);
-    }
-    
-    .tf-card.bearish {
-        border-color: #dc3545;
-        background: linear-gradient(to right, #f8d7da 0%, #f8f9fa 100%);
-    }
-    
-    .tf-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-    
-    .tf-name { font-weight: bold; font-size: 1.05em; }
-    
-    .tf-signal {
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-weight: bold;
-        font-size: 0.85em;
-    }
-    
-    .signal-buy { background: #28a745; color: white; }
-    .signal-sell { background: #dc3545; color: white; }
-    .signal-neutral { background: #ffc107; color: #333; }
-    
-    .tf-indicators {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin-top: 8px;
-    }
-    
-    .indicator {
-        text-align: center;
-        padding: 6px;
-        background: white;
-        border-radius: 5px;
-        font-size: 0.8em;
-    }
-    
-    .indicator-label { color: #666; font-size: 0.9em; }
-    .indicator-value { font-weight: bold; color: #2c3e50; margin-top: 2px; }
-    
-    .confluence-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
-        margin: 15px 0;
-        text-align: center;
-    }
-    
-    .confluence-score {
-        font-size: 2.5em;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-    
-    .confluence-bars {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        margin-top: 15px;
-    }
-    
-    .confluence-bar {
-        background: rgba(255,255,255,0.2);
-        padding: 8px;
-        border-radius: 8px;
-        font-size: 0.9em;
-    }
-    
-    .confluence-bar.active {
-        background: rgba(255,255,255,0.9);
-        color: #667eea;
-        font-weight: bold;
-    }
-    
-    .setup-card {
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 12px;
-        color: white;
-    }
-    
-    .setup-card.high { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); }
-    .setup-card.medium { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    .setup-card.low { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-    
-    .setup-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-    
-    .setup-title { font-size: 1.1em; font-weight: bold; }
-    .setup-confidence {
-        background: rgba(255,255,255,0.3);
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.85em;
-    }
-    
-    .setup-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 8px;
-    }
-    
-    .setup-item {
-        background: rgba(255,255,255,0.2);
-        padding: 10px;
-        border-radius: 8px;
-        text-align: center;
-    }
-    
-    .setup-label { font-size: 0.75em; opacity: 0.9; }
-    .setup-value { font-size: 1.1em; font-weight: bold; margin-top: 3px; }
-    
-    .reasoning {
-        margin-top: 12px;
-        padding: 12px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 8px;
-        font-size: 0.85em;
-        line-height: 1.5;
-    }
-    
-    .reasoning-title { font-weight: bold; margin-bottom: 6px; }
-    
-    /* New Technical Analysis Styles */
-    .tech-analysis-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 15px;
-        margin: 15px 0;
-    }
-    
-    .tech-indicator {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-        border-left: 4px solid #667eea;
-    }
-    
-    .tech-indicator-header {
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .tech-indicator-value {
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #667eea;
-        margin: 5px 0;
-    }
-    
-    .tech-indicator-signal {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.85em;
-        font-weight: bold;
-        margin-top: 8px;
-    }
-    
-    .bullish-signal {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .bearish-signal {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
-    .neutral-signal {
-        background: #fff3cd;
-        color: #856404;
-    }
-    
-    /* AI Analysis Section */
-    .ai-section {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        margin-top: 20px;
-    }
-    
-    .ai-input-group {
-        display: flex;
-        gap: 10px;
-        margin: 15px 0;
-        flex-wrap: wrap;
-    }
-    
-    .ai-select {
-        padding: 12px;
-        border: 2px solid #667eea;
-        border-radius: 8px;
-        font-size: 1em;
-        background: white;
-        cursor: pointer;
-        min-width: 150px;
-    }
-    
-    .ai-input {
-        flex: 1;
-        padding: 12px;
-        border: 2px solid #667eea;
-        border-radius: 8px;
-        font-size: 1em;
-        min-width: 250px;
-    }
-    
-    .ai-button {
-        padding: 12px 30px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    
-    .ai-button:hover {
-        transform: translateY(-2px);
-    }
-    
-    .ai-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    
-    .ai-loading {
-        display: none;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .ai-loading.show {
-        display: block;
-    }
-    
-    .spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 15px;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .ai-response {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 4px solid #667eea;
-        margin-top: 15px;
-        white-space: pre-wrap;
-        line-height: 1.6;
-        display: none;
-    }
-    
-    .ai-response.show {
-        display: block;
-    }
-    
-    .json-data {
-        background: #2d2d2d;
-        color: #f8f8f2;
-        padding: 15px;
-        border-radius: 8px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85em;
-        overflow-x: auto;
-        margin: 10px 0;
-        max-height: 300px;
-        overflow-y: auto;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Phân tích XAU/USD — Live</title>
+<style>
+  :root{
+    --bg:#f8fbff; --card:#ffffff; --muted:#667085;
+    --accent:#0b76ef; --success:#16a34a; --danger:#ef4444;
+    --glass: rgba(255,255,255,0.7);
+  }
+  body{font-family:Inter,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,#f8fbff, #ffffff); margin:0; color:#0f1724;}
+  .wrap{max-width:1100px;margin:28px auto;padding:20px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+  .logo{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#ffffff, #e6f2ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);box-shadow:0 6px 18px rgba(10,40,90,0.06)}
+  h1{font-size:20px;margin:0}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}
+  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(15,23,36,0.04)}
+  .price-panel{text-align:center}
+  .price{font-size:32px;font-weight:700;color:#08123a}
+  .chg{font-size:13px;color:var(--muted);margin-top:6px}
+  .small{font-size:12px;color:var(--muted)}
+  .timeframe-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tf{padding:6px 10px;border-radius:8px;background:var(--glass);cursor:pointer;font-weight:600;font-size:13px}
+  .tf.active{background:linear-gradient(90deg,var(--accent),#1e90ff);color:white}
+  .analysis {display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+  .entry{padding:10px;border-radius:8px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:inset 0 1px 0 rgba(255,255,255,0.6)}
+  .entry h3{margin:0;font-size:14px}
+  .vals{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .pill{background:#f1f6ff;padding:8px 10px;border-radius:8px;font-weight:700}
+  .controls{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+  label{font-size:12px;color:var(--muted)}
+  input[type="text"], input[type="number"], select{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef9;background:#fbfeff}
+  button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+  .btn-ghost{background:transparent;border:1px solid #d7e9ff;color:var(--accent)}
+  .footer-note{font-size:12px;color:var(--muted);margin-top:10px}
+  .analysis-text{font-size:13px;color:#0b1220;line-height:1.45}
+  .disclaimer{font-size:12px;color:var(--muted);margin-top:8px}
+  pre {background:#f3f7ff;padding:10px;border-radius:8px;overflow:auto;font-size:12px}
+  @media (max-width:920px){.grid{grid-template-columns:1fr}.analysis{grid-template-columns:1fr}}
 </style>
-```
-
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 style="text-align:center; color:#2c3e50; margin-bottom:15px;">
-                🎯 XAU/USD - Multiple Timeframe Confluence
-            </h1>
+<div class="wrap">
+  <header>
+    <div class="logo">XAU</div>
+    <div>
+      <h1>Phân tích XAU/USD theo giá thực</h1>
+      <p class="lead">Phân tích đa khung thời gian — Scalping & Swing — gợi ý entry / SL / TP. <span class="small">Cập nhật giá theo thời gian thực (cần API key của nhà cung cấp dữ liệu giá).</span></p>
+    </div>
+  </header>
 
-```
-        <div id="priceStatus" class="price-status loading">
-            <span class="status-dot"></span>
-            <span id="statusText">Đang tải giá...</span>
+  <div class="grid">
+    <!-- left column: price + controls -->
+    <div class="card">
+      <div class="price-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:12px;color:var(--muted)">Mã</div>
+            <div style="font-weight:800;font-size:16px">XAU / USD</div>
+          </div>
+          <div style="text-align:right">
+            <div class="small">Cập nhật:</div>
+            <div id="lastUpdated" class="small">--</div>
+          </div>
         </div>
-        
-        <div class="price-display">
-            <div class="price-box">
-                <div class="price-label">Giá Hiện Tại</div>
-                <div class="price-value" id="currentPrice">$2,656.00</div>
-            </div>
-            <div class="price-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <div class="price-label">Bid</div>
-                <div class="price-value" id="bidPrice">$2,655.75</div>
-            </div>
-            <div class="price-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                <div class="price-label">Ask</div>
-                <div class="price-value" id="askPrice">$2,656.25</div>
-            </div>
+
+        <div style="margin-top:12px">
+          <div id="price" class="price">--</div>
+          <div id="priceChange" class="chg">--</div>
         </div>
-        
-        <div style="text-align:center; color:#666; font-size:0.85em; margin:10px 0;" id="updateTime">Đang khởi động...</div>
-        <button class="refresh-btn" onclick="updatePrice()">🔄 Làm mới</button>
+
+        <div class="timeframe-row" id="timeframes">
+          <div class="tf active" data-tf="1min">1m</div>
+          <div class="tf" data-tf="5min">5m</div>
+          <div class="tf" data-tf="15min">15m</div>
+          <div class="tf" data-tf="1h">1h</div>
+          <div class="tf" data-tf="4h">4h</div>
+          <div class="tf" data-tf="1d">1d</div>
+        </div>
+
+        <div class="analysis" style="margin-top:14px">
+          <div class="entry">
+            <h3>Scalping (ngắn)</h3>
+            <div class="vals">
+              <div class="pill">Entry: <span id="scalp-entry">--</span></div>
+              <div class="pill">SL: <span id="scalp-sl">--</span></div>
+              <div class="pill">TP: <span id="scalp-tp">--</span></div>
+            </div>
+            <div class="disclaimer" id="scalp-note">--</div>
+          </div>
+
+          <div class="entry">
+            <h3>Swing (trung/dài)</h3>
+            <div class="vals">
+              <div class="pill">Entry: <span id="swing-entry">--</span></div>
+              <div class="pill">SL: <span id="swing-sl">--</span></div>
+              <div class="pill">TP: <span id="swing-tp">--</span></div>
+            </div>
+            <div class="disclaimer" id="swing-note">--</div>
+          </div>
+
+          <div style="grid-column:1 / -1; margin-top:10px">
+            <div style="display:flex;gap:10px;align-items:center">
+              <div style="flex:1">
+                <label>API Cung cấp Giá (Metals-API / AlphaVantage / ...)</label>
+                <input id="priceApiKey" type="text" placeholder="Nhập API key của nhà cung cấp dữ liệu giá (bắt buộc để lấy giá thật)">
+              </div>
+              <div style="width:120px">
+                <label>Nhà cung cấp</label>
+                <select id="priceProvider">
+                  <option value="metalsapi">Metals-API</option>
+                  <option value="alphavantage">AlphaVantage</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="controls" style="margin-top:10px">
+              <div style="display:flex;gap:8px">
+                <button id="btnStart">Bật cập nhật giá</button>
+                <button id="btnStop" class="btn-ghost">Tắt</button>
+                <button id="btnAnalyze" class="btn-ghost">Tính lại phân tích</button>
+              </div>
+              <div class="footer-note">Gợi ý: để giá **thật sự chính xác theo thời gian thực**, nên dùng nhà cung cấp trả phí/đáng tin cậy. Mã này sẽ thử lấy giá mới mỗi 5s (có thể chỉnh).</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="main-grid">
-        <div class="card">
-            <h2>📊 Phân Tích Timeframes</h2>
-            <div id="timeframeAnalysis"></div>
-            
-            <div class="confluence-section">
-                <h3 style="margin-bottom:5px;">Confluence Score</h3>
-                <div class="confluence-score" id="confluenceScore">--</div>
-                <div style="font-size:0.85em;">Độ tin cậy tín hiệu</div>
-                
-                <div class="confluence-bars">
-                    <div class="confluence-bar" id="conf_m15"><div>M15</div><div id="conf_m15_val">--</div></div>
-                    <div class="confluence-bar" id="conf_h1"><div>H1</div><div id="conf_h1_val">--</div></div>
-                    <div class="confluence-bar" id="conf_h4"><div>H4</div><div id="conf_h4_val">--</div></div>
-                    <div class="confluence-bar" id="conf_d1"><div>D1</div><div id="conf_d1_val">--</div></div>
-                </div>
-            </div>
+    <!-- right column: detailed analysis + AI integration -->
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Phân tích kĩ thuật (tóm lược)</h3>
+      <div id="analysisText" class="analysis-text">
+        <p style="margin:0">Chưa có dữ liệu — bấm <strong>Bật cập nhật giá</strong> và điền API key để lấy dữ liệu, sau đó bấm <strong>Tính lại phân tích</strong>.</p>
+      </div>
+
+      <div style="margin-top:14px" class="card">
+        <h4 style="margin:0 0 8px 0">Gửi dữ liệu chart cho AI (Claude / OpenAI)</h4>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">
+          Bạn có thể gửi JSON báo cáo (giá + phân tích sơ bộ) để AI phân tích thêm và trả về đề xuất chi tiết. <strong>Không nên</strong> để API key OpenAI/Claude lộ ở phía client (bên dưới có tùy chọn an toàn).
         </div>
 
-        <div class="card">
-            <h2>💡 Entry Points</h2>
-            <div id="entrySetups"></div>
-        </div>
-    </div>
+        <label>Chọn cách gọi AI</label>
+        <select id="aiMode">
+          <option value="backend">Gọi qua backend an toàn (recommended)</option>
+          <option value="direct">Gọi trực tiếp từ client (**không an toàn**, chỉ thử nghiệm)</option>
+        </select>
 
-    <!-- New Technical Analysis Section -->
-    <div class="card" style="margin-top: 20px;">
-        <h2>🔬 Phân Tích Kỹ Thuật Nâng Cao</h2>
-        <div class="tech-analysis-grid" id="technicalAnalysis">
-            <!-- Will be populated by JavaScript -->
+        <div style="margin-top:8px">
+          <label>API Key AI (nếu dùng direct)</label>
+          <input id="aiApiKey" type="text" placeholder="Nhập OpenAI / Claude API key (chỉ thử nghiệm)">
         </div>
-    </div>
 
-    <!-- AI Analysis Section -->
-    <div class="ai-section">
-        <h2>🤖 Phân Tích AI Chuyên Sâu</h2>
-        <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">
-            AI sẽ nhận JSON đầy đủ về thị trường và đưa ra phân tích chuyên nghiệp
-        </p>
-        
-        <div class="ai-input-group">
-            <select class="ai-select" id="aiProvider">
-                <option value="claude">Claude API</option>
-                <option value="openai">OpenAI API</option>
-            </select>
-            <input type="password" class="ai-input" id="apiKey" placeholder="Nhập API Key của bạn...">
-            <button class="ai-button" onclick="analyzeWithAI()" id="aiAnalyzeBtn">
-                🔍 Phân Tích Với AI
-            </button>
+        <div style="margin-top:8px">
+          <label>Endpoint backend (nếu chọn backend)</label>
+          <input id="backendEndpoint" type="text" placeholder="Ví dụ: https://your-server.com/ai/analyze">
         </div>
-        
-        <div class="ai-loading" id="aiLoading">
-            <div class="spinner"></div>
-            <p>Đang gửi dữ liệu và phân tích với AI...</p>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button id="btnSendAi">Gửi báo cáo -> AI</button>
+          <button id="btnShowJson" class="btn-ghost">Xem JSON gửi</button>
         </div>
-        
-        <div class="ai-response" id="aiResponse"></div>
-        
-        <details style="margin-top: 15px;">
-            <summary style="cursor: pointer; font-weight: bold; color: #667eea; padding: 10px 0;">
-                📊 Xem JSON Data được gửi cho AI
-            </summary>
-            <div class="json-data" id="jsonData"></div>
-        </details>
+
+        <div id="aiResponse" style="margin-top:10px;font-size:13px;color:#0b1220"></div>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <h4 style="margin:0 0 8px 0">Cảnh báo & chú ý</h4>
+        <ul style="color:var(--muted);margin:0 0 0 16px;padding:0 0 0 8px;">
+          <li>Phần phân tích là tự động, chỉ mang tính tham khảo — không phải tư vấn đầu tư.</li>
+          <li>Không lưu trữ API key nhạy cảm phía client nếu muốn an toàn.</li>
+          <li>Mã này là mẫu: bạn nên triển khai 1 backend để proxy gọi OpenAI/Claude và nhà cung cấp giá.</li>
+        </ul>
+      </div>
     </div>
+  </div>
+
+  <div style="margin-top:18px;text-align:center;color:var(--muted);font-size:12px">
+    <div><strong>Ghi chú:</strong> Trang hiển thị "Phân tích XAU/USD theo giá thực" — để hoạt động, hãy cung cấp API key dữ liệu.</div>
+  </div>
 </div>
 
 <script>
-    let currentPrice = 2656; // Default price
-    let marketData = {};
-    let priceSource = 'LOADING';
-    let retryAttempt = 0;
+/*
+  index.html - Live XAU/USD analysis (mẫu)
+  - Tần suất cập nhật mặc định: 5s
+  - Hỗ trợ providers: Metals-API, AlphaVantage (mã mẫu)
+  - Bạn cần đăng ký API key từ nhà cung cấp dữ liệu giá và nhập vào ô "API Cung cấp Giá".
+  - AI integration:
+      * mode "backend": gửi POST tới endpoint do bạn cung cấp (recommended)
+      * mode "direct": client sẽ gọi OpenAI/Claude trực tiếp (không an toàn, có CORS & lộ key)
+*/
 
-    // Initialize price immediately when script loads
-    (function initializePrice() {
-        console.log('🚀 Script loaded, initializing price...');
-        
-        // Try to get cached price first
-        try {
-            const cached = JSON.parse(localStorage.getItem('xau_last_price'));
-            if (cached && cached.price) {
-                currentPrice = cached.price;
-                console.log('📦 Using cached price:', currentPrice);
-            }
-        } catch (e) {
-            console.log('No cache, using default');
-        }
-        
-        // Set status
-        updatePriceStatus('loading', '⏳ Đang khởi động...');
-    })();
+// ---------- Cấu hình mặc định ----------
+const UPDATE_INTERVAL_MS = 5000; // 5s
+let updateTimer = null;
+let lastPrice = null;
+let recentPrices = []; // lưu vài giá gần nhất cho MA/ATR đơn giản
+let currentTF = '1min';
 
-    // Fetch price - ALWAYS returns immediately
-    async function fetchPrice() {
-        console.log('🔄 fetchPrice called');
-        
-        // Step 1: Determine immediate price to show
-        let displayPrice = 2656; // Fallback default
-        
-        // Try cache
-        try {
-            const cached = JSON.parse(localStorage.getItem('xau_last_price'));
-            if (cached && cached.price) {
-                displayPrice = cached.price;
-                const ageMinutes = Math.floor((Date.now() - cached.time) / 60000);
-                console.log(`📦 Cache hit: $${displayPrice} (${ageMinutes}m old)`);
-                updatePriceStatus('cached', `💾 Giá lưu (${ageMinutes}p trước)`);
-            }
-        } catch (e) {
-            // If no cache, use realistic current price
-            const now = new Date();
-            const hour = now.getHours();
-            const minute = now.getMinutes();
-            
-            // Add realistic intraday variation
-            const dayProgress = (hour * 60 + minute) / 1440; // 0 to 1
-            const intraday = Math.sin(dayProgress * Math.PI * 2) * 8;
-            const noise = (Math.random() - 0.5) * 3;
-            
-            displayPrice = 2656 + intraday + noise;
-            console.log(`📊 Fresh simulation: $${displayPrice.toFixed(2)}`);
-            updatePriceStatus('simulated', '⚠️ Giá mô phỏng');
-            
-            // Save it
-            localStorage.setItem('xau_last_price', JSON.stringify({
-                price: displayPrice,
-                time: Date.now(),
-                source: 'SIMULATED'
-            }));
-        }
-        
-        // Step 2: Try to get real price in background (non-blocking)
-        setTimeout(async () => {
-            console.log('🌐 Background: Fetching real price...');
-            
-            // Try Binance
-            try {
-                const controller = new AbortController();
-                setTimeout(() => controller.abort(), 2500);
-                
-                const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT', {
-                    signal: controller.signal
-                });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.price) {
-                        const realPrice = parseFloat(data.price);
-                        console.log('✅ Binance real price:', realPrice);
-                        
-                        // Update if significantly different
-                        if (Math.abs(realPrice - currentPrice) > 0.5) {
-                            currentPrice = realPrice;
-                            document.getElementById('currentPrice').textContent = '$' + realPrice.toFixed(2);
-                            document.getElementById('bidPrice').textContent = '$' + (realPrice - 0.25).toFixed(2);
-                            document.getElementById('askPrice').textContent = '$' + (realPrice + 0.25).toFixed(2);
-                            
-                            updatePriceStatus('real', '✅ Giá thực từ Binance');
-                            
-                            localStorage.setItem('xau_last_price', JSON.stringify({
-                                price: realPrice,
-                                time: Date.now(),
-                                source: 'BINANCE'
-                            }));
-                            
-                            // Re-analyze with real price
-                            analyzeMarket();
-                        }
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.log('❌ Binance failed:', e.message);
-            }
-            
-            // Try CoinGecko
-            try {
-                const controller = new AbortController();
-                setTimeout(() => controller.abort(), 2500);
-                
-                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pax-gold&vs_currencies=usd', {
-                    signal: controller.signal
-                });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data['pax-gold']?.usd) {
-                        const realPrice = data['pax-gold'].usd;
-                        console.log('✅ CoinGecko real price:', realPrice);
-                        
-                        if (Math.abs(realPrice - currentPrice) > 0.5) {
-                            currentPrice = realPrice;
-                            document.getElementById('currentPrice').textContent = '$' + realPrice.toFixed(2);
-                            document.getElementById('bidPrice').textContent = '$' + (realPrice - 0.25).toFixed(2);
-                            document.getElementById('askPrice').textContent = '$' + (realPrice + 0.25).toFixed(2);
-                            
-                            updatePriceStatus('real', '✅ Giá thực từ CoinGecko');
-                            
-                            localStorage.setItem('xau_last_price', JSON.stringify({
-                                price: realPrice,
-                                time: Date.now(),
-                                source: 'COINGECKO'
-                            }));
-                            
-                            analyzeMarket();
-                        }
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.log('❌ CoinGecko failed:', e.message);
-            }
-            
-            console.log('⚠️ All APIs failed, keeping displayed price');
-        }, 100); // Start background fetch after 100ms
-        
-        // Return immediately with displayPrice
-        return displayPrice;
+// ---------- DOM ----------
+const priceEl = document.getElementById('price');
+const priceChangeEl = document.getElementById('priceChange');
+const lastUpdatedEl = document.getElementById('lastUpdated');
+const scalpEntryEl = document.getElementById('scalp-entry');
+const scalpSlEl = document.getElementById('scalp-sl');
+const scalpTpEl = document.getElementById('scalp-tp');
+const scalpNoteEl = document.getElementById('scalp-note');
+const swingEntryEl = document.getElementById('swing-entry');
+const swingSlEl = document.getElementById('swing-sl');
+const swingTpEl = document.getElementById('swing-tp');
+const swingNoteEl = document.getElementById('swing-note');
+const analysisTextEl = document.getElementById('analysisText');
+
+// ---------- Timeframe buttons ----------
+document.querySelectorAll('.tf').forEach(el=>{
+  el.addEventListener('click', ()=> {
+    document.querySelectorAll('.tf').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+    currentTF = el.dataset.tf;
+    manualAnalyze();
+  });
+});
+
+// ---------- Buttons ----------
+document.getElementById('btnStart').addEventListener('click', startUpdates);
+document.getElementById('btnStop').addEventListener('click', stopUpdates);
+document.getElementById('btnAnalyze').addEventListener('click', manualAnalyze);
+document.getElementById('btnShowJson').addEventListener('click', ()=> {
+  const j = buildReportJson();
+  alert(JSON.stringify(j, null, 2));
+});
+document.getElementById('btnSendAi').addEventListener('click', sendToAi);
+
+// ---------- Price providers helpers ----------
+async function fetchPriceFromProvider(provider, apiKey) {
+  // Trả về object: {price: float, timestamp: ISO, raw: {...}}
+  // NOTE: endpoints có thể khác — đây là mẫu. Nếu provider chọn là 'metalsapi' thì gọi Metals-API.
+  try {
+    if (!apiKey) throw new Error('Missing API key for price provider');
+
+    if (provider === 'metalsapi') {
+      // Metals-API example:
+      // GET https://metals-api.com/api/latest?access_key=APIKEY&base=USD&symbols=XAU
+      const url = `https://metals-api.com/api/latest?access_key=${encodeURIComponent(apiKey)}&base=USD&symbols=XAU`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('Lỗi phản hồi từ Metals-API: ' + r.status);
+      const j = await r.json();
+      // metals-api returns rates: XAU: 0.000... (base USD)
+      // We want XAU per 1 USD? To get XAU/USD (price of 1 oz gold in USD) the provider might return different shapes.
+      // Many providers return rates where 1 XAU = N USD in a different field. Here we attempt common shapes:
+      let price = null;
+      if (j && j.rates && typeof j.rates.XAU !== 'undefined') {
+        // metals-api often returns (base: USD) rates.XAU = 0.0005 meaning 1 USD = 0.0005 XAU -> so 1 XAU = 1 / rates.XAU USD
+        const rate = Number(j.rates.XAU);
+        if (rate > 0) price = 1 / rate;
+      }
+      // fallback: try j.data or j.price
+      if (!price && j && j.price) price = Number(j.price);
+      if (!price) throw new Error('Không đọc được giá từ Metals-API (shape khác). Kiểm tra tài liệu nhà cung cấp.');
+      return {price, timestamp: new Date().toISOString(), raw:j};
+
+    } else if (provider === 'alphavantage') {
+      // AlphaVantage: sử dụng "FX_DAILY" or "CURRENCY_EXCHANGE_RATE" — AlphaVantage không có 1 endpoint chuẩn cho XAU,
+      // nhưng họ có physical currency data under "DIGITAL_CURRENCY" or GLOBAL_QUOTE. Đây chỉ là ví dụ mẫu.
+      // Bạn có thể thay bằng endpoint hợp lệ của nhà cung cấp bạn dùng.
+      const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${encodeURIComponent(apiKey)}`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('Lỗi AlphaVantage: ' + r.status);
+      const j = await r.json();
+      // expected j["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
+      const key = Object.keys(j)[0];
+      const rateObj = j[key];
+      if (rateObj && (rateObj['5. Exchange Rate'] || rateObj['Exchange Rate'])) {
+        const price = Number(rateObj['5. Exchange Rate'] || rateObj['Exchange Rate']);
+        return {price, timestamp: new Date().toISOString(), raw:j};
+      }
+      throw new Error('AlphaVantage response không chứa Exchange Rate cho XAU/USD trong mẫu này.');
+    } else {
+      throw new Error('Provider không hỗ trợ: ' + provider);
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
+// ---------- Update loop ----------
+async function updateOnce() {
+  const apiKey = document.getElementById('priceApiKey').value.trim();
+  const provider = document.getElementById('priceProvider').value;
+  if (!apiKey) {
+    analysisTextEl.innerHTML = '<p class="small" style="color:#ef4444">Vui lòng nhập API key của nhà cung cấp giá để lấy giá thực.</p>';
+    return;
+  }
+  try {
+    const res = await fetchPriceFromProvider(provider, apiKey);
+    const p = Number(res.price);
+    if (!isFinite(p)) throw new Error('Giá không hợp lệ: ' + p);
+
+    const now = new Date().toLocaleString();
+    lastUpdatedEl.textContent = now;
+    priceEl.textContent = p.toFixed(2) + ' USD';
+    // change
+    if (lastPrice !== null) {
+      const diff = p - lastPrice;
+      const pct = (diff / lastPrice) * 100;
+      priceChangeEl.textContent = (diff>=0?'+':'') + diff.toFixed(2) + ' (' + pct.toFixed(2) + '%)';
+      priceChangeEl.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
+    } else {
+      priceChangeEl.textContent = '--';
+      priceChangeEl.style.color = 'var(--muted)';
     }
 
-    function updatePriceStatus(type, text) {
-        const statusEl = document.getElementById('priceStatus');
-        const textEl = document.getElementById('statusText');
-        
-        statusEl.className = `price-status ${type}`;
-        textEl.textContent = text;
+    // push to recentPrices
+    recentPrices.push({t:res.timestamp, p});
+    if (recentPrices.length > 500) recentPrices.shift();
+    lastPrice = p;
+
+    // auto analyze a bit
+    computeEntriesAndRender();
+
+  } catch (err) {
+    analysisTextEl.innerHTML = `<p class="small" style="color:var(--danger)">Lỗi lấy giá: ${err.message}</p>`;
+    console.error(err);
+  }
+}
+
+function startUpdates(){
+  if (updateTimer) return;
+  updateOnce();
+  updateTimer = setInterval(updateOnce, UPDATE_INTERVAL_MS);
+  document.getElementById('btnStart').disabled = true;
+}
+function stopUpdates(){
+  if (updateTimer) {
+    clearInterval(updateTimer);
+    updateTimer = null;
+    document.getElementById('btnStart').disabled = false;
+  }
+}
+
+// ---------- Simple analysis helpers ----------
+function simpleMA(data, period=14){
+  if (!data || data.length < period) return null;
+  let sum=0;
+  for (let i=data.length-period;i<data.length;i++) sum += data[i].p;
+  return sum/period;
+}
+function simpleATR(closes, period=14){
+  // we don't have high/low in this simple model. Use absolute diff of successive closes as proxy.
+  if (!closes || closes.length < period+1) return null;
+  let sum=0;
+  for (let i=closes.length-period;i<closes.length;i++){
+    sum += Math.abs(closes[i].p - closes[i-1].p);
+  }
+  return sum/period;
+}
+
+function computeEntriesAndRender(){
+  if (!lastPrice) return;
+
+  // Use recentPrices and currentTF as simple proxies.
+  // For better data, integrate historical candles per timeframe from provider. This is a sample heuristic.
+
+  const closes = recentPrices.slice(-50); // last ~50 samples
+  const maShort = simpleMA(closes, 5) || lastPrice;
+  const maLong = simpleMA(closes, 20) || lastPrice;
+  const atr = simpleATR(closes, 14) || (lastPrice*0.002); // fallback ATR ~0.2%
+
+  // Determine trend
+  const trend = maShort > maLong ? 'UP' : (maShort < maLong ? 'DOWN' : 'FLAT');
+
+  // Scalping: tight SL/TP using ATR
+  const scalpEntry = lastPrice;
+  const scalpSl = scalpEntry - atr * 0.6 * (trend==='UP'?1:-1);
+  const scalpTp = scalpEntry + atr * 1.2 * (trend==='UP'?1:-1);
+  // For sell scenario, flip
+  const scalpEntryStr = scalpEntry.toFixed(2);
+  const scalpSlStr = scalpSl.toFixed(2);
+  const scalpTpStr = scalpTp.toFixed(2);
+  scalpEntryEl.textContent = scalpEntryStr;
+  scalpSlEl.textContent = scalpSlStr;
+  scalpTpEl.textContent = scalpTpStr;
+  scalpNoteEl.textContent = `Trend: ${trend}. ATR ~ ${atr.toFixed(3)}. Scalping dùng TP ≈ 1.2×ATR, SL ≈ 0.6×ATR.`;
+
+  // Swing: wider, use multiples of ATR and confirm trend
+  const swingEntry = lastPrice;
+  const swingSl = trend==='UP' ? swingEntry - atr*2.5 : swingEntry + atr*2.5;
+  const swingTp = trend==='UP' ? swingEntry + atr*6 : swingEntry - atr*6;
+  swingEntryEl.textContent = swingEntry.toFixed(2);
+  swingSlEl.textContent = swingSl.toFixed(2);
+  swingTpEl.textContent = swingTp.toFixed(2);
+  swingNoteEl.textContent = `Trend: ${trend}. Swing uses wider SL/TP (SL≈2.5×ATR, TP≈6×ATR).`;
+
+  // Analysis text
+  analysisTextEl.innerHTML = `
+    <p><strong>Tóm tắt phân tích (${currentTF}):</strong></p>
+    <ul style="color:var(--muted);margin:0;padding-left:18px">
+      <li>Giá hiện tại: <strong>${lastPrice.toFixed(2)} USD</strong></li>
+      <li>MA5: ${maShort ? maShort.toFixed(2) : '--'}, MA20: ${maLong ? maLong.toFixed(2) : '--'}</li>
+      <li>ATR (ước lượng): ${atr ? atr.toFixed(3) : '--'}</li>
+      <li>Xu hướng nhanh: <strong>${trend}</strong></li>
+    </ul>
+    <p style="margin-top:8px;color:var(--muted)">Gợi ý entry/SL/TP ở bên trái (dưới mục Scalping & Swing). Đây là phân tích tự động, nên kiểm tra lại volume / tin tức trước khi vào lệnh.</p>
+  `;
+}
+
+// Manual analyze (recompute)
+function manualAnalyze(){ computeEntriesAndRender(); }
+
+// Build JSON report to send to AI:
+function buildReportJson(){
+  return {
+    symbol: 'XAU/USD',
+    timestamp: new Date().toISOString(),
+    price: lastPrice,
+    recentPrices: recentPrices.slice(-200),
+    timeframe: currentTF,
+    analysis: {
+      scalp: {
+        entry: scalpEntryEl.textContent,
+        sl: scalpSlEl.textContent,
+        tp: scalpTpEl.textContent,
+        note: scalpNoteEl.textContent
+      },
+      swing: {
+        entry: swingEntryEl.textContent,
+        sl: swingSlEl.textContent,
+        tp: swingTpEl.textContent,
+        note: swingNoteEl.textContent
+      },
+      summaryText: analysisTextEl.innerText || ''
     }
+  };
+}
 
-    function calculateTFData(price, tf) {
-        let atr;
-        switch(tf) {
-            case 'M15': atr = 1.5; break;
-            case 'H1': atr = 3; break;
-            case 'H4': atr = 8; break;
-            case 'D1': atr = 15; break;
-        }
-        
-        const ema20 = price - (Math.random() - 0.5) * atr * 2;
-        const ema50 = price - (Math.random() - 0.3) * atr * 3;
-        
-        const bullish = price > ema20 && ema20 > ema50;
-        const bearish = price < ema20 && ema20 < ema50;
-        
-        const signal = bullish ? 'BUY' : bearish ? 'SELL' : 'NEUTRAL';
-        const trend = bullish ? 'BULLISH' : bearish ? 'BEARISH' : 'NEUTRAL';
-        const confidence = bullish || bearish ? 60 + Math.floor(Math.random() * 25) : 45 + Math.floor(Math.random() * 15);
-        
-        const rsi = 35 + Math.floor(Math.random() * 30);
-        
-        return {
-            tf, atr: atr.toFixed(1), ema20: ema20.toFixed(2), ema50: ema50.toFixed(2),
-            rsi, signal, trend, confidence,
-            support: (price - atr * 1.5).toFixed(2),
-            resistance: (price + atr * 1.5).toFixed(2)
-        };
+// Send JSON to AI (either backend or direct)
+async function sendToAi(){
+  const mode = document.getElementById('aiMode').value;
+  const backend = document.getElementById('backendEndpoint').value.trim();
+  const aiKey = document.getElementById('aiApiKey').value.trim();
+
+  const payload = buildReportJson();
+  document.getElementById('aiResponse').innerText = 'Đang gửi...';
+
+  try {
+    if (mode === 'backend') {
+      if (!backend) throw new Error('Vui lòng điền endpoint backend của bạn (ví dụ: https://your-server.com/ai/analyze). Backend nên proxy gọi OpenAI/Claude.');
+      const r = await fetch(backend, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) throw new Error('Backend trả lỗi: ' + r.status);
+      const j = await r.json();
+      document.getElementById('aiResponse').innerText = 'Kết quả AI (từ backend):\n' + JSON.stringify(j, null, 2);
+    } else {
+      // direct call — caution: CORS & security
+      if (!aiKey) throw new Error('Nhập API key AI để gọi trực tiếp (không an toàn).');
+      // Example: call OpenAI chat completions (v1/chat/completions) - NOTE: CORS may block this in browser.
+      const body = {
+        model: "gpt-4o-mini", // placeholder
+        messages: [
+          {role:'system', content:'Bạn là trợ lý phân tích tài chính chuyên sâu. Đánh giá biểu đồ XAU/USD và đưa ra entry/SL/TP kèm lý do.'},
+          {role:'user', content:'Hãy phân tích JSON sau và trả về đề xuất rõ ràng: ' + JSON.stringify(payload)}
+        ],
+        max_tokens: 600
+      };
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization': 'Bearer ' + aiKey
+        },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) throw new Error('OpenAI trả lỗi: ' + r.status);
+      const j = await r.json();
+      document.getElementById('aiResponse').innerText = 'Kết quả AI (direct):\n' + JSON.stringify(j, null, 2);
     }
+  } catch (err) {
+    document.getElementById('aiResponse').innerText = 'Lỗi khi gửi tới AI: ' + err.message;
+    console.error(err);
+  }
+}
 
-    // New: Calculate advanced technical indicators
-    function calculateAdvancedIndicators(price) {
-        // Fibonacci Retracement Levels
-        const recentHigh = price + (15 + Math.random() * 10);
-        const recentLow = price - (15 + Math.random() * 10);
-        const fibLevels = {
-            '0%': recentLow.toFixed(2),
-            '23.6%': (recentLow + (recentHigh - recentLow) * 0.236).toFixed(2),
-            '38.2%': (recentLow + (recentHigh - recentLow) * 0.382).toFixed(2),
-            '50%': (recentLow + (recentHigh - recentLow) * 0.5).toFixed(2),
-            '61.8%': (recentLow + (recentHigh - recentLow) * 0.618).toFixed(2),
-            '100%': recentHigh.toFixed(2)
-        };
-        
-        // Bollinger Bands
-        const sma20 = price - (Math.random() - 0.5) * 3;
-        const stdDev = 4 + Math.random() * 3;
-        const bollingerBands = {
-            upper: (sma20 + stdDev * 2).toFixed(2),
-            middle: sma20.toFixed(2),
-            lower: (sma20 - stdDev * 2).toFixed(2),
-            bandwidth: (stdDev * 4 / sma20 * 100).toFixed(2)
-        };
-        
-        // Pivot Points (Classic)
-        const prevHigh = price + (8 + Math.random() * 5);
-        const prevLow = price - (8 + Math.random() * 5);
-        const prevClose = price - (Math.random() - 0.5) * 3;
-        const pivot = (prevHigh + prevLow + prevClose) / 3;
-        const pivotPoints = {
-            r3: (pivot + 2 * (prevHigh - prevLow)).toFixed(2),
-            r2: (pivot + (prevHigh - prevLow)).toFixed(2),
-            r1: (2 * pivot - prevLow).toFixed(2),
-            pivot: pivot.toFixed(2),
-            s1: (2 * pivot - prevHigh).toFixed(2),
-            s2: (pivot - (prevHigh - prevLow)).toFixed(2),
-            s3: (pivot - 2 * (prevHigh - prevLow)).toFixed(2)
-        };
-        
-        // ADX (Average Directional Index)
-        const adx = 20 + Math.floor(Math.random() * 40);
-        const adxSignal = adx > 25 ? 'Strong Trend' : 'Weak Trend';
-        
-        // Stochastic Oscillator
-        const stochK = 20 + Math.floor(Math.random() * 60);
-        const stochD = stochK - 3 + Math.floor(Math.random() * 6);
-        const stochSignal = stochK > 80 ? 'Overbought' : stochK < 20 ? 'Oversold' : 'Neutral';
-        
-        // CCI (Commodity Channel Index)
-        const cci = -100 + Math.floor(Math.random() * 200);
-        const cciSignal = cci > 100 ? 'Overbought' : cci < -100 ? 'Oversold' : 'Neutral';
-        
-        // Ichimoku Cloud
-        const tenkan = price - (Math.random() - 0.5) * 5;
-        const kijun = price - (Math.random() - 0.5) * 8;
-        const senkouA = (tenkan + kijun) / 2;
-        const senkouB = price - (Math.random() - 0.5) * 12;
-        const ichimokuSignal = price > Math.max(senkouA, senkouB) ? 'Bullish' : 
-                              price < Math.min(senkouA, senkouB) ? 'Bearish' : 'Neutral';
-        
-        // Volume Profile (simulated)
-        const volumeProfile = {
-            poc: price.toFixed(2), // Point of Control
-            vah: (price + 8).toFixed(2), // Value Area High
-            val: (price - 8).toFixed(2)  // Value Area Low
-        };
-        
-        // Williams %R
-        const williamsR = -100 + Math.floor(Math.random() * 100);
-        const williamsSignal = williamsR > -20 ? 'Overbought' : williamsR < -80 ? 'Oversold' : 'Neutral';
-        
-        return {
-            fibonacci: fibLevels,
-            bollingerBands,
-            pivotPoints,
-            adx: { value: adx, signal: adxSignal },
-            stochastic: { k: stochK, d: stochD, signal: stochSignal },
-            cci: { value: cci, signal: cciSignal },
-            ichimoku: { 
-                tenkan: tenkan.toFixed(2), 
-                kijun: kijun.toFixed(2),
-                senkouA: senkouA.toFixed(2),
-                senkouB: senkouB.toFixed(2),
-                signal: ichimokuSignal
-            },
-            volumeProfile,
-            williamsR: { value: williamsR, signal: williamsSignal }
-        };
-    }
+// Initialize small demo note
+analysisTextEl.innerHTML = `<p class="small" style="color:var(--muted)">Chưa có dữ liệu. Hãy nhập API key dữ liệu giá ở bên trái và nhấn "Bật cập nhật giá".</p>`;
 
-    // Render advanced technical analysis
-    function renderAdvancedTechnicalAnalysis() {
-        const indicators = calculateAdvancedIndicators(currentPrice);
-        
-        let html = `
-            <!-- Fibonacci Levels -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>📊 Fibonacci Retracement</span>
-                </div>
-                <div style="font-size: 0.85em; color: #666;">
-                    <div style="margin: 5px 0;">61.8%: <strong>$${indicators.fibonacci['61.8%']}</strong></div>
-                    <div style="margin: 5px 0;">50%: <strong>$${indicators.fibonacci['50%']}</strong></div>
-                    <div style="margin: 5px 0;">38.2%: <strong>$${indicators.fibonacci['38.2%']}</strong></div>
-                    <div style="margin: 5px 0;">23.6%: <strong>$${indicators.fibonacci['23.6%']}</strong></div>
-                </div>
-            </div>
-
-            <!-- Bollinger Bands -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>📈 Bollinger Bands</span>
-                </div>
-                <div style="font-size: 0.85em; color: #666;">
-                    <div style="margin: 5px 0;">Upper: <strong>$${indicators.bollingerBands.upper}</strong></div>
-                    <div style="margin: 5px 0;">Middle: <strong>$${indicators.bollingerBands.middle}</strong></div>
-                    <div style="margin: 5px 0;">Lower: <strong>$${indicators.bollingerBands.lower}</strong></div>
-                    <div style="margin: 5px 0;">Bandwidth: <strong>${indicators.bollingerBands.bandwidth}%</strong></div>
-                </div>
-                <div class="tech-indicator-signal ${currentPrice > indicators.bollingerBands.upper ? 'bearish-signal' : currentPrice < indicators.bollingerBands.lower ? 'bullish-signal' : 'neutral-signal'}">
-                    ${currentPrice > indicators.bollingerBands.upper ? 'Overbought' : currentPrice < indicators.bollingerBands.lower ? 'Oversold' : 'Normal'}
-                </div>
-            </div>
-
-            <!-- Pivot Points -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>🎯 Pivot Points</span>
-                </div>
-                <div style="font-size: 0.85em; color: #666;">
-                    <div style="color: #dc3545;">R3: $${indicators.pivotPoints.r3} | R2: $${indicators.pivotPoints.r2} | R1: $${indicators.pivotPoints.r1}</div>
-                    <div style="margin: 8px 0; font-weight: bold;">Pivot: $${indicators.pivotPoints.pivot}</div>
-                    <div style="color: #28a745;">S1: $${indicators.pivotPoints.s1} | S2: $${indicators.pivotPoints.s2} | S3: $${indicators.pivotPoints.s3}</div>
-                </div>
-            </div>
-
-            <!-- ADX -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>💪 ADX (Trend Strength)</span>
-                </div>
-                <div class="tech-indicator-value">${indicators.adx.value}</div>
-                <div class="tech-indicator-signal ${indicators.adx.value > 25 ? 'bullish-signal' : 'neutral-signal'}">
-                    ${indicators.adx.signal}
-                </div>
-            </div>
-
-            <!-- Stochastic -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>⚡ Stochastic Oscillator</span>
-                </div>
-                <div style="font-size: 0.85em; color: #666;">
-                    <div style="margin: 5px 0;">%K: <strong>${indicators.stochastic.k}</strong></div>
-                    <div style="margin: 5px 0;">%D: <strong>${indicators.stochastic.d}</strong></div>
-                </div>
-                <div class="tech-indicator-signal ${indicators.stochastic.signal === 'Overbought' ? 'bearish-signal' : indicators.stochastic.signal === 'Oversold' ? 'bullish-signal' : 'neutral-signal'}">
-                    ${indicators.stochastic.signal}
-                </div>
-            </div>
-
-            <!-- CCI -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>📉 CCI</span>
-                </div>
-                <div class="tech-indicator-value">${indicators.cci.value}</div>
-                <div class="tech-indicator-signal ${indicators.cci.signal === 'Overbought' ? 'bearish-signal' : indicators.cci.signal === 'Oversold' ? 'bullish-signal' : 'neutral-signal'}">
-                    ${indicators.cci.signal}
-                </div>
-            </div>
-
-            <!-- Ichimoku -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>☁️ Ichimoku Cloud</span>
-                </div>
-                <div style="font-size: 0.85em; color: #666;">
-                    <div style="margin: 5px 0;">Tenkan: $${indicators.ichimoku.tenkan}</div>
-                    <div style="margin: 5px 0;">Kijun: $${indicators.ichimoku.kijun}</div>
-                    <div style="margin: 5px 0;">Senkou A: $${indicators.ichimoku.senkouA}</div>
-                    <div style="margin: 5px 0;">Senkou B: $${indicators.ichimoku.senkouB}</div>
-                </div>
-                <div class="tech-indicator-signal ${indicators.ichimoku.signal === 'Bullish' ? 'bullish-signal' : indicators.ichimoku.signal === 'Bearish' ? 'bearish-signal' : 'neutral-signal'}">
-                    ${indicators.ichimoku.signal}
-                </div>
-            </div>
-
-            <!-- Williams %R -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>📊 Williams %R</span>
-                </div>
-                <div class="tech-indicator-value">${indicators.williamsR.value}</div>
-                <div class="tech-indicator-signal ${indicators.williamsR.signal === 'Overbought' ? 'bearish-signal' : indicators.williamsR.signal === 'Oversold' ? 'bullish-signal' : 'neutral-signal'}">
-                    ${indicators.williamsR.signal}
-                </div>
-            </div>
-
-            <!-- Volume Profile -->
-            <div class="tech-indicator">
-                <div class="tech-indicator-header">
-                    <span>📊 Volume Profile</span>
-                </div>
-                <div style="font-size: 0.85em; color: #666;">
-                    <div style="margin: 5px 0;">POC: <strong>$${indicators.volumeProfile.poc}</strong></div>
-                    <div style="margin: 5px 0;">VAH: <strong>$${indicators.volumeProfile.vah}</strong></div>
-                    <div style="margin: 5px 0;">VAL: <strong>$${indicators.volumeProfile.val}</strong></div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('technicalAnalysis').innerHTML = html;
-        
-        return indicators;
-    }
-
-    function analyzeMarket() {
-        marketData = {
-            M15: calculateTFData(currentPrice, 'M15'),
-            H1: calculateTFData(currentPrice, 'H1'),
-            H4: calculateTFData(currentPrice, 'H4'),
-            D1: calculateTFData(currentPrice, 'D1')
-        };
-        
-        renderTimeframes();
-        renderConfluence();
-        renderSetups();
-        renderAdvancedTechnicalAnalysis();
-    }
-
-    // AI Analysis Function
-    async function analyzeWithAI() {
-        const apiKey = document.getElementById('apiKey').value;
-        const provider = document.getElementById('aiProvider').value;
-        
-        if (!apiKey) {
-            alert('⚠️ Vui lòng nhập API Key!');
-            return;
-        }
-        
-        if (!currentPrice) {
-            alert('⚠️ Vui lòng đợi giá tải xong!');
-            return;
-        }
-
-        // Prepare comprehensive JSON data
-        const advancedIndicators = calculateAdvancedIndicators(currentPrice);
-        const confluenceData = renderConfluence();
-        
-        const analysisData = {
-            timestamp: new Date().toISOString(),
-            symbol: 'XAU/USD',
-            currentPrice: currentPrice,
-            priceSource: priceSource,
-            
-            timeframeAnalysis: marketData,
-            
-            confluence: {
-                score: confluenceData.score,
-                direction: confluenceData.direction,
-                alignedTimeframes: Object.keys(marketData).filter(
-                    tf => marketData[tf].signal === confluenceData.direction
-                )
-            },
-            
-            advancedIndicators: {
-                fibonacci: advancedIndicators.fibonacci,
-                bollingerBands: advancedIndicators.bollingerBands,
-                pivotPoints: advancedIndicators.pivotPoints,
-                adx: advancedIndicators.adx,
-                stochastic: advancedIndicators.stochastic,
-                cci: advancedIndicators.cci,
-                ichimoku: advancedIndicators.ichimoku,
-                volumeProfile: advancedIndicators.volumeProfile,
-                williamsR: advancedIndicators.williamsR
-            },
-            
-            keyLevels: {
-                resistance: [
-                    advancedIndicators.pivotPoints.r3,
-                    advancedIndicators.pivotPoints.r2,
-                    advancedIndicators.pivotPoints.r1
-                ],
-                support: [
-                    advancedIndicators.pivotPoints.s1,
-                    advancedIndicators.pivotPoints.s2,
-                    advancedIndicators.pivotPoints.s3
-                ],
-                pivot: advancedIndicators.pivotPoints.pivot
-            }
-        };
-
-        // Display JSON data
-        document.getElementById('jsonData').textContent = JSON.stringify(analysisData, null, 2);
-
-        // Show loading
-        document.getElementById('aiLoading').classList.add('show');
-        document.getElementById('aiResponse').classList.remove('show');
-        document.getElementById('aiAnalyzeBtn').disabled = true;
-
-        const prompt = `Bạn là chuyên gia phân tích kỹ thuật XAU/USD với 15 năm kinh nghiệm trading.
-```
-
-Dữ liệu thị trường đầy đủ (JSON):
-${JSON.stringify(analysisData, null, 2)}
-
-YÊU CẦU PHÂN TÍCH CHI TIẾT:
-
-1. **TỔNG QUAN THỊ TRƯỜNG**
-- Đánh giá xu hướng tổng thể (bullish/bearish/ranging)
-- Độ mạnh của xu hướng dựa trên ADX và các timeframe
-- Vị trí giá hiện tại so với các mức quan trọng
-1. **PHÂN TÍCH ĐA KHUNG THỜI GIAN (MTF CONFLUENCE)**
-- Confluence score: ${confluenceData.score}% - Ý nghĩa gì?
-- ${confluenceData.alignedTimeframes ? confluenceData.alignedTimeframes.length : 0} timeframes align ${confluenceData.direction}
-- Timeframes nào đang xung đột? Tại sao?
-- Đánh giá độ tin cậy của các tín hiệu
-1. **PHÂN TÍCH CHỈ BÁO KỸ THUẬT**
-- **Fibonacci**: Giá đang ở vùng nào? Có phản ứng tại mức Fib nào không?
-- **Bollinger Bands**: Bandwidth ${advancedIndicators.bollingerBands.bandwidth}% - squeeze hay expansion?
-- **Pivot Points**: Giá đang trading ở trên/dưới pivot? Các R/S levels quan trọng?
-- **Ichimoku**: Giá vs Cloud - tín hiệu gì?
-- **Stochastic**: K=${advancedIndicators.stochastic.k}, D=${advancedIndicators.stochastic.d} - divergence?
-- **CCI**: ${advancedIndicators.cci.value} - extreme levels?
-- **Williams %R**: ${advancedIndicators.williamsR.value} - reversal signal?
-1. **GỢI Ý ENTRY POINTS CỤ THỂ**
-- Entry price chính xác
-- Stop Loss dựa trên ATR và structure
-- Take Profit levels (TP1, TP2, TP3)
-- Tỷ lệ Risk/Reward
-- Lý do chi tiết cho từng entry
-1. **QUẢN LÝ RỦI RO**
-- % vốn nên dùng cho mỗi lệnh
-- Trailing stop strategy
-- Điều kiện để close sớm hoặc hold
-- Red flags cần lưu ý
-1. **KỊCH BẢN THỊ TRƯỜNG**
-- **Kịch bản Bull**: Giá sẽ đi đâu? Target nào?
-- **Kịch bản Bear**: Giá sẽ test mức nào?
-- **Kịch bản Ranging**: Vùng giá nào?
-- Xác suất từng kịch bản (%)
-1. **LỜI KHUYÊN CUỐI CÙNG**
-- Setup nào tốt nhất HIỆN TẠI?
-- Nên trade hay đợi?
-- Lưu ý quan trọng về news/sự kiện
-
-HÃY PHÂN TÍCH THẬT CHI TIẾT, THỰC TẾ VÀ CHUYÊN NGHIỆP. Sử dụng tiếng Việt dễ hiểu nhưng vẫn chuyên sâu.`;
-
-```
-        try {
-            let response;
-            
-            if (provider === 'claude') {
-                response = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-3-5-sonnet-20241022',
-                        max_tokens: 4000,
-                        messages: [{
-                            role: 'user',
-                            content: prompt
-                        }]
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'API Error');
-                }
-                
-                const data = await response.json();
-                displayAIResponse(data.content[0].text);
-                
-            } else if (provider === 'openai') {
-                response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4',
-                        messages: [{
-                            role: 'system',
-                            content: 'Bạn là chuyên gia phân tích kỹ thuật XAU/USD với 15 năm kinh nghiệm. Phân tích chi tiết, thực tế và chuyên sâu.'
-                        }, {
-                            role: 'user',
-                            content: prompt
-                        }],
-                        max_tokens: 4000
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'API Error');
-                }
-                
-                const data = await response.json();
-                displayAIResponse(data.choices[0].message.content);
-            }
-            
-        } catch (error) {
-            console.error('AI Analysis Error:', error);
-            displayAIResponse(`❌ LỖI: ${error.message}\n\nVui lòng kiểm tra:\n1. API Key có đúng không?\n2. Có đủ credits không?\n3. Kết nối internet ổn định không?`);
-        }
-        
-        document.getElementById('aiLoading').classList.remove('show');
-        document.getElementById('aiAnalyzeBtn').disabled = false;
-    }
-
-    function displayAIResponse(text) {
-        const responseDiv = document.getElementById('aiResponse');
-        responseDiv.textContent = text;
-        responseDiv.classList.add('show');
-    }
-
-    function renderTimeframes() {
-        let html = '';
-        Object.values(marketData).forEach(d => {
-            const trendClass = d.trend === 'BULLISH' ? 'bullish' : d.trend === 'BEARISH' ? 'bearish' : '';
-            const signalClass = d.signal === 'BUY' ? 'signal-buy' : d.signal === 'SELL' ? 'signal-sell' : 'signal-neutral';
-            
-            html += `
-                <div class="tf-card ${trendClass}">
-                    <div class="tf-header">
-                        <div class="tf-name">${d.tf}</div>
-                        <div class="tf-signal ${signalClass}">${d.signal}</div>
-                    </div>
-                    <div class="tf-indicators">
-                        <div class="indicator"><div class="indicator-label">EMA20</div><div class="indicator-value">$${d.ema20}</div></div>
-                        <div class="indicator"><div class="indicator-label">RSI</div><div class="indicator-value">${d.rsi}</div></div>
-                        <div class="indicator"><div class="indicator-label">Conf</div><div class="indicator-value">${d.confidence}%</div></div>
-                    </div>
-                </div>
-            `;
-        });
-        document.getElementById('timeframeAnalysis').innerHTML = html;
-    }
-
-    function renderConfluence() {
-        const signals = Object.values(marketData).map(d => d.signal);
-        const buyCount = signals.filter(s => s === 'BUY').length;
-        const sellCount = signals.filter(s => s === 'SELL').length;
-        
-        let score = 50;
-        let direction = 'NEUTRAL';
-        
-        if (buyCount >= 3) {
-            score = Math.floor(Object.values(marketData).reduce((sum, d) => sum + d.confidence, 0) / 4);
-            direction = 'BUY';
-        } else if (sellCount >= 3) {
-            score = Math.floor(Object.values(marketData).reduce((sum, d) => sum + d.confidence, 0) / 4);
-            direction = 'SELL';
-        }
-        
-        document.getElementById('confluenceScore').textContent = score + '%';
-        
-        Object.keys(marketData).forEach(tf => {
-            const bar = document.getElementById(`conf_${tf.toLowerCase()}`);
-            const val = document.getElementById(`conf_${tf.toLowerCase()}_val`);
-            
-            if (marketData[tf].signal === direction) {
-                bar.classList.add('active');
-                val.textContent = '✓';
-            } else {
-                bar.classList.remove('active');
-                val.textContent = '—';
-            }
-        });
-        
-        return {score, direction};
-    }
-
-    function renderSetups() {
-        const conf = renderConfluence();
-        const h4 = marketData.H4;
-        let html = '';
-        
-        if (conf.score >= 65) {
-            const dir = conf.direction;
-            const atr = parseFloat(h4.atr);
-            const entry = currentPrice;
-            const sl = dir === 'BUY' ? entry - atr * 2 : entry + atr * 2;
-            const tp1 = dir === 'BUY' ? entry + atr * 3 : entry - atr * 3;
-            const tp2 = dir === 'BUY' ? entry + atr * 5 : entry - atr * 5;
-            
-            html += `
-                <div class="setup-card high">
-                    <div class="setup-header">
-                        <div class="setup-title">🔥 HIGH PROBABILITY - ${dir}</div>
-                        <div class="setup-confidence">${conf.score}%</div>
-                    </div>
-                    <div class="setup-details">
-                        <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">SL</div><div class="setup-value">$${sl.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">TP1</div><div class="setup-value">$${tp1.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">TP2</div><div class="setup-value">$${tp2.toFixed(2)}</div></div>
-                    </div>
-                    <div class="reasoning">
-                        <div class="reasoning-title">📋 Lý do:</div>
-                        ✓ 3-4 timeframes xác nhận ${dir}<br>
-                        ✓ Confluence score cao: ${conf.score}%<br>
-                        ✓ Setup H4 với ATR ${atr.toFixed(1)}<br>
-                        ✓ R:R tỷ lệ 1:2.5
-                    </div>
-                </div>
-            `;
-        }
-        
-        const h1 = marketData.H1;
-        if (h1.confidence >= 55) {
-            const atr = parseFloat(h1.atr);
-            const entry = currentPrice;
-            const sl = h1.signal === 'BUY' ? entry - atr * 1.5 : entry + atr * 1.5;
-            const tp = h1.signal === 'BUY' ? entry + atr * 3 : entry - atr * 3;
-            
-            html += `
-                <div class="setup-card medium">
-                    <div class="setup-header">
-                        <div class="setup-title">📊 INTRADAY - ${h1.signal}</div>
-                        <div class="setup-confidence">${h1.confidence}%</div>
-                    </div>
-                    <div class="setup-details">
-                        <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">SL</div><div class="setup-value">$${sl.toFixed(2)}</div></div>
-                        <div class="setup-item"><div class="setup-label">TP</div><div class="setup-value">$${tp.toFixed(2)}</div></div>
-                    </div>
-                    <div class="reasoning">
-                        <div class="reasoning-title">📋 Lý do:</div>
-                        • H1 timeframe setup<br>
-                        • RSI: ${h1.rsi}<br>
-                        • Phù hợp intraday
-                    </div>
-                </div>
-            `;
-        }
-        
-        const m15 = marketData.M15;
-        const atr = parseFloat(m15.atr);
-        const entry = currentPrice;
-        html += `
-            <div class="setup-card low">
-                <div class="setup-header">
-                    <div class="setup-title">⚡ SCALPING - ${m15.signal}</div>
-                    <div class="setup-confidence">${m15.confidence}%</div>
-                </div>
-                <div class="setup-details">
-                    <div class="setup-item"><div class="setup-label">Entry</div><div class="setup-value">$${entry.toFixed(2)}</div></div>
-                    <div class="setup-item"><div class="setup-label">SL</div><div class="setup-value">$${(entry - (m15.signal === 'BUY' ? atr : -atr)).toFixed(2)}</div></div>
-                    <div class="setup-item"><div class="setup-label">TP</div><div class="setup-value">$${(entry + (m15.signal === 'BUY' ? atr * 2 : -atr * 2)).toFixed(2)}</div></div>
-                </div>
-                <div class="reasoning">
-                    <div class="reasoning-title">📋 Lý do:</div>
-                    • M15 scalping setup<br>
-                    • Quick in/out<br>
-                    • Theo dõi sát
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('entrySetups').innerHTML = html;
-    }
-
-    async function updatePrice() {
-        console.log('🔄 updatePrice called');
-        
-        // Get price (immediate return)
-        currentPrice = await fetchPrice();
-        
-        console.log('💰 Got price:', currentPrice);
-        
-        // Update display immediately
-        document.getElementById('currentPrice').textContent = '$' + currentPrice.toFixed(2);
-        document.getElementById('bidPrice').textContent = '$' + (currentPrice - 0.25).toFixed(2);
-        document.getElementById('askPrice').textContent = '$' + (currentPrice + 0.25).toFixed(2);
-        document.getElementById('updateTime').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
-        
-        console.log('📊 Analyzing market...');
-        analyzeMarket();
-        console.log('✅ Update complete');
-    }
-
-    // Initialize immediately on page load
-    window.addEventListener('load', () => {
-        console.log('🎯 ===== XAU/USD Analysis Tool Started =====');
-        console.log('📱 Device:', navigator.userAgent);
-        console.log('🌐 Online:', navigator.onLine);
-        
-        // Show loading state
-        updatePriceStatus('loading', '⏳ Đang khởi động...');
-        
-        // Start immediately
-        updatePrice().then(() => {
-            console.log('✅ Initial load complete');
-        }).catch(err => {
-            console.error('❌ Initial load error:', err);
-        });
-        
-        // Auto refresh every 30 seconds
-        setInterval(() => {
-            console.log('🔄 Auto refresh triggered');
-            updatePrice();
-        }, 30000);
-    });
+// Optional: try start automatically if API key present (disabled by default)
+// if (document.getElementById('priceApiKey').value.trim()) startUpdates();
 </script>
-```
-
 </body>
 </html>
