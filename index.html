@@ -326,25 +326,30 @@
         color: rgba(255,255,255,0.8);
         margin-top: 5px;
     }
-    
-    .enhanced-indicators {
+
+    .signal-strength-bar {
         margin-top: 15px;
         padding: 15px;
-        background: #fff8e1;
+        background: white;
         border-radius: 8px;
-        border-left: 4px solid #ffc107;
     }
-    
-    .signal-strength-bar {
-        margin-top: 10px;
+
+    .strength-label {
+        font-size: 0.9em;
+        color: #495057;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .strength-bar {
         height: 25px;
-        background: #e0e0e0;
+        background: #e9ecef;
         border-radius: 12px;
         overflow: hidden;
         position: relative;
     }
-    
-    .signal-strength-fill {
+
+    .strength-fill {
         height: 100%;
         transition: width 0.5s ease;
         display: flex;
@@ -354,54 +359,38 @@
         font-weight: bold;
         font-size: 0.85em;
     }
-    
-    .signal-strength-fill.strong {
-        background: linear-gradient(90deg, #2ecc71, #27ae60);
+
+    .strength-fill.strong {
+        background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
     }
-    
-    .signal-strength-fill.medium {
-        background: linear-gradient(90deg, #f39c12, #e67e22);
+
+    .strength-fill.medium {
+        background: linear-gradient(90deg, #f39c12 0%, #f1c40f 100%);
     }
-    
-    .signal-strength-fill.weak {
-        background: linear-gradient(90deg, #95a5a6, #7f8c8d);
+
+    .strength-fill.weak {
+        background: linear-gradient(90deg, #95a5a6 0%, #bdc3c7 100%);
     }
-    
-    .confluence-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.85em;
+
+    .confluence-score {
+        margin-top: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+        color: white;
+        text-align: center;
+    }
+
+    .confluence-score .score-value {
+        font-size: 2em;
         font-weight: bold;
-        margin: 2px;
+        margin: 10px 0;
     }
-    
-    .confluence-badge.high {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-    
-    .confluence-badge.medium {
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-    }
-    
-    .confluence-badge.low {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-    
-    .confluence-badge.strong {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .confluence-badge.weak {
-        background: #f8d7da;
-        color: #721c24;
+
+    .confluence-details {
+        font-size: 0.85em;
+        margin-top: 10px;
+        opacity: 0.9;
     }
 </style>
 ```
@@ -413,10 +402,7 @@
             <h1>📊 XAU/USD Real-Time Analysis - Enhanced</h1>
             <p style="font-size: 1.1em; margin-top: 10px;">
                 <span class="live-indicator"></span>
-                Multi-Indicator Confluence Strategy
-            </p>
-            <p style="font-size: 0.9em; margin-top: 5px; opacity: 0.9;">
-                RSI + EMA + LWMA + MACD + Bollinger Bands + Volume + Price Action
+                Multi-Indicator Confluence System
             </p>
             <div class="price-display">
                 <div class="main-price" id="currentPrice">Loading...</div>
@@ -497,17 +483,14 @@
     function generateRealisticPrice(basePrice) {
         const now = Date.now();
         const secondOfDay = (now / 1000) % 86400;
-        
         const hourlyTrend = Math.sin(secondOfDay / 3600 * Math.PI / 12) * 15;
         const microTrend = Math.sin(now / 1000) * 5;
         const randomWalk = (Math.random() - 0.5) * 2;
-        
         let momentum = 0;
         if (priceHistory.length > 5) {
             const recent = priceHistory.slice(-5);
             momentum = (recent[recent.length - 1] - recent[0]) * 0.1;
         }
-        
         return basePrice + hourlyTrend + microTrend + randomWalk + momentum;
     }
 
@@ -536,7 +519,6 @@
         const basePrice = 4200;
         const price = generateRealisticPrice(basePrice);
         const spread = 0.3 + Math.random() * 0.2;
-        
         priceSource = 'Simulation (Real-time Tick)';
         
         return {
@@ -549,20 +531,16 @@
     async function updatePriceRealtime() {
         try {
             const priceData = await fetchCurrentPrice();
-            
             previousPrice = currentPrice;
             currentPrice = priceData.price;
             bidPrice = priceData.bid;
             askPrice = priceData.ask;
-            
             priceHistory.push(currentPrice);
             if (priceHistory.length > 100) {
                 priceHistory.shift();
             }
-            
             tickCount++;
             updatePriceDisplay();
-            
         } catch (error) {
             console.error('Error updating price:', error);
         }
@@ -620,156 +598,322 @@
         document.getElementById('priceSource').textContent = `${priceSource} • ${new Date().toLocaleTimeString('vi-VN')}`;
     }
 
-    // ==================== CÁC CHỈ BÁO BỔ SUNG ====================
+    // ==================== ENHANCED TECHNICAL INDICATORS ====================
 
-    // MACD Indicator
     function calculateMACD(prices, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
-        const emaFast = calculateEMA(prices, fastPeriod);
-        const emaSlow = calculateEMA(prices, slowPeriod);
+        const fastEMA = calculateEMA(prices, fastPeriod);
+        const slowEMA = calculateEMA(prices, slowPeriod);
         
         const macdLine = [];
-        for (let i = 0; i < emaFast.length; i++) {
-            macdLine.push(emaFast[i] - emaSlow[i]);
+        for (let i = 0; i < fastEMA.length; i++) {
+            macdLine.push(fastEMA[i] - slowEMA[i]);
         }
         
         const signalLine = calculateEMA(macdLine, signalPeriod);
-        
         const histogram = [];
+        
         for (let i = 0; i < macdLine.length; i++) {
-            histogram.push(macdLine[i] - (signalLine[i] || 0));
+            histogram.push(macdLine[i] - signalLine[i]);
         }
         
-        return {
-            macd: macdLine,
-            signal: signalLine,
-            histogram: histogram
-        };
+        return { macdLine, signalLine, histogram };
     }
 
-    // Bollinger Bands
     function calculateBollingerBands(prices, period = 20, stdDev = 2) {
-        const sma = [];
-        const upperBand = [];
-        const lowerBand = [];
+        const sma = calculateSMA(prices, period);
+        const bands = { upper: [], middle: [], lower: [] };
         
         for (let i = period - 1; i < prices.length; i++) {
             const slice = prices.slice(i - period + 1, i + 1);
-            const mean = slice.reduce((a, b) => a + b, 0) / period;
-            
+            const mean = sma[i - period + 1];
             const variance = slice.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / period;
             const std = Math.sqrt(variance);
             
-            sma.push(mean);
-            upperBand.push(mean + std * stdDev);
-            lowerBand.push(mean - std * stdDev);
+            bands.middle.push(mean);
+            bands.upper.push(mean + stdDev * std);
+            bands.lower.push(mean - stdDev * std);
         }
         
-        return { sma, upper: upperBand, lower: lowerBand };
+        return bands;
     }
 
-    // Volume Profile Simulation
-    function calculateVolumeProfile(prices, high, low) {
-        const volumes = [];
-        for (let i = 1; i < prices.length; i++) {
-            const priceChange = Math.abs(prices[i] - prices[i-1]);
-            const range = high[i] - low[i];
-            const volume = (priceChange / range) * 1000 + Math.random() * 500;
-            volumes.push(volume);
+    function calculateSMA(values, period) {
+        const sma = [];
+        for (let i = period - 1; i < values.length; i++) {
+            const sum = values.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+            sma.push(sum / period);
+        }
+        return sma;
+    }
+
+    function calculateStochastic(high, low, close, kPeriod = 14, dPeriod = 3) {
+        const kValues = [];
+        
+        for (let i = kPeriod - 1; i < close.length; i++) {
+            const highestHigh = Math.max(...high.slice(i - kPeriod + 1, i + 1));
+            const lowestLow = Math.min(...low.slice(i - kPeriod + 1, i + 1));
+            const k = ((close[i] - lowestLow) / (highestHigh - lowestLow)) * 100;
+            kValues.push(k);
         }
         
-        const avgVolume = volumes.reduce((a, b) => a + b, 0) / volumes.length;
-        const currentVolume = volumes[volumes.length - 1];
-        const volumeRatio = currentVolume / avgVolume;
+        const dValues = calculateSMA(kValues, dPeriod);
         
-        return {
-            current: currentVolume,
-            average: avgVolume,
-            ratio: volumeRatio,
-            trend: volumeRatio > 1.5 ? 'high' : volumeRatio > 1 ? 'medium' : 'low'
-        };
+        return { k: kValues, d: dValues };
     }
 
-    // Price Action Patterns
-    function detectPriceActionPatterns(prices, high, low) {
-        const patterns = [];
-        const len = prices.length;
+    function calculateADX(high, low, close, period = 14) {
+        const tr = [];
+        const plusDM = [];
+        const minusDM = [];
         
-        if (len < 5) return patterns;
+        for (let i = 1; i < close.length; i++) {
+            const h_l = high[i] - low[i];
+            const h_pc = Math.abs(high[i] - close[i - 1]);
+            const l_pc = Math.abs(low[i] - close[i - 1]);
+            tr.push(Math.max(h_l, h_pc, l_pc));
+            
+            const highDiff = high[i] - high[i - 1];
+            const lowDiff = low[i - 1] - low[i];
+            
+            plusDM.push(highDiff > lowDiff && highDiff > 0 ? highDiff : 0);
+            minusDM.push(lowDiff > highDiff && lowDiff > 0 ? lowDiff : 0);
+        }
         
-        // Detect Engulfing Pattern
-        const lastOpen = prices[len - 2];
-        const lastClose = prices[len - 1];
-        const prevOpen = prices[len - 3];
-        const prevClose = prices[len - 2];
+        const smoothedTR = calculateSMA(tr, period);
+        const smoothedPlusDM = calculateSMA(plusDM, period);
+        const smoothedMinusDM = calculateSMA(minusDM, period);
         
-        if (lastClose > lastOpen && prevClose < prevOpen) {
-            if (lastClose > prevOpen && lastOpen < prevClose) {
-                patterns.push({ type: 'Bullish Engulfing', signal: 'BUY', strength: 0.8 });
+        const plusDI = [];
+        const minusDI = [];
+        const dx = [];
+        
+        for (let i = 0; i < smoothedTR.length; i++) {
+            const pdi = (smoothedPlusDM[i] / smoothedTR[i]) * 100;
+            const mdi = (smoothedMinusDM[i] / smoothedTR[i]) * 100;
+            plusDI.push(pdi);
+            minusDI.push(mdi);
+            
+            const sum = pdi + mdi;
+            if (sum > 0) {
+                dx.push((Math.abs(pdi - mdi) / sum) * 100);
+            } else {
+                dx.push(0);
             }
         }
         
-        if (lastClose < lastOpen && prevClose > prevOpen) {
-            if (lastClose < prevOpen && lastOpen > prevClose) {
-                patterns.push({ type: 'Bearish Engulfing', signal: 'SELL', strength: 0.8 });
-            }
-        }
-        
-        // Detect Pin Bar
-        const bodySize = Math.abs(prices[len-1] - prices[len-2]);
-        const upperWick = high[len-1] - Math.max(prices[len-1], prices[len-2]);
-        const lowerWick = Math.min(prices[len-1], prices[len-2]) - low[len-1];
-        
-        if (lowerWick > bodySize * 2 && upperWick < bodySize) {
-            patterns.push({ type: 'Bullish Pin Bar', signal: 'BUY', strength: 0.7 });
-        }
-        
-        if (upperWick > bodySize * 2 && lowerWick < bodySize) {
-            patterns.push({ type: 'Bearish Pin Bar', signal: 'SELL', strength: 0.7 });
-        }
-        
-        // Detect Inside Bar
-        if (high[len-1] < high[len-2] && low[len-1] > low[len-2]) {
-            const prevTrend = prices[len-2] > prices[len-4] ? 'bullish' : 'bearish';
-            patterns.push({ 
-                type: 'Inside Bar', 
-                signal: prevTrend === 'bullish' ? 'BUY' : 'SELL', 
-                strength: 0.6 
-            });
-        }
-        
-        return patterns;
-    }
-
-    // Trend Strength
-    function calculateTrendStrength(prices, period = 20) {
-        if (prices.length < period) return { strength: 0, direction: 'NEUTRAL' };
-        
-        const recent = prices.slice(-period);
-        const firstPrice = recent[0];
-        const lastPrice = recent[recent.length - 1];
-        
-        let upMoves = 0;
-        let downMoves = 0;
-        
-        for (let i = 1; i < recent.length; i++) {
-            if (recent[i] > recent[i-1]) upMoves++;
-            else if (recent[i] < recent[i-1]) downMoves++;
-        }
-        
-        const directionality = Math.abs(upMoves - downMoves) / period;
-        const priceChange = Math.abs((lastPrice - firstPrice) / firstPrice);
-        
-        const strength = (directionality + priceChange) / 2;
-        const direction = lastPrice > firstPrice ? 'BULLISH' : 'BEARISH';
+        const adx = calculateSMA(dx, period);
         
         return { 
-            strength: strength, 
-            direction: direction,
-            consistency: directionality
+            adx: adx.length > 0 ? adx[adx.length - 1] : 0,
+            plusDI: plusDI.length > 0 ? plusDI[plusDI.length - 1] : 0,
+            minusDI: minusDI.length > 0 ? minusDI[minusDI.length - 1] : 0
         };
     }
 
-    // ==================== HỆ THỐNG PHÂN TÍCH NÂNG CAO ====================
+    function calculateCCI(high, low, close, period = 20) {
+        const tp = close.map((c, i) => (high[i] + low[i] + c) / 3);
+        const sma = calculateSMA(tp, period);
+        const cci = [];
+        
+        for (let i = period - 1; i < tp.length; i++) {
+            const slice = tp.slice(i - period + 1, i + 1);
+            const meanDev = slice.reduce((sum, val) => sum + Math.abs(val - sma[i - period + 1]), 0) / period;
+            const cciVal = (tp[i] - sma[i - period + 1]) / (0.015 * meanDev);
+            cci.push(cciVal);
+        }
+        
+        return cci;
+    }
+
+    function detectVolumeProfile(prices, volume = null) {
+        if (!volume) {
+            volume = prices.map(() => 1 + Math.random());
+        }
+        
+        const priceMin = Math.min(...prices);
+        const priceMax = Math.max(...prices);
+        const priceRange = priceMax - priceMin;
+        const bucketSize = priceRange / 20;
+        
+        const volumeProfile = new Array(20).fill(0);
+        
+        for (let i = 0; i < prices.length; i++) {
+            const bucketIndex = Math.min(Math.floor((prices[i] - priceMin) / bucketSize), 19);
+            volumeProfile[bucketIndex] += volume[i];
+        }
+        
+        const pocIndex = volumeProfile.indexOf(Math.max(...volumeProfile));
+        const poc = priceMin + (pocIndex + 0.5) * bucketSize;
+        
+        return {
+            poc: poc,
+            highVolume: volumeProfile.filter(v => v > volumeProfile.reduce((a, b) => a + b) / 20)
+        };
+    }
+
+    // ==================== CONFLUENCE SCORING SYSTEM ====================
+
+    function calculateConfluenceScore(indicators, signal) {
+        let score = 0;
+        let maxScore = 0;
+        const details = [];
+        
+        // RSI Score (0-15 points)
+        maxScore += 15;
+        if (signal === 'BUY') {
+            if (indicators.rsi < 30) {
+                score += 15;
+                details.push('✓ RSI Oversold');
+            } else if (indicators.rsi < 40) {
+                score += 10;
+                details.push('✓ RSI Bullish');
+            } else if (indicators.rsi < 50) {
+                score += 5;
+                details.push('○ RSI Neutral+');
+            }
+        } else if (signal === 'SELL') {
+            if (indicators.rsi > 70) {
+                score += 15;
+                details.push('✓ RSI Overbought');
+            } else if (indicators.rsi > 60) {
+                score += 10;
+                details.push('✓ RSI Bearish');
+            } else if (indicators.rsi > 50) {
+                score += 5;
+                details.push('○ RSI Neutral-');
+            }
+        }
+        
+        // MACD Score (0-15 points)
+        maxScore += 15;
+        if (indicators.macdHistogram) {
+            const currentHist = indicators.macdHistogram[indicators.macdHistogram.length - 1];
+            const prevHist = indicators.macdHistogram[indicators.macdHistogram.length - 2];
+            
+            if (signal === 'BUY' && currentHist > 0 && currentHist > prevHist) {
+                score += 15;
+                details.push('✓ MACD Bullish Cross');
+            } else if (signal === 'SELL' && currentHist < 0 && currentHist < prevHist) {
+                score += 15;
+                details.push('✓ MACD Bearish Cross');
+            } else if ((signal === 'BUY' && currentHist > 0) || (signal === 'SELL' && currentHist < 0)) {
+                score += 8;
+                details.push('○ MACD Aligned');
+            }
+        }
+        
+        // Stochastic Score (0-10 points)
+        maxScore += 10;
+        if (indicators.stochastic) {
+            const k = indicators.stochastic.k[indicators.stochastic.k.length - 1];
+            if (signal === 'BUY' && k < 20) {
+                score += 10;
+                details.push('✓ Stoch Oversold');
+            } else if (signal === 'SELL' && k > 80) {
+                score += 10;
+                details.push('✓ Stoch Overbought');
+            } else if ((signal === 'BUY' && k < 50) || (signal === 'SELL' && k > 50)) {
+                score += 5;
+                details.push('○ Stoch Aligned');
+            }
+        }
+        
+        // Bollinger Bands Score (0-10 points)
+        maxScore += 10;
+        if (indicators.bb) {
+            const price = indicators.currentPrice;
+            const upper = indicators.bb.upper[indicators.bb.upper.length - 1];
+            const lower = indicators.bb.lower[indicators.bb.lower.length - 1];
+            const middle = indicators.bb.middle[indicators.bb.middle.length - 1];
+            
+            if (signal === 'BUY' && price < lower) {
+                score += 10;
+                details.push('✓ Price at BB Lower');
+            } else if (signal === 'SELL' && price > upper) {
+                score += 10;
+                details.push('✓ Price at BB Upper');
+            } else if ((signal === 'BUY' && price < middle) || (signal === 'SELL' && price > middle)) {
+                score += 5;
+                details.push('○ BB Position OK');
+            }
+        }
+        
+        // ADX Trend Strength (0-15 points)
+        maxScore += 15;
+        if (indicators.adx) {
+            if (indicators.adx.adx > 25) {
+                if (signal === 'BUY' && indicators.adx.plusDI > indicators.adx.minusDI) {
+                    score += 15;
+                    details.push('✓ Strong Uptrend (ADX)');
+                } else if (signal === 'SELL' && indicators.adx.minusDI > indicators.adx.plusDI) {
+                    score += 15;
+                    details.push('✓ Strong Downtrend (ADX)');
+                } else {
+                    score += 8;
+                    details.push('○ Trending Market');
+                }
+            } else {
+                details.push('⚠ Weak Trend');
+            }
+        }
+        
+        // CCI Score (0-10 points)
+        maxScore += 10;
+        if (indicators.cci) {
+            const cci = indicators.cci[indicators.cci.length - 1];
+            if (signal === 'BUY' && cci < -100) {
+                score += 10;
+                details.push('✓ CCI Oversold');
+            } else if (signal === 'SELL' && cci > 100) {
+                score += 10;
+                details.push('✓ CCI Overbought');
+            } else if ((signal === 'BUY' && cci < 0) || (signal === 'SELL' && cci > 0)) {
+                score += 5;
+                details.push('○ CCI Aligned');
+            }
+        }
+        
+        // EMA/LWMA Cross Score (0-20 points)
+        maxScore += 20;
+        if (indicators.isCross) {
+            score += 20;
+            details.push('✓✓ EMA/LWMA Cross!');
+        } else if ((signal === 'BUY' && indicators.ema > indicators.lwma) || 
+                  (signal === 'SELL' && indicators.ema < indicators.lwma)) {
+            score += 10;
+            details.push('✓ EMA/LWMA Aligned');
+        }
+        
+        // Volume Profile Score (0-10 points)
+        maxScore += 10;
+        if (indicators.volumeProfile) {
+            const price = indicators.currentPrice;
+            const poc = indicators.volumeProfile.poc;
+            const distanceFromPOC = Math.abs(price - poc) / price;
+            
+            if (distanceFromPOC < 0.002) {
+                score += 10;
+                details.push('✓ At Volume POC');
+            } else if (distanceFromPOC < 0.005) {
+                score += 5;
+                details.push('○ Near Volume POC');
+            }
+        }
+        
+        const percentage = (score / maxScore) * 100;
+        
+        return {
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage.toFixed(1),
+            details: details,
+            quality: percentage >= 75 ? 'EXCELLENT' : 
+                    percentage >= 60 ? 'GOOD' : 
+                    percentage >= 45 ? 'MODERATE' : 'WEAK'
+        };
+    }
+
+    // ==================== HELPER FUNCTIONS ====================
 
     function getIntervalSeconds(interval) {
         if (interval === 'D') return 86400;
@@ -899,7 +1043,7 @@
         return atr;
     }
 
-    // ============ HỆ THỐNG TP/SL (GIỮ NGUYÊN) ============
+    // ==================== TP/SL CALCULATION ====================
     
     function calculateSwingPoints(prices, lookback = 50) {
         const recentPrices = prices.slice(-lookback);
@@ -969,7 +1113,7 @@
     
     function calculateAdvancedTPSL(signal, entry, prices, rsiValues, atr, high, low) {
         if (signal === 'NEUTRAL') {
-            return { tp: entry, sl: entry, method: 'Neutral - No Trade', rrRatio: '0.00', tpMethods: '', slMethods: '', tpCount: 0, slCount: 0 };
+            return { tp: entry, sl: entry, method: 'Neutral - No Trade' };
         }
         
         const currentRSI = rsiValues[rsiValues.length - 1];
@@ -1093,16 +1237,13 @@
         }
         
         const calculateWeightedAverage = (candidates) => {
-            if (candidates.length === 0) return entry;
-            
+            if (candidates.length === 0) return null;
             let sumWeightedValues = 0;
             let sumWeights = 0;
-            
             candidates.forEach(c => {
                 sumWeightedValues += c.value * c.weight;
                 sumWeights += c.weight;
             });
-            
             return sumWeightedValues / sumWeights;
         };
         
@@ -1138,13 +1279,12 @@
         };
     }
 
-    // ============ HỆ THỐNG PHÂN TÍCH CONFLUENCE (MỚI) ============
+    // ==================== MAIN ANALYSIS ====================
 
     async function analyzeTimeframe(tf) {
         const data = await fetchTradingViewData(tf.interval);
         const prices = data.prices;
         
-        // Tính toán tất cả chỉ báo
         const rsiValues = calculateRSI(prices, 14);
         if (!rsiValues || rsiValues.length < 50) return null;
         
@@ -1152,206 +1292,83 @@
         const lwmaOnRsi = calculateLWMA(rsiValues, 45);
         if (lwmaOnRsi.length === 0) return null;
         
-        // Chỉ báo bổ sung
-        const macdData = calculateMACD(prices);
-        const bbData = calculateBollingerBands(prices);
-        const volumeData = calculateVolumeProfile(prices, data.high, data.low);
-        const pricePatterns = detectPriceActionPatterns(prices, data.high, data.low);
-        const trendData = calculateTrendStrength(prices);
-        
-        // RSI signals
         const currentRSI = rsiValues[rsiValues.length - 1];
         const currentEMA = emaOnRsi[emaOnRsi.length - 1];
         const currentLWMA = lwmaOnRsi[lwmaOnRsi.length - 1];
         const prevEMA = emaOnRsi[emaOnRsi.length - 2];
         const prevLWMA = lwmaOnRsi[lwmaOnRsi.length - 2];
         
+        // Calculate additional indicators
+        const macd = calculateMACD(prices);
+        const bb = calculateBollingerBands(prices);
+        const stochastic = calculateStochastic(data.high, data.low, prices);
+        const adx = calculateADX(data.high, data.low, prices);
+        const cci = calculateCCI(data.high, data.low, prices);
+        const volumeProfile = detectVolumeProfile(prices);
+        
+        let signal = 'NEUTRAL';
+        let signalStrength = 0;
+        
         const emaCrossAbove = prevEMA <= prevLWMA && currentEMA > currentLWMA;
         const emaCrossBelow = prevEMA >= prevLWMA && currentEMA < currentLWMA;
         
-        // MACD signals
-        const currentMACD = macdData.macd[macdData.macd.length - 1];
-        const currentSignal = macdData.signal[macdData.signal.length - 1];
-        const currentHistogram = macdData.histogram[macdData.histogram.length - 1];
-        const prevHistogram = macdData.histogram[macdData.histogram.length - 2];
-        
-        const macdBullish = currentMACD > currentSignal && currentHistogram > 0;
-        const macdBearish = currentMACD < currentSignal && currentHistogram < 0;
-        const macdCrossUp = prevHistogram <= 0 && currentHistogram > 0;
-        const macdCrossDown = prevHistogram >= 0 && currentHistogram < 0;
-        
-        // Bollinger Bands signals
-        const currentPrice = prices[prices.length - 1];
-        const currentBBUpper = bbData.upper[bbData.upper.length - 1];
-        const currentBBLower = bbData.lower[bbData.lower.length - 1];
-        const currentBBMiddle = bbData.sma[bbData.sma.length - 1];
-        
-        const bbOversold = currentPrice < currentBBLower;
-        const bbOverbought = currentPrice > currentBBUpper;
-        const bbBullish = currentPrice > currentBBMiddle;
-        const bbBearish = currentPrice < currentBBMiddle;
-        
-        // ============ CONFLUENCE SCORING SYSTEM ============
-        
-        let buySignals = [];
-        let sellSignals = [];
-        let confluenceScore = 0;
-        
-        // RSI Signals (weight: 1.5)
         if (emaCrossAbove) {
-            buySignals.push({ name: 'RSI Cross ▲', weight: 1.5, strength: 'strong' });
-            confluenceScore += 1.5;
-        } else if (currentEMA > currentLWMA) {
-            buySignals.push({ name: 'RSI Bullish', weight: 1.0, strength: 'medium' });
-            confluenceScore += 1.0;
-        }
-        
-        if (emaCrossBelow) {
-            sellSignals.push({ name: 'RSI Cross ▼', weight: 1.5, strength: 'strong' });
-            confluenceScore -= 1.5;
-        } else if (currentEMA < currentLWMA) {
-            sellSignals.push({ name: 'RSI Bearish', weight: 1.0, strength: 'medium' });
-            confluenceScore -= 1.0;
-        }
-        
-        // RSI Extreme Levels (weight: 1.2)
-        if (currentRSI < 30) {
-            buySignals.push({ name: 'RSI<30 Oversold', weight: 1.2, strength: 'strong' });
-            confluenceScore += 1.2;
-        } else if (currentRSI > 70) {
-            sellSignals.push({ name: 'RSI>70 Overbought', weight: 1.2, strength: 'strong' });
-            confluenceScore -= 1.2;
-        }
-        
-        // MACD Signals (weight: 1.3)
-        if (macdCrossUp) {
-            buySignals.push({ name: 'MACD Cross ▲', weight: 1.5, strength: 'strong' });
-            confluenceScore += 1.5;
-        } else if (macdBullish) {
-            buySignals.push({ name: 'MACD>0', weight: 1.0, strength: 'medium' });
-            confluenceScore += 1.0;
-        }
-        
-        if (macdCrossDown) {
-            sellSignals.push({ name: 'MACD Cross ▼', weight: 1.5, strength: 'strong' });
-            confluenceScore -= 1.5;
-        } else if (macdBearish) {
-            sellSignals.push({ name: 'MACD<0', weight: 1.0, strength: 'medium' });
-            confluenceScore -= 1.0;
-        }
-        
-        // Bollinger Bands (weight: 1.1)
-        if (bbOversold) {
-            buySignals.push({ name: 'BB Oversold', weight: 1.1, strength: 'medium' });
-            confluenceScore += 1.1;
-        } else if (bbBullish) {
-            buySignals.push({ name: 'BB>Mid', weight: 0.7, strength: 'weak' });
-            confluenceScore += 0.7;
-        }
-        
-        if (bbOverbought) {
-            sellSignals.push({ name: 'BB Overbought', weight: 1.1, strength: 'medium' });
-            confluenceScore -= 1.1;
-        } else if (bbBearish) {
-            sellSignals.push({ name: 'BB<Mid', weight: 0.7, strength: 'weak' });
-            confluenceScore -= 0.7;
-        }
-        
-        // Volume (weight: 0.8)
-        if (volumeData.trend === 'high') {
-            if (confluenceScore > 0) {
-                buySignals.push({ name: 'Vol High', weight: 0.8, strength: 'medium' });
-                confluenceScore += 0.8;
-            } else if (confluenceScore < 0) {
-                sellSignals.push({ name: 'Vol High', weight: 0.8, strength: 'medium' });
-                confluenceScore -= 0.8;
-            }
-        }
-        
-        // Price Action Patterns (weight: 1.0)
-        pricePatterns.forEach(pattern => {
-            if (pattern.signal === 'BUY') {
-                buySignals.push({ name: pattern.type, weight: pattern.strength, strength: 'strong' });
-                confluenceScore += pattern.strength;
-            } else if (pattern.signal === 'SELL') {
-                sellSignals.push({ name: pattern.type, weight: pattern.strength, strength: 'strong' });
-                confluenceScore -= pattern.strength;
-            }
-        });
-        
-        // Trend Strength (weight: 1.0)
-        if (trendData.direction === 'BULLISH' && trendData.strength > 0.5) {
-            buySignals.push({ name: `Trend ↑ ${(trendData.strength*100).toFixed(0)}%`, weight: trendData.strength, strength: 'medium' });
-            confluenceScore += trendData.strength;
-        } else if (trendData.direction === 'BEARISH' && trendData.strength > 0.5) {
-            sellSignals.push({ name: `Trend ↓ ${(trendData.strength*100).toFixed(0)}%`, weight: trendData.strength, strength: 'medium' });
-            confluenceScore -= trendData.strength;
-        }
-        
-        // ============ DETERMINE FINAL SIGNAL ============
-        
-        let finalSignal = 'NEUTRAL';
-        let signalStrength = 0;
-        let confidenceLevel = 'LOW';
-        
-        if (confluenceScore > 2.5) {
-            finalSignal = 'BUY';
-            signalStrength = Math.min(confluenceScore / 8 * 100, 100);
-            confidenceLevel = confluenceScore > 5 ? 'HIGH' : confluenceScore > 3.5 ? 'MEDIUM' : 'LOW';
-        } else if (confluenceScore < -2.5) {
-            finalSignal = 'SELL';
-            signalStrength = Math.min(Math.abs(confluenceScore) / 8 * 100, 100);
-            confidenceLevel = Math.abs(confluenceScore) > 5 ? 'HIGH' : Math.abs(confluenceScore) > 3.5 ? 'MEDIUM' : 'LOW';
+            signal = 'BUY';
+            signalStrength = Math.abs(currentEMA - currentLWMA);
+        } else if (emaCrossBelow) {
+            signal = 'SELL';
+            signalStrength = Math.abs(currentEMA - currentLWMA);
         } else {
-            finalSignal = 'NEUTRAL';
-            signalStrength = 0;
-            confidenceLevel = 'LOW';
+            if (currentEMA > currentLWMA) {
+                signal = 'BUY';
+                signalStrength = (currentEMA - currentLWMA) * 0.5;
+            } else if (currentEMA < currentLWMA) {
+                signal = 'SELL';
+                signalStrength = (currentLWMA - currentEMA) * 0.5;
+            }
         }
         
-        // ============ CALCULATE TP/SL (UNCHANGED) ============
-        
+        const currentMarketPrice = prices[prices.length - 1];
         const atr = calculateATR(data.high, data.low, prices, 14);
-        const tpslData = calculateAdvancedTPSL(finalSignal, currentPrice, prices, rsiValues, atr, data.high, data.low);
+        
+        // Prepare indicators object for confluence scoring
+        const indicators = {
+            rsi: currentRSI,
+            ema: currentEMA,
+            lwma: currentLWMA,
+            isCross: emaCrossAbove || emaCrossBelow,
+            macdHistogram: macd.histogram,
+            bb: bb,
+            stochastic: stochastic,
+            adx: adx,
+            cci: cci,
+            volumeProfile: volumeProfile,
+            currentPrice: currentMarketPrice
+        };
+        
+        const confluence = calculateConfluenceScore(indicators, signal);
+        const tpslData = calculateAdvancedTPSL(signal, currentMarketPrice, prices, rsiValues, atr, data.high, data.low);
         
         return {
             timeframe: tf.label,
-            
-            // Original indicators
             rsi: currentRSI.toFixed(2),
             ema: currentEMA.toFixed(2),
             lwma: currentLWMA.toFixed(2),
-            
-            // New indicators
-            macd: currentMACD.toFixed(4),
-            macdSignal: currentSignal.toFixed(4),
-            macdHistogram: currentHistogram.toFixed(4),
-            bbUpper: currentBBUpper.toFixed(2),
-            bbMiddle: currentBBMiddle.toFixed(2),
-            bbLower: currentBBLower.toFixed(2),
-            volume: volumeData.ratio.toFixed(2),
-            volumeTrend: volumeData.trend,
-            trendStrength: (trendData.strength * 100).toFixed(1),
-            trendDirection: trendData.direction,
-            
-            // Signals
-            signal: finalSignal,
+            macd: macd.histogram[macd.histogram.length - 1].toFixed(4),
+            stoch: stochastic.k[stochastic.k.length - 1].toFixed(2),
+            adxValue: adx.adx.toFixed(2),
+            cci: cci[cci.length - 1].toFixed(2),
+            signal: signal,
             signalStrength: signalStrength,
-            confidenceLevel: confidenceLevel,
-            confluenceScore: confluenceScore.toFixed(2),
-            buySignals: buySignals,
-            sellSignals: sellSignals,
-            pricePatterns: pricePatterns,
-            
-            // Entry/TP/SL (unchanged)
-            entry: currentPrice.toFixed(2),
+            confluence: confluence,
+            entry: currentMarketPrice.toFixed(2),
             tp: tpslData.tp.toFixed(2),
             sl: tpslData.sl.toFixed(2),
             rrRatio: tpslData.rrRatio,
             tpMethods: tpslData.tpMethods,
             slMethods: tpslData.slMethods,
             methodCount: `TP:${tpslData.tpCount} SL:${tpslData.slCount}`,
-            
-            isCross: emaCrossAbove || emaCrossBelow || macdCrossUp || macdCrossDown
+            isCross: emaCrossAbove || emaCrossBelow
         };
     }
 
@@ -1385,27 +1402,8 @@
         const signalClass = analysis.signal.toLowerCase();
         const signalIcon = analysis.signal === 'BUY' ? '📈' : 
                           analysis.signal === 'SELL' ? '📉' : '➖';
-        const crossIndicator = analysis.isCross ? ' 🔥' : '';
+        const crossIndicator = analysis.isCross ? ' 🔥 (CẮT NHAU!)' : '';
         
-        // Confidence badge
-        const confidenceBadge = `<span class="confluence-badge ${analysis.confidenceLevel.toLowerCase()}">${analysis.confidenceLevel}</span>`;
-        
-        // Active signals display
-        const activeSignals = analysis.signal === 'BUY' ? analysis.buySignals : analysis.sellSignals;
-        const signalsHTML = activeSignals.map(s => 
-            `<span class="confluence-badge ${s.strength}">${s.name}</span>`
-        ).join(' ');
-        
-        // Pattern display
-        const patternsHTML = analysis.pricePatterns.length > 0 ? 
-            analysis.pricePatterns.map(p => `<div style="color: ${p.signal === 'BUY' ? '#2ecc71' : '#e74c3c'};">🔍 ${p.type}</div>`).join('') : 
-            '<div style="color: #95a5a6; font-size: 0.9em;">No patterns</div>';
-        
-        // Signal strength bar
-        const strengthBarClass = analysis.signalStrength > 70 ? 'strong' : 
-                                 analysis.signalStrength > 40 ? 'medium' : 'weak';
-        
-        // Tính toán pips và %
         const entry = parseFloat(analysis.entry);
         const tp = parseFloat(analysis.tp);
         const sl = parseFloat(analysis.sl);
@@ -1414,74 +1412,68 @@
         const tpPercent = ((Math.abs(tp - entry) / entry) * 100).toFixed(2);
         const slPercent = ((Math.abs(sl - entry) / entry) * 100).toFixed(2);
         
+        const confluence = analysis.confluence;
+        const strengthClass = confluence.percentage >= 60 ? 'strong' : 
+                             confluence.percentage >= 45 ? 'medium' : 'weak';
+        
         card.innerHTML = `
-            <div class="timeframe-header">
-                ${analysis.timeframe} ${confidenceBadge}
+            <div class="timeframe-header">${analysis.timeframe}</div>
+            
+            <div class="confluence-score">
+                <div style="font-size: 0.9em; opacity: 0.9;">Confluence Score</div>
+                <div class="score-value">${confluence.percentage}%</div>
+                <div style="font-size: 1.1em; margin-top: 5px;">${confluence.quality}</div>
+                <div class="confluence-details">${confluence.score}/${confluence.maxScore} points</div>
             </div>
             
             <div class="indicator-values">
-                <div style="margin-bottom: 10px; font-weight: bold; color: #667eea;">📊 Core Indicators</div>
                 <div class="indicator-row">
                     <span class="indicator-label">RSI(14):</span>
                     <span class="indicator-value">${analysis.rsi}</span>
                 </div>
                 <div class="indicator-row">
-                    <span class="indicator-label">EMA(9):</span>
+                    <span class="indicator-label">EMA(9) on RSI:</span>
                     <span class="indicator-value">${analysis.ema}</span>
                 </div>
                 <div class="indicator-row">
-                    <span class="indicator-label">LWMA(45):</span>
+                    <span class="indicator-label">LWMA(45) on RSI:</span>
                     <span class="indicator-value">${analysis.lwma}</span>
                 </div>
-            </div>
-            
-            <div class="enhanced-indicators">
-                <div style="margin-bottom: 8px; font-weight: bold; color: #f57c00;">🔬 Enhanced</div>
                 <div class="indicator-row">
-                    <span class="indicator-label">MACD Hist:</span>
-                    <span class="indicator-value" style="color: ${parseFloat(analysis.macdHistogram) > 0 ? '#2ecc71' : '#e74c3c'}">
-                        ${analysis.macdHistogram}
-                    </span>
+                    <span class="indicator-label">MACD Histogram:</span>
+                    <span class="indicator-value">${analysis.macd}</span>
                 </div>
                 <div class="indicator-row">
-                    <span class="indicator-label">BB:</span>
-                    <span class="indicator-value">${
-                        parseFloat(analysis.entry) > parseFloat(analysis.bbUpper) ? 'Above↑' :
-                        parseFloat(analysis.entry) < parseFloat(analysis.bbLower) ? 'Below↓' :
-                        'In Range'
-                    }</span>
+                    <span class="indicator-label">Stochastic:</span>
+                    <span class="indicator-value">${analysis.stoch}</span>
                 </div>
                 <div class="indicator-row">
-                    <span class="indicator-label">Vol:</span>
-                    <span class="indicator-value">${analysis.volume}x</span>
+                    <span class="indicator-label">ADX:</span>
+                    <span class="indicator-value">${analysis.adxValue}</span>
                 </div>
                 <div class="indicator-row">
-                    <span class="indicator-label">Trend:</span>
-                    <span class="indicator-value">${analysis.trendDirection} ${analysis.trendStrength}%</span>
+                    <span class="indicator-label">CCI:</span>
+                    <span class="indicator-value">${analysis.cci}</span>
                 </div>
             </div>
             
-            <div style="margin-top: 15px; padding: 12px; background: #f0f4ff; border-radius: 8px;">
-                <div style="font-weight: bold; margin-bottom: 8px; color: #1976d2;">
-                    🎯 Signals (Score: ${analysis.confluenceScore})
+            <div class="signal-strength-bar">
+                <div class="strength-label">Signal Strength:</div>
+                <div class="strength-bar">
+                    <div class="strength-fill ${strengthClass}" style="width: ${confluence.percentage}%">
+                        ${confluence.percentage}%
+                    </div>
                 </div>
-                <div style="margin-top: 8px;">
-                    ${signalsHTML || '<span style="color: #95a5a6; font-size: 0.9em;">No signals</span>'}
-                </div>
-            </div>
-            
-            <div style="margin-top: 15px; padding: 12px; background: #fff8e1; border-radius: 8px;">
-                <div style="font-weight: bold; margin-bottom: 8px; color: #f57c00;">📋 Patterns</div>
-                ${patternsHTML}
             </div>
             
             <div class="signal ${signalClass}">
                 ${signalIcon} ${analysis.signal}${crossIndicator}
             </div>
             
-            <div class="signal-strength-bar">
-                <div class="signal-strength-fill ${strengthBarClass}" style="width: ${analysis.signalStrength}%">
-                    ${analysis.signalStrength.toFixed(0)}%
+            <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-radius: 8px; font-size: 0.85em;">
+                <strong>✓ Indicators Aligned:</strong>
+                <div style="margin-top: 8px; line-height: 1.6;">
+                    ${confluence.details.map(d => `<div>${d}</div>`).join('')}
                 </div>
             </div>
             
@@ -1492,26 +1484,26 @@
                 </div>
                 <div class="level-row tp">
                     <span>🎯 TP:</span>
-                    <span>$${analysis.tp} (+${tpPips})</span>
+                    <span>$${analysis.tp} (+${tpPips} / ${tpPercent}%)</span>
                 </div>
                 <div class="level-row sl">
                     <span>🛑 SL:</span>
-                    <span>$${analysis.sl} (-${slPips})</span>
+                    <span>$${analysis.sl} (-${slPips} / ${slPercent}%)</span>
                 </div>
                 <div class="indicator-row" style="margin-top: 10px; background: #fff3cd; border-left: 4px solid #ffc107;">
-                    <span class="indicator-label">⚖️ R:R:</span>
+                    <span class="indicator-label">⚖️ R:R Ratio:</span>
                     <span class="indicator-value" style="color: #856404; font-size: 1.1em;">1:${analysis.rrRatio}</span>
                 </div>
             </div>
             
             <div style="margin-top: 15px; padding: 12px; background: #e7f3ff; border-radius: 8px; font-size: 0.85em;">
                 <div style="margin-bottom: 8px;">
-                    <strong>🎯 TP (${analysis.methodCount.split(' ')[0].split(':')[1]}):</strong>
-                    <div style="color: #0066cc; margin-top: 4px;">${analysis.tpMethods || 'ATR'}</div>
+                    <strong>🎯 TP Methods (${analysis.methodCount.split(' ')[0].split(':')[1]}):</strong>
+                    <div style="color: #0066cc; margin-top: 4px;">${analysis.tpMethods || 'ATR-based'}</div>
                 </div>
                 <div>
-                    <strong>🛑 SL (${analysis.methodCount.split(' ')[1].split(':')[1]}):</strong>
-                    <div style="color: #cc0000; margin-top: 4px;">${analysis.slMethods || 'ATR'}</div>
+                    <strong>🛑 SL Methods (${analysis.methodCount.split(' ')[1].split(':')[1]}):</strong>
+                    <div style="color: #cc0000; margin-top: 4px;">${analysis.slMethods || 'ATR-based'}</div>
                 </div>
             </div>
         `;
@@ -1524,8 +1516,8 @@
         const sellCount = results.filter(r => r.signal === 'SELL').length;
         const neutralCount = results.filter(r => r.signal === 'NEUTRAL').length;
         
-        const highConfidenceCount = results.filter(r => r.confidenceLevel === 'HIGH').length;
-        const avgConfluence = (results.reduce((sum, r) => sum + parseFloat(r.confluenceScore), 0) / results.length).toFixed(2);
+        const avgConfluence = results.reduce((sum, r) => sum + parseFloat(r.confluence.percentage), 0) / results.length;
+        const strongSignals = results.filter(r => parseFloat(r.confluence.percentage) >= 60).length;
         
         let overallSignal = 'NEUTRAL';
         if (buyCount > sellCount + neutralCount) overallSignal = 'BUY';
@@ -1533,12 +1525,19 @@
         
         const summaryContent = document.getElementById('summaryContent');
         summaryContent.innerHTML = `
-            <p><strong>📊 Tổng khung:</strong> ${results.length}</p>
-            <p><strong>📈 BUY:</strong> ${buyCount} | <strong>📉 SELL:</strong> ${sellCount} | <strong>➖ NEUTRAL:</strong> ${neutralCount}</p>
-            <p><strong>⭐ High Confidence:</strong> ${highConfidenceCount} khung</p>
-            <p><strong>🎯 Avg Score:</strong> ${avgConfluence}</p>
-            <p style="margin-top: 15px; font-size: 1.3em;">
-                <strong>Xu hướng: ${overallSignal}</strong>
+            <p><strong>Tổng số khung phân tích:</strong> ${results.length}</p>
+            <p><strong>📈 Tín hiệu BUY:</strong> ${buyCount} khung</p>
+            <p><strong>📉 Tín hiệu SELL:</strong> ${sellCount} khung</p>
+            <p><strong>➖ Tín hiệu NEUTRAL:</strong> ${neutralCount} khung</p>
+            <p><strong>💪 Tín hiệu mạnh (≥60%):</strong> ${strongSignals} khung</p>
+            <p><strong>📊 Độ chính xác trung bình:</strong> ${avgConfluence.toFixed(1)}%</p>
+            <p style="margin-top: 15px; font-size: 1.2em;">
+                <strong>🎯 Xu hướng chung: ${overallSignal}</strong>
+            </p>
+            <p style="margin-top: 10px; font-size: 0.95em; opacity: 0.9;">
+                ${overallSignal === 'BUY' ? '✅ Đa số khung thời gian đang có xu hướng tăng' :
+                  overallSignal === 'SELL' ? '⚠️ Đa số khung thời gian đang có xu hướng giảm' :
+                  '⚖️ Thị trường đang trong trạng thái trung lập'}
             </p>
         `;
         
@@ -1568,7 +1567,6 @@
         if (analysisInterval) clearInterval(analysisInterval);
     }
 
-    // Khởi động
     window.onload = async function() {
         await updatePriceRealtime();
         await analyzeMarket();
@@ -1583,3 +1581,6 @@
 
 </body>
 </html>
+
+
+
