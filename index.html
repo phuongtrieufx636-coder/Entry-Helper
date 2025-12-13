@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XAU/USD Real-Time Analysis - Enhanced Entry</title>
+    <title>Multi-Asset Real-Time Analysis - Smart Entry</title>
     <style>
         * {
             margin: 0;
@@ -40,6 +40,37 @@
         font-size: 2.5em;
         margin-bottom: 10px;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .asset-selector {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .asset-btn {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+        padding: 12px 30px;
+        font-size: 16px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: bold;
+    }
+    
+    .asset-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+    }
+    
+    .asset-btn.active {
+        background: rgba(255,255,255,0.95);
+        color: #1e3c72;
+        border-color: white;
+        box-shadow: 0 4px 15px rgba(255,255,255,0.4);
     }
     
     .price-display {
@@ -448,31 +479,41 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 XAU/USD Real-Time Analysis - Smart Entry</h1>
-            <p style="font-size: 1.1em; margin-top: 10px;">
-                <span class="live-indicator"></span>
-                Multi-Entry Strategy System (Market/Limit/Stop)
-            </p>
-            <div class="price-display">
-                <div class="main-price" id="currentPrice">Loading...</div>
-                <div class="price-change" id="priceChange">--</div>
-                <div class="price-row">
-                    <span class="price-label">Bid:</span>
-                    <span class="price-value" id="bidPrice">--</span>
-                </div>
-                <div class="price-row">
-                    <span class="price-label">Ask:</span>
-                    <span class="price-value" id="askPrice">--</span>
-                </div>
-                <div class="spread-info">
-                    Spread: <span id="spreadValue">--</span> | 
-                    Tick: <span id="tickCount">0</span>
-                </div>
-                <div class="price-source" id="priceSource">Đang kết nối...</div>
-            </div>
-        </div>
+            <h1>📊 Multi-Asset Real-Time Analysis - Smart Entry</h1>
 
 ```
+        <div class="asset-selector">
+            <button class="asset-btn active" onclick="switchAsset('XAUUSD')" id="btnXAUUSD">
+                🥇 XAU/USD (Gold)
+            </button>
+            <button class="asset-btn" onclick="switchAsset('BTCUSD')" id="btnBTCUSD">
+                ₿ BTC/USD (Bitcoin)
+            </button>
+        </div>
+        
+        <p style="font-size: 1.1em; margin-top: 10px;">
+            <span class="live-indicator"></span>
+            Multi-Entry Strategy System (Market/Limit/Stop)
+        </p>
+        <div class="price-display">
+            <div class="main-price" id="currentPrice">Loading...</div>
+            <div class="price-change" id="priceChange">--</div>
+            <div class="price-row">
+                <span class="price-label">Bid:</span>
+                <span class="price-value" id="bidPrice">--</span>
+            </div>
+            <div class="price-row">
+                <span class="price-label">Ask:</span>
+                <span class="price-value" id="askPrice">--</span>
+            </div>
+            <div class="spread-info">
+                Spread: <span id="spreadValue">--</span> | 
+                Tick: <span id="tickCount">0</span>
+            </div>
+            <div class="price-source" id="priceSource">Đang kết nối...</div>
+        </div>
+    </div>
+
     <div class="controls">
         <div>
             <button class="btn" onclick="analyzeMarket()">🔄 Cập Nhật Phân Tích</button>
@@ -517,6 +558,7 @@
     ];
 
     // Biến global
+    let currentAsset = 'XAUUSD';
     let currentPrice = 0;
     let bidPrice = 0;
     let askPrice = 0;
@@ -528,48 +570,122 @@
     let isAutoRefreshEnabled = true;
     let priceHistory = [];
 
+    // Asset configurations
+    const assetConfig = {
+        'XAUUSD': {
+            name: 'Gold',
+            symbol: 'XAU/USD',
+            basePrice: 2650,
+            spread: 0.3,
+            priceDecimals: 2,
+            apiSymbol: 'XAU'
+        },
+        'BTCUSD': {
+            name: 'Bitcoin',
+            symbol: 'BTC/USD',
+            basePrice: 97000,
+            spread: 5,
+            priceDecimals: 2,
+            apiSymbol: 'BTC'
+        }
+    };
+
+    // ==================== ASSET SWITCHING ====================
+    
+    async function switchAsset(asset) {
+        if (currentAsset === asset) return;
+        
+        currentAsset = asset;
+        
+        // Update button states
+        document.getElementById('btnXAUUSD').classList.toggle('active', asset === 'XAUUSD');
+        document.getElementById('btnBTCUSD').classList.toggle('active', asset === 'BTCUSD');
+        
+        // Reset data
+        priceHistory = [];
+        tickCount = 0;
+        
+        // Update price first and wait for it
+        await updatePriceRealtime();
+        
+        // Small delay to ensure price is set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Then analyze with new price
+        await analyzeMarket();
+    }
+
     // ==================== HỆ THỐNG LẤY GIÁ REAL-TIME ====================
     
-    function generateRealisticPrice(basePrice) {
+    function generateRealisticPrice(basePrice, asset) {
         const now = Date.now();
         const secondOfDay = (now / 1000) % 86400;
-        const hourlyTrend = Math.sin(secondOfDay / 3600 * Math.PI / 12) * 15;
-        const microTrend = Math.sin(now / 1000) * 5;
-        const randomWalk = (Math.random() - 0.5) * 2;
+        
+        // Different volatility for different assets
+        let volatilityMultiplier = 1;
+        if (asset === 'BTCUSD') {
+            volatilityMultiplier = 15; // Bitcoin is more volatile
+        }
+        
+        const hourlyTrend = Math.sin(secondOfDay / 3600 * Math.PI / 12) * 15 * volatilityMultiplier;
+        const microTrend = Math.sin(now / 1000) * 5 * volatilityMultiplier;
+        const randomWalk = (Math.random() - 0.5) * 2 * volatilityMultiplier;
+        
         let momentum = 0;
         if (priceHistory.length > 5) {
             const recent = priceHistory.slice(-5);
             momentum = (recent[recent.length - 1] - recent[0]) * 0.1;
         }
+        
         return basePrice + hourlyTrend + microTrend + randomWalk + momentum;
     }
 
     async function fetchCurrentPrice() {
+        const config = assetConfig[currentAsset];
+        
         try {
-            const response = await fetch('https://api.gold-api.com/price/XAU', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.price) {
-                    priceSource = 'Gold-API (Real-time)';
-                    return {
-                        price: parseFloat(data.price),
-                        bid: parseFloat(data.price) - 0.5,
-                        ask: parseFloat(data.price) + 0.5
-                    };
+            if (currentAsset === 'XAUUSD') {
+                const response = await fetch('https://api.gold-api.com/price/XAU', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.price) {
+                        priceSource = 'Gold-API (Real-time)';
+                        return {
+                            price: parseFloat(data.price),
+                            bid: parseFloat(data.price) - 0.5,
+                            ask: parseFloat(data.price) + 0.5
+                        };
+                    }
+                }
+            } else if (currentAsset === 'BTCUSD') {
+                // Try CoinGecko API for Bitcoin
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.bitcoin && data.bitcoin.usd) {
+                        priceSource = 'CoinGecko (Real-time)';
+                        const btcPrice = parseFloat(data.bitcoin.usd);
+                        return {
+                            price: btcPrice,
+                            bid: btcPrice - 5,
+                            ask: btcPrice + 5
+                        };
+                    }
                 }
             }
         } catch (error) {
             console.log('API unavailable, using simulation');
         }
 
-        const basePrice = 2650;
-        const price = generateRealisticPrice(basePrice);
-        const spread = 0.3 + Math.random() * 0.2;
-        priceSource = 'Simulation (Real-time Tick)';
+        // Fallback to simulation
+        const price = generateRealisticPrice(config.basePrice, currentAsset);
+        const spread = config.spread + Math.random() * (config.spread * 0.2);
+        priceSource = `Simulation (Real-time Tick) - ${config.name}`;
         
         return {
             price: price,
@@ -585,10 +701,12 @@
             currentPrice = priceData.price;
             bidPrice = priceData.bid;
             askPrice = priceData.ask;
+            
             priceHistory.push(currentPrice);
             if (priceHistory.length > 100) {
                 priceHistory.shift();
             }
+            
             tickCount++;
             updatePriceDisplay();
         } catch (error) {
@@ -597,6 +715,9 @@
     }
 
     function updatePriceDisplay() {
+        const config = assetConfig[currentAsset];
+        const decimals = config.priceDecimals;
+        
         const priceElement = document.getElementById('currentPrice');
         const bidElement = document.getElementById('bidPrice');
         const askElement = document.getElementById('askPrice');
@@ -620,11 +741,11 @@
             askElement.classList.remove('flash-up', 'flash-down');
         }, 500);
         
-        priceElement.textContent = `$${currentPrice.toFixed(2)}`;
-        bidElement.textContent = `$${bidPrice.toFixed(2)}`;
-        askElement.textContent = `$${askPrice.toFixed(2)}`;
+        priceElement.textContent = `$${currentPrice.toFixed(decimals)}`;
+        bidElement.textContent = `$${bidPrice.toFixed(decimals)}`;
+        askElement.textContent = `$${askPrice.toFixed(decimals)}`;
         
-        const spread = (askPrice - bidPrice).toFixed(2);
+        const spread = (askPrice - bidPrice).toFixed(decimals);
         document.getElementById('spreadValue').textContent = `$${spread}`;
         document.getElementById('tickCount').textContent = tickCount;
         
@@ -634,10 +755,10 @@
             const changePercent = ((change / priceMinuteAgo) * 100).toFixed(2);
             
             if (change > 0) {
-                changeElement.innerHTML = `▲ +$${change.toFixed(2)} (+${changePercent}%)`;
+                changeElement.innerHTML = `▲ +$${change.toFixed(decimals)} (+${changePercent}%)`;
                 changeElement.style.color = '#2ecc71';
             } else if (change < 0) {
-                changeElement.innerHTML = `▼ $${change.toFixed(2)} (${changePercent}%)`;
+                changeElement.innerHTML = `▼ $${change.toFixed(decimals)} (${changePercent}%)`;
                 changeElement.style.color = '#e74c3c';
             } else {
                 changeElement.innerHTML = `─ $0.00 (0.00%)`;
@@ -801,221 +922,6 @@
         };
     }
 
-    // ==================== CONFLUENCE SCORING SYSTEM ====================
-
-    function calculateConfluenceScore(indicators, signal) {
-        let score = 0;
-        let maxScore = 0;
-        const details = [];
-        
-        // RSI Score (0-15 points)
-        maxScore += 15;
-        if (signal === 'BUY') {
-            if (indicators.rsi < 30) {
-                score += 15;
-                details.push('✓ RSI Oversold');
-            } else if (indicators.rsi < 40) {
-                score += 10;
-                details.push('✓ RSI Bullish');
-            } else if (indicators.rsi < 50) {
-                score += 5;
-                details.push('○ RSI Neutral+');
-            }
-        } else if (signal === 'SELL') {
-            if (indicators.rsi > 70) {
-                score += 15;
-                details.push('✓ RSI Overbought');
-            } else if (indicators.rsi > 60) {
-                score += 10;
-                details.push('✓ RSI Bearish');
-            } else if (indicators.rsi > 50) {
-                score += 5;
-                details.push('○ RSI Neutral-');
-            }
-        }
-        
-        // MACD Score (0-15 points)
-        maxScore += 15;
-        if (indicators.macdHistogram) {
-            const currentHist = indicators.macdHistogram[indicators.macdHistogram.length - 1];
-            const prevHist = indicators.macdHistogram[indicators.macdHistogram.length - 2];
-            
-            if (signal === 'BUY' && currentHist > 0 && currentHist > prevHist) {
-                score += 15;
-                details.push('✓ MACD Bullish Cross');
-            } else if (signal === 'SELL' && currentHist < 0 && currentHist < prevHist) {
-                score += 15;
-                details.push('✓ MACD Bearish Cross');
-            } else if ((signal === 'BUY' && currentHist > 0) || (signal === 'SELL' && currentHist < 0)) {
-                score += 8;
-                details.push('○ MACD Aligned');
-            }
-        }
-        
-        // Stochastic Score (0-10 points)
-        maxScore += 10;
-        if (indicators.stochastic) {
-            const k = indicators.stochastic.k[indicators.stochastic.k.length - 1];
-            if (signal === 'BUY' && k < 20) {
-                score += 10;
-                details.push('✓ Stoch Oversold');
-            } else if (signal === 'SELL' && k > 80) {
-                score += 10;
-                details.push('✓ Stoch Overbought');
-            } else if ((signal === 'BUY' && k < 50) || (signal === 'SELL' && k > 50)) {
-                score += 5;
-                details.push('○ Stoch Aligned');
-            }
-        }
-        
-        // Bollinger Bands Score (0-10 points)
-        maxScore += 10;
-        if (indicators.bb) {
-            const price = indicators.currentPrice;
-            const upper = indicators.bb.upper[indicators.bb.upper.length - 1];
-            const lower = indicators.bb.lower[indicators.bb.lower.length - 1];
-            const middle = indicators.bb.middle[indicators.bb.middle.length - 1];
-            
-            if (signal === 'BUY' && price < lower) {
-                score += 10;
-                details.push('✓ Price at BB Lower');
-            } else if (signal === 'SELL' && price > upper) {
-                score += 10;
-                details.push('✓ Price at BB Upper');
-            } else if ((signal === 'BUY' && price < middle) || (signal === 'SELL' && price > middle)) {
-                score += 5;
-                details.push('○ BB Position OK');
-            }
-        }
-        
-        // ADX Trend Strength (0-15 points)
-        maxScore += 15;
-        if (indicators.adx) {
-            if (indicators.adx.adx > 25) {
-                if (signal === 'BUY' && indicators.adx.plusDI > indicators.adx.minusDI) {
-                    score += 15;
-                    details.push('✓ Strong Uptrend (ADX)');
-                } else if (signal === 'SELL' && indicators.adx.minusDI > indicators.adx.plusDI) {
-                    score += 15;
-                    details.push('✓ Strong Downtrend (ADX)');
-                } else {
-                    score += 8;
-                    details.push('○ Trending Market');
-                }
-            } else {
-                details.push('⚠ Weak Trend');
-            }
-        }
-        
-        // CCI Score (0-10 points)
-        maxScore += 10;
-        if (indicators.cci) {
-            const cci = indicators.cci[indicators.cci.length - 1];
-            if (signal === 'BUY' && cci < -100) {
-                score += 10;
-                details.push('✓ CCI Oversold');
-            } else if (signal === 'SELL' && cci > 100) {
-                score += 10;
-                details.push('✓ CCI Overbought');
-            } else if ((signal === 'BUY' && cci < 0) || (signal === 'SELL' && cci > 0)) {
-                score += 5;
-                details.push('○ CCI Aligned');
-            }
-        }
-        
-        // EMA/LWMA Cross Score (0-20 points)
-        maxScore += 20;
-        if (indicators.isCross) {
-            score += 20;
-            details.push('✓✓ EMA/LWMA Cross!');
-        } else if ((signal === 'BUY' && indicators.ema > indicators.lwma) || 
-                  (signal === 'SELL' && indicators.ema < indicators.lwma)) {
-            score += 10;
-            details.push('✓ EMA/LWMA Aligned');
-        }
-        
-        // Volume Profile Score (0-10 points)
-        maxScore += 10;
-        if (indicators.volumeProfile) {
-            const price = indicators.currentPrice;
-            const poc = indicators.volumeProfile.poc;
-            const distanceFromPOC = Math.abs(price - poc) / price;
-            
-            if (distanceFromPOC < 0.002) {
-                score += 10;
-                details.push('✓ At Volume POC');
-            } else if (distanceFromPOC < 0.005) {
-                score += 5;
-                details.push('○ Near Volume POC');
-            }
-        }
-        
-        const percentage = (score / maxScore) * 100;
-        
-        return {
-            score: score,
-            maxScore: maxScore,
-            percentage: percentage.toFixed(1),
-            details: details,
-            quality: percentage >= 75 ? 'EXCELLENT' : 
-                    percentage >= 60 ? 'GOOD' : 
-                    percentage >= 45 ? 'MODERATE' : 'WEAK'
-        };
-    }
-
-    // ==================== HELPER FUNCTIONS ====================
-
-    function getIntervalSeconds(interval) {
-        if (interval === 'D') return 86400;
-        return parseInt(interval) * 60;
-    }
-
-    async function generateRealisticData(currentPrice, interval, limit) {
-        const prices = [];
-        const high = [];
-        const low = [];
-        const timestamp = [];
-        
-        const intervalSeconds = getIntervalSeconds(interval);
-        const volatility = Math.sqrt(intervalSeconds / 60) * 2;
-        
-        let price = currentPrice * (0.98 + Math.random() * 0.04);
-        
-        for (let i = 0; i < limit; i++) {
-            const progress = i / limit;
-            const trendTowardsCurrent = (currentPrice - price) * 0.02;
-            const cyclicalWave = Math.sin(i / 15) * volatility * 0.5;
-            const randomWalk = (Math.random() - 0.5) * volatility;
-            const momentum = (prices.length > 1) ? (prices[prices.length - 1] - prices[prices.length - 2]) * 0.3 : 0;
-            
-            price = price + trendTowardsCurrent + cyclicalWave + randomWalk + momentum;
-            
-            if (i >= limit - 3) {
-                const convergence = 1 - (limit - i) / 3;
-                price = price * (1 - convergence) + currentPrice * convergence;
-            }
-            
-            if (i === limit - 1) {
-                price = currentPrice;
-            }
-            
-            const wickSize = volatility * (0.3 + Math.random() * 0.3);
-            const candleHigh = price + wickSize;
-            const candleLow = price - wickSize;
-            
-            prices.push(price);
-            high.push(candleHigh);
-            low.push(candleLow);
-            timestamp.push(Date.now() / 1000 - (limit - i) * intervalSeconds);
-        }
-        
-        return { prices, high, low, timestamp };
-    }
-
-    async function fetchTradingViewData(interval, limit = 200) {
-        return await generateRealisticData(currentPrice, interval, limit);
-    }
-
     function calculateRSI(prices, period = 14) {
         if (prices.length < period + 1) return null;
         
@@ -1093,6 +999,187 @@
         return atr;
     }
 
+    // ==================== HELPER FUNCTIONS ====================
+
+    function getIntervalSeconds(interval) {
+        if (interval === 'D') return 86400;
+        return parseInt(interval) * 60;
+    }
+
+    async function generateRealisticData(basePrice, interval, limit) {
+        const prices = [];
+        const high = [];
+        const low = [];
+        const timestamp = [];
+        
+        const intervalSeconds = getIntervalSeconds(interval);
+        
+        // Adjust volatility based on asset
+        let baseVolatility = Math.sqrt(intervalSeconds / 60) * 2;
+        if (currentAsset === 'BTCUSD') {
+            baseVolatility *= 20; // Bitcoin is much more volatile
+        }
+        
+        // IMPORTANT: Use basePrice parameter but verify it matches current asset
+        const expectedPrice = assetConfig[currentAsset].basePrice;
+        const actualBasePrice = (Math.abs(basePrice - expectedPrice) < expectedPrice * 0.5) ? basePrice : currentPrice;
+        
+        // Log to verify we're using correct base price
+        console.log(`📊 Generating ${currentAsset} data: base=$${actualBasePrice.toFixed(2)}, volatility=${baseVolatility.toFixed(2)}`);
+        
+        let price = actualBasePrice * (0.98 + Math.random() * 0.04);
+        
+        for (let i = 0; i < limit; i++) {
+            const progress = i / limit;
+            const trendTowardsCurrent = (actualBasePrice - price) * 0.02;
+            const cyclicalWave = Math.sin(i / 15) * baseVolatility * 0.5;
+            const randomWalk = (Math.random() - 0.5) * baseVolatility;
+            const momentum = (prices.length > 1) ? (prices[prices.length - 1] - prices[prices.length - 2]) * 0.3 : 0;
+            
+            price = price + trendTowardsCurrent + cyclicalWave + randomWalk + momentum;
+            
+            if (i >= limit - 3) {
+                const convergence = 1 - (limit - i) / 3;
+                price = price * (1 - convergence) + actualBasePrice * convergence;
+            }
+            
+            if (i === limit - 1) {
+                price = actualBasePrice;
+            }
+            
+            const wickSize = baseVolatility * (0.3 + Math.random() * 0.3);
+            const candleHigh = price + wickSize;
+            const candleLow = price - wickSize;
+            
+            prices.push(price);
+            high.push(candleHigh);
+            low.push(candleLow);
+            timestamp.push(Date.now() / 1000 - (limit - i) * intervalSeconds);
+        }
+        
+        return { prices, high, low, timestamp };
+    }
+
+    async function fetchTradingViewData(interval, limit = 200) {
+        // Always use the current price of the selected asset
+        return await generateRealisticData(currentPrice, interval, limit);
+    }
+
+    // ==================== CONFLUENCE SCORING ====================
+
+    function calculateConfluenceScore(indicators, signal) {
+        let score = 0;
+        let maxScore = 0;
+        const details = [];
+        
+        maxScore += 15;
+        if (signal === 'BUY') {
+            if (indicators.rsi < 30) { score += 15; details.push('✓ RSI Oversold'); }
+            else if (indicators.rsi < 40) { score += 10; details.push('✓ RSI Bullish'); }
+            else if (indicators.rsi < 50) { score += 5; details.push('○ RSI Neutral+'); }
+        } else if (signal === 'SELL') {
+            if (indicators.rsi > 70) { score += 15; details.push('✓ RSI Overbought'); }
+            else if (indicators.rsi > 60) { score += 10; details.push('✓ RSI Bearish'); }
+            else if (indicators.rsi > 50) { score += 5; details.push('○ RSI Neutral-'); }
+        }
+        
+        maxScore += 15;
+        if (indicators.macdHistogram) {
+            const currentHist = indicators.macdHistogram[indicators.macdHistogram.length - 1];
+            const prevHist = indicators.macdHistogram[indicators.macdHistogram.length - 2];
+            
+            if (signal === 'BUY' && currentHist > 0 && currentHist > prevHist) {
+                score += 15; details.push('✓ MACD Bullish Cross');
+            } else if (signal === 'SELL' && currentHist < 0 && currentHist < prevHist) {
+                score += 15; details.push('✓ MACD Bearish Cross');
+            } else if ((signal === 'BUY' && currentHist > 0) || (signal === 'SELL' && currentHist < 0)) {
+                score += 8; details.push('○ MACD Aligned');
+            }
+        }
+        
+        maxScore += 10;
+        if (indicators.stochastic) {
+            const k = indicators.stochastic.k[indicators.stochastic.k.length - 1];
+            if (signal === 'BUY' && k < 20) { score += 10; details.push('✓ Stoch Oversold'); }
+            else if (signal === 'SELL' && k > 80) { score += 10; details.push('✓ Stoch Overbought'); }
+            else if ((signal === 'BUY' && k < 50) || (signal === 'SELL' && k > 50)) {
+                score += 5; details.push('○ Stoch Aligned');
+            }
+        }
+        
+        maxScore += 10;
+        if (indicators.bb) {
+            const price = indicators.currentPrice;
+            const upper = indicators.bb.upper[indicators.bb.upper.length - 1];
+            const lower = indicators.bb.lower[indicators.bb.lower.length - 1];
+            const middle = indicators.bb.middle[indicators.bb.middle.length - 1];
+            
+            if (signal === 'BUY' && price < lower) { score += 10; details.push('✓ Price at BB Lower'); }
+            else if (signal === 'SELL' && price > upper) { score += 10; details.push('✓ Price at BB Upper'); }
+            else if ((signal === 'BUY' && price < middle) || (signal === 'SELL' && price > middle)) {
+                score += 5; details.push('○ BB Position OK');
+            }
+        }
+        
+        maxScore += 15;
+        if (indicators.adx) {
+            if (indicators.adx.adx > 25) {
+                if (signal === 'BUY' && indicators.adx.plusDI > indicators.adx.minusDI) {
+                    score += 15; details.push('✓ Strong Uptrend (ADX)');
+                } else if (signal === 'SELL' && indicators.adx.minusDI > indicators.adx.plusDI) {
+                    score += 15; details.push('✓ Strong Downtrend (ADX)');
+                } else {
+                    score += 8; details.push('○ Trending Market');
+                }
+            } else {
+                details.push('⚠ Weak Trend');
+            }
+        }
+        
+        maxScore += 10;
+        if (indicators.cci) {
+            const cci = indicators.cci[indicators.cci.length - 1];
+            if (signal === 'BUY' && cci < -100) { score += 10; details.push('✓ CCI Oversold'); }
+            else if (signal === 'SELL' && cci > 100) { score += 10; details.push('✓ CCI Overbought'); }
+            else if ((signal === 'BUY' && cci < 0) || (signal === 'SELL' && cci > 0)) {
+                score += 5; details.push('○ CCI Aligned');
+            }
+        }
+        
+        maxScore += 20;
+        if (indicators.isCross) {
+            score += 20; details.push('✓✓ EMA/LWMA Cross!');
+        } else if ((signal === 'BUY' && indicators.ema > indicators.lwma) || 
+                  (signal === 'SELL' && indicators.ema < indicators.lwma)) {
+            score += 10; details.push('✓ EMA/LWMA Aligned');
+        }
+        
+        maxScore += 10;
+        if (indicators.volumeProfile) {
+            const price = indicators.currentPrice;
+            const poc = indicators.volumeProfile.poc;
+            const distanceFromPOC = Math.abs(price - poc) / price;
+            
+            if (distanceFromPOC < 0.002) {
+                score += 10; details.push('✓ At Volume POC');
+            } else if (distanceFromPOC < 0.005) {
+                score += 5; details.push('○ Near Volume POC');
+            }
+        }
+        
+        const percentage = (score / maxScore) * 100;
+        
+        return {
+            score: score,
+            maxScore: maxScore,
+            percentage: percentage.toFixed(1),
+            details: details,
+            quality: percentage >= 75 ? 'EXCELLENT' : 
+                    percentage >= 60 ? 'GOOD' : 
+                    percentage >= 45 ? 'MODERATE' : 'WEAK'
+        };
+    }
+
     // ==================== SMART ENTRY CALCULATION ====================
     
     function calculateSwingPoints(prices, lookback = 50) {
@@ -1161,10 +1248,6 @@
         return { support, resistance, allLevels: clusteredLevels };
     }
 
-    /**
-     * Calculate smart entry points based on market structure
-     * Returns: Market Entry (immediate), Limit Entry (wait for pullback), Stop Entry (breakout confirmation)
-     */
     function calculateSmartEntry(signal, currentMarketPrice, prices, rsiValues, atr, high, low, confluence) {
         if (signal === 'NEUTRAL') {
             return {
@@ -1187,302 +1270,110 @@
         let marketEntry, limitEntry, stopEntry, recommendedType, explanation;
 
         if (signal === 'BUY') {
-            // MARKET ENTRY: Current price (aggressive - vào ngay)
             marketEntry = currentMarketPrice;
-            
-            // LIMIT ENTRY: Wait for pullback to better price
             const limitCandidates = [];
             
-            // Option 1: EMA20 pullback
-            if (currentEMA20 < currentMarketPrice) {
-                limitCandidates.push({
-                    value: currentEMA20,
-                    weight: 2.0,
-                    name: 'EMA20 Pullback'
-                });
-            }
+            if (currentEMA20 < currentMarketPrice) limitCandidates.push({value: currentEMA20, weight: 2.0, name: 'EMA20 Pullback'});
+            if (srLevels.support && srLevels.support < currentMarketPrice) limitCandidates.push({value: srLevels.support + (atr * 0.1), weight: 2.5, name: 'Support Zone'});
             
-            // Option 2: Support level
-            if (srLevels.support && srLevels.support < currentMarketPrice) {
-                limitCandidates.push({
-                    value: srLevels.support + (atr * 0.1),
-                    weight: 2.5,
-                    name: 'Support Zone'
-                });
-            }
-            
-            // Option 3: Fibonacci retracement
             const fibs = calculateFibonacciLevels(swingHigh, swingLow, 'BUY');
-            if (fibs.fib_382 < currentMarketPrice) {
-                limitCandidates.push({
-                    value: fibs.fib_382,
-                    weight: 1.8,
-                    name: 'Fib 38.2%'
-                });
-            }
-            if (fibs.fib_500 < currentMarketPrice) {
-                limitCandidates.push({
-                    value: fibs.fib_500,
-                    weight: 1.5,
-                    name: 'Fib 50%'
-                });
-            }
+            if (fibs.fib_382 < currentMarketPrice) limitCandidates.push({value: fibs.fib_382, weight: 1.8, name: 'Fib 38.2%'});
+            if (fibs.fib_500 < currentMarketPrice) limitCandidates.push({value: fibs.fib_500, weight: 1.5, name: 'Fib 50%'});
+            if (swingLow < currentMarketPrice) limitCandidates.push({value: swingLow + (atr * 0.2), weight: 1.5, name: 'Swing Low'});
+            limitCandidates.push({value: currentMarketPrice - (atr * 0.5), weight: 1.0, name: 'ATR 0.5x Pullback'});
             
-            // Option 4: Recent swing low
-            if (swingLow < currentMarketPrice) {
-                limitCandidates.push({
-                    value: swingLow + (atr * 0.2),
-                    weight: 1.5,
-                    name: 'Swing Low'
-                });
-            }
-            
-            // Option 5: ATR-based pullback
-            limitCandidates.push({
-                value: currentMarketPrice - (atr * 0.5),
-                weight: 1.0,
-                name: 'ATR 0.5x Pullback'
-            });
-            
-            // Calculate weighted average for LIMIT
             if (limitCandidates.length > 0) {
-                let sumWeightedValues = 0;
-                let sumWeights = 0;
-                limitCandidates.forEach(c => {
-                    sumWeightedValues += c.value * c.weight;
-                    sumWeights += c.weight;
-                });
+                let sumWeightedValues = 0, sumWeights = 0;
+                limitCandidates.forEach(c => { sumWeightedValues += c.value * c.weight; sumWeights += c.weight; });
                 limitEntry = sumWeightedValues / sumWeights;
             } else {
                 limitEntry = currentMarketPrice - (atr * 0.5);
             }
             
-            // STOP ENTRY: Wait for breakout confirmation above resistance
             const stopCandidates = [];
+            if (srLevels.resistance && srLevels.resistance > currentMarketPrice) stopCandidates.push({value: srLevels.resistance + (atr * 0.15), weight: 2.5, name: 'Resistance Break'});
+            if (swingHigh > currentMarketPrice) stopCandidates.push({value: swingHigh + (atr * 0.1), weight: 2.0, name: 'Swing High Break'});
+            if (currentEMA50 > currentMarketPrice) stopCandidates.push({value: currentEMA50 + (atr * 0.1), weight: 1.5, name: 'EMA50 Break'});
+            stopCandidates.push({value: currentMarketPrice + (atr * 0.3), weight: 1.0, name: 'ATR Breakout'});
             
-            // Option 1: Resistance breakout
-            if (srLevels.resistance && srLevels.resistance > currentMarketPrice) {
-                stopCandidates.push({
-                    value: srLevels.resistance + (atr * 0.15),
-                    weight: 2.5,
-                    name: 'Resistance Break'
-                });
-            }
-            
-            // Option 2: Swing high breakout
-            if (swingHigh > currentMarketPrice) {
-                stopCandidates.push({
-                    value: swingHigh + (atr * 0.1),
-                    weight: 2.0,
-                    name: 'Swing High Break'
-                });
-            }
-            
-            // Option 3: EMA50 breakout (if below)
-            if (currentEMA50 > currentMarketPrice) {
-                stopCandidates.push({
-                    value: currentEMA50 + (atr * 0.1),
-                    weight: 1.5,
-                    name: 'EMA50 Break'
-                });
-            }
-            
-            // Option 4: ATR-based breakout
-            stopCandidates.push({
-                value: currentMarketPrice + (atr * 0.3),
-                weight: 1.0,
-                name: 'ATR Breakout'
-            });
-            
-            // Calculate weighted average for STOP
             if (stopCandidates.length > 0) {
-                let sumWeightedValues = 0;
-                let sumWeights = 0;
-                stopCandidates.forEach(c => {
-                    sumWeightedValues += c.value * c.weight;
-                    sumWeights += c.weight;
-                });
+                let sumWeightedValues = 0, sumWeights = 0;
+                stopCandidates.forEach(c => { sumWeightedValues += c.value * c.weight; sumWeights += c.weight; });
                 stopEntry = sumWeightedValues / sumWeights;
             } else {
                 stopEntry = currentMarketPrice + (atr * 0.3);
             }
             
-            // Determine recommended entry type
             const confluenceScore = parseFloat(confluence.percentage);
-            
             if (confluenceScore >= 70 && currentRSI < 35) {
-                recommendedType = 'MARKET';
-                explanation = 'Tín hiệu mạnh + RSI quá bán → Vào ngay';
+                recommendedType = 'MARKET'; explanation = 'Tín hiệu mạnh + RSI quá bán → Vào ngay';
             } else if (currentMarketPrice > currentEMA20 * 1.003) {
-                recommendedType = 'LIMIT';
-                explanation = 'Giá đã chạy xa EMA → Chờ pullback';
+                recommendedType = 'LIMIT'; explanation = 'Giá đã chạy xa EMA → Chờ pullback';
             } else if (srLevels.resistance && Math.abs(currentMarketPrice - srLevels.resistance) < atr * 0.3) {
-                recommendedType = 'STOP';
-                explanation = 'Gần kháng cự → Chờ phá vùng xác nhận';
+                recommendedType = 'STOP'; explanation = 'Gần kháng cự → Chờ phá vùng xác nhận';
             } else if (confluenceScore >= 60) {
-                recommendedType = 'MARKET';
-                explanation = 'Confluence tốt → Có thể vào ngay';
+                recommendedType = 'MARKET'; explanation = 'Confluence tốt → Có thể vào ngay';
             } else {
-                recommendedType = 'LIMIT';
-                explanation = 'Tín hiệu trung bình → Chờ giá tốt hơn';
+                recommendedType = 'LIMIT'; explanation = 'Tín hiệu trung bình → Chờ giá tốt hơn';
             }
 
-        } else { // SELL
-            // MARKET ENTRY: Current price (aggressive - vào ngay)
+        } else {
             marketEntry = currentMarketPrice;
-            
-            // LIMIT ENTRY: Wait for rally to better price
             const limitCandidates = [];
             
-            // Option 1: EMA20 rally
-            if (currentEMA20 > currentMarketPrice) {
-                limitCandidates.push({
-                    value: currentEMA20,
-                    weight: 2.0,
-                    name: 'EMA20 Rally'
-                });
-            }
+            if (currentEMA20 > currentMarketPrice) limitCandidates.push({value: currentEMA20, weight: 2.0, name: 'EMA20 Rally'});
+            if (srLevels.resistance && srLevels.resistance > currentMarketPrice) limitCandidates.push({value: srLevels.resistance - (atr * 0.1), weight: 2.5, name: 'Resistance Zone'});
             
-            // Option 2: Resistance level
-            if (srLevels.resistance && srLevels.resistance > currentMarketPrice) {
-                limitCandidates.push({
-                    value: srLevels.resistance - (atr * 0.1),
-                    weight: 2.5,
-                    name: 'Resistance Zone'
-                });
-            }
-            
-            // Option 3: Fibonacci retracement
             const fibs = calculateFibonacciLevels(swingHigh, swingLow, 'SELL');
-            if (fibs.fib_382 > currentMarketPrice) {
-                limitCandidates.push({
-                    value: fibs.fib_382,
-                    weight: 1.8,
-                    name: 'Fib 38.2%'
-                });
-            }
-            if (fibs.fib_500 > currentMarketPrice) {
-                limitCandidates.push({
-                    value: fibs.fib_500,
-                    weight: 1.5,
-                    name: 'Fib 50%'
-                });
-            }
+            if (fibs.fib_382 > currentMarketPrice) limitCandidates.push({value: fibs.fib_382, weight: 1.8, name: 'Fib 38.2%'});
+            if (fibs.fib_500 > currentMarketPrice) limitCandidates.push({value: fibs.fib_500, weight: 1.5, name: 'Fib 50%'});
+            if (swingHigh > currentMarketPrice) limitCandidates.push({value: swingHigh - (atr * 0.2), weight: 1.5, name: 'Swing High'});
+            limitCandidates.push({value: currentMarketPrice + (atr * 0.5), weight: 1.0, name: 'ATR 0.5x Rally'});
             
-            // Option 4: Recent swing high
-            if (swingHigh > currentMarketPrice) {
-                limitCandidates.push({
-                    value: swingHigh - (atr * 0.2),
-                    weight: 1.5,
-                    name: 'Swing High'
-                });
-            }
-            
-            // Option 5: ATR-based rally
-            limitCandidates.push({
-                value: currentMarketPrice + (atr * 0.5),
-                weight: 1.0,
-                name: 'ATR 0.5x Rally'
-            });
-            
-            // Calculate weighted average for LIMIT
             if (limitCandidates.length > 0) {
-                let sumWeightedValues = 0;
-                let sumWeights = 0;
-                limitCandidates.forEach(c => {
-                    sumWeightedValues += c.value * c.weight;
-                    sumWeights += c.weight;
-                });
+                let sumWeightedValues = 0, sumWeights = 0;
+                limitCandidates.forEach(c => { sumWeightedValues += c.value * c.weight; sumWeights += c.weight; });
                 limitEntry = sumWeightedValues / sumWeights;
             } else {
                 limitEntry = currentMarketPrice + (atr * 0.5);
             }
             
-            // STOP ENTRY: Wait for breakdown confirmation below support
             const stopCandidates = [];
+            if (srLevels.support && srLevels.support < currentMarketPrice) stopCandidates.push({value: srLevels.support - (atr * 0.15), weight: 2.5, name: 'Support Break'});
+            if (swingLow < currentMarketPrice) stopCandidates.push({value: swingLow - (atr * 0.1), weight: 2.0, name: 'Swing Low Break'});
+            if (currentEMA50 < currentMarketPrice) stopCandidates.push({value: currentEMA50 - (atr * 0.1), weight: 1.5, name: 'EMA50 Break'});
+            stopCandidates.push({value: currentMarketPrice - (atr * 0.3), weight: 1.0, name: 'ATR Breakdown'});
             
-            // Option 1: Support breakdown
-            if (srLevels.support && srLevels.support < currentMarketPrice) {
-                stopCandidates.push({
-                    value: srLevels.support - (atr * 0.15),
-                    weight: 2.5,
-                    name: 'Support Break'
-                });
-            }
-            
-            // Option 2: Swing low breakdown
-            if (swingLow < currentMarketPrice) {
-                stopCandidates.push({
-                    value: swingLow - (atr * 0.1),
-                    weight: 2.0,
-                    name: 'Swing Low Break'
-                });
-            }
-            
-            // Option 3: EMA50 breakdown (if above)
-            if (currentEMA50 < currentMarketPrice) {
-                stopCandidates.push({
-                    value: currentEMA50 - (atr * 0.1),
-                    weight: 1.5,
-                    name: 'EMA50 Break'
-                });
-            }
-            
-            // Option 4: ATR-based breakdown
-            stopCandidates.push({
-                value: currentMarketPrice - (atr * 0.3),
-                weight: 1.0,
-                name: 'ATR Breakdown'
-            });
-            
-            // Calculate weighted average for STOP
             if (stopCandidates.length > 0) {
-                let sumWeightedValues = 0;
-                let sumWeights = 0;
-                stopCandidates.forEach(c => {
-                    sumWeightedValues += c.value * c.weight;
-                    sumWeights += c.weight;
-                });
+                let sumWeightedValues = 0, sumWeights = 0;
+                stopCandidates.forEach(c => { sumWeightedValues += c.value * c.weight; sumWeights += c.weight; });
                 stopEntry = sumWeightedValues / sumWeights;
             } else {
                 stopEntry = currentMarketPrice - (atr * 0.3);
             }
             
-            // Determine recommended entry type
             const confluenceScore = parseFloat(confluence.percentage);
-            
             if (confluenceScore >= 70 && currentRSI > 65) {
-                recommendedType = 'MARKET';
-                explanation = 'Tín hiệu mạnh + RSI quá mua → Vào ngay';
+                recommendedType = 'MARKET'; explanation = 'Tín hiệu mạnh + RSI quá mua → Vào ngay';
             } else if (currentMarketPrice < currentEMA20 * 0.997) {
-                recommendedType = 'LIMIT';
-                explanation = 'Giá đã chạy xa EMA → Chờ rally';
+                recommendedType = 'LIMIT'; explanation = 'Giá đã chạy xa EMA → Chờ rally';
             } else if (srLevels.support && Math.abs(currentMarketPrice - srLevels.support) < atr * 0.3) {
-                recommendedType = 'STOP';
-                explanation = 'Gần hỗ trợ → Chờ phá vùng xác nhận';
+                recommendedType = 'STOP'; explanation = 'Gần hỗ trợ → Chờ phá vùng xác nhận';
             } else if (confluenceScore >= 60) {
-                recommendedType = 'MARKET';
-                explanation = 'Confluence tốt → Có thể vào ngay';
+                recommendedType = 'MARKET'; explanation = 'Confluence tốt → Có thể vào ngay';
             } else {
-                recommendedType = 'LIMIT';
-                explanation = 'Tín hiệu trung bình → Chờ giá tốt hơn';
+                recommendedType = 'LIMIT'; explanation = 'Tín hiệu trung bình → Chờ giá tốt hơn';
             }
         }
 
-        return {
-            marketEntry: marketEntry,
-            limitEntry: limitEntry,
-            stopEntry: stopEntry,
-            recommendedType: recommendedType,
-            explanation: explanation
-        };
+        return { marketEntry, limitEntry, stopEntry, recommendedType, explanation };
     }
 
-    // ==================== TP/SL CALCULATION (based on entry type) ====================
+    // ==================== TP/SL CALCULATION ====================
     
     function calculateAdvancedTPSL(signal, entryPrice, entryType, prices, rsiValues, atr, high, low) {
         if (signal === 'NEUTRAL') {
-            return { tp: entryPrice, sl: entryPrice, method: 'Neutral - No Trade' };
+            return { tp: entryPrice, sl: entryPrice, rrRatio: '0.00', tpMethods: 'N/A', slMethods: 'N/A', tpCount: 0, slCount: 0 };
         }
         
         const currentRSI = rsiValues[rsiValues.length - 1];
@@ -1492,22 +1383,15 @@
         let tpCandidates = [];
         let slCandidates = [];
         
-        // Adjust TP/SL multiplier based on entry type
         let tpMultiplier = 1.0;
         let slMultiplier = 1.0;
         
         if (entryType === 'MARKET') {
-            // Market entry: wider SL, normal TP
-            tpMultiplier = 1.0;
-            slMultiplier = 1.2;
+            tpMultiplier = 1.0; slMultiplier = 1.2;
         } else if (entryType === 'LIMIT') {
-            // Limit entry: tighter SL, bigger TP (better entry = better R:R)
-            tpMultiplier = 1.3;
-            slMultiplier = 0.8;
+            tpMultiplier = 1.3; slMultiplier = 0.8;
         } else if (entryType === 'STOP') {
-            // Stop entry: tight SL, aggressive TP (confirmed breakout)
-            tpMultiplier = 1.5;
-            slMultiplier = 0.7;
+            tpMultiplier = 1.5; slMultiplier = 0.7;
         }
         
         if (signal === 'BUY') {
@@ -1524,37 +1408,16 @@
             }
             
             const fibs = calculateFibonacciLevels(swingHigh, swingLow, 'BUY');
-            if (fibs.fib_1618 > entryPrice) {
-                tpCandidates.push({ value: fibs.fib_1618, weight: 1.3 * tpMultiplier, name: 'Fib 161.8%' });
-            }
-            if (fibs.fib_1272 > entryPrice) {
-                tpCandidates.push({ value: fibs.fib_1272, weight: 1.2 * tpMultiplier, name: 'Fib 127.2%' });
-            }
-            if (fibs.fib_382 < entryPrice) {
-                slCandidates.push({ value: fibs.fib_382, weight: 1.1 * slMultiplier, name: 'Fib 38.2% SL' });
-            }
+            if (fibs.fib_1618 > entryPrice) tpCandidates.push({ value: fibs.fib_1618, weight: 1.3 * tpMultiplier, name: 'Fib 161.8%' });
+            if (fibs.fib_1272 > entryPrice) tpCandidates.push({ value: fibs.fib_1272, weight: 1.2 * tpMultiplier, name: 'Fib 127.2%' });
+            if (fibs.fib_382 < entryPrice) slCandidates.push({ value: fibs.fib_382, weight: 1.1 * slMultiplier, name: 'Fib 38.2% SL' });
             
             if (srLevels.resistance && srLevels.resistance > entryPrice) {
                 const distanceToR = srLevels.resistance - entryPrice;
-                if (distanceToR > atr * 0.5) {
-                    tpCandidates.push({ 
-                        value: srLevels.resistance - (atr * 0.2),
-                        weight: 2.0 * tpMultiplier, 
-                        name: 'Resistance' 
-                    });
-                }
+                if (distanceToR > atr * 0.5) tpCandidates.push({ value: srLevels.resistance - (atr * 0.2), weight: 2.0 * tpMultiplier, name: 'Resistance' });
             }
-            if (srLevels.support && srLevels.support < entryPrice) {
-                slCandidates.push({ 
-                    value: srLevels.support - (atr * 0.1),
-                    weight: 2.0 * slMultiplier, 
-                    name: 'Support' 
-                });
-            }
-            
-            if (swingHigh > entryPrice) {
-                tpCandidates.push({ value: swingHigh, weight: 1.5 * tpMultiplier, name: 'Swing High' });
-            }
+            if (srLevels.support && srLevels.support < entryPrice) slCandidates.push({ value: srLevels.support - (atr * 0.1), weight: 2.0 * slMultiplier, name: 'Support' });
+            if (swingHigh > entryPrice) tpCandidates.push({ value: swingHigh, weight: 1.5 * tpMultiplier, name: 'Swing High' });
             slCandidates.push({ value: swingLow - (atr * 0.2), weight: 1.3 * slMultiplier, name: 'Swing Low' });
             
         } else if (signal === 'SELL') {
@@ -1571,48 +1434,23 @@
             }
             
             const fibs = calculateFibonacciLevels(swingHigh, swingLow, 'SELL');
-            if (fibs.fib_1618 < entryPrice) {
-                tpCandidates.push({ value: fibs.fib_1618, weight: 1.3 * tpMultiplier, name: 'Fib 161.8%' });
-            }
-            if (fibs.fib_1272 < entryPrice) {
-                tpCandidates.push({ value: fibs.fib_1272, weight: 1.2 * tpMultiplier, name: 'Fib 127.2%' });
-            }
-            if (fibs.fib_382 > entryPrice) {
-                slCandidates.push({ value: fibs.fib_382, weight: 1.1 * slMultiplier, name: 'Fib 38.2% SL' });
-            }
+            if (fibs.fib_1618 < entryPrice) tpCandidates.push({ value: fibs.fib_1618, weight: 1.3 * tpMultiplier, name: 'Fib 161.8%' });
+            if (fibs.fib_1272 < entryPrice) tpCandidates.push({ value: fibs.fib_1272, weight: 1.2 * tpMultiplier, name: 'Fib 127.2%' });
+            if (fibs.fib_382 > entryPrice) slCandidates.push({ value: fibs.fib_382, weight: 1.1 * slMultiplier, name: 'Fib 38.2% SL' });
             
             if (srLevels.support && srLevels.support < entryPrice) {
                 const distanceToS = entryPrice - srLevels.support;
-                if (distanceToS > atr * 0.5) {
-                    tpCandidates.push({ 
-                        value: srLevels.support + (atr * 0.2),
-                        weight: 2.0 * tpMultiplier, 
-                        name: 'Support' 
-                    });
-                }
+                if (distanceToS > atr * 0.5) tpCandidates.push({ value: srLevels.support + (atr * 0.2), weight: 2.0 * tpMultiplier, name: 'Support' });
             }
-            if (srLevels.resistance && srLevels.resistance > entryPrice) {
-                slCandidates.push({ 
-                    value: srLevels.resistance + (atr * 0.1),
-                    weight: 2.0 * slMultiplier, 
-                    name: 'Resistance' 
-                });
-            }
-            
-            if (swingLow < entryPrice) {
-                tpCandidates.push({ value: swingLow, weight: 1.5 * tpMultiplier, name: 'Swing Low' });
-            }
+            if (srLevels.resistance && srLevels.resistance > entryPrice) slCandidates.push({ value: srLevels.resistance + (atr * 0.1), weight: 2.0 * slMultiplier, name: 'Resistance' });
+            if (swingLow < entryPrice) tpCandidates.push({ value: swingLow, weight: 1.5 * tpMultiplier, name: 'Swing Low' });
             slCandidates.push({ value: swingHigh + (atr * 0.2), weight: 1.3 * slMultiplier, name: 'Swing High' });
         }
         
         const calculateWeightedAverage = (candidates) => {
             if (candidates.length === 0) return null;
-            let sumWeightedValues = 0;
-            let sumWeights = 0;
-            candidates.forEach(c => {
-                sumWeightedValues += c.value * c.weight;
-                sumWeights += c.weight;
-            });
+            let sumWeightedValues = 0, sumWeights = 0;
+            candidates.forEach(c => { sumWeightedValues += c.value * c.weight; sumWeights += c.weight; });
             return sumWeightedValues / sumWeights;
         };
         
@@ -1630,11 +1468,8 @@
         const rrRatio = reward / risk;
         
         if (rrRatio < 1.5) {
-            if (signal === 'BUY') {
-                finalTP = entryPrice + (risk * 2);
-            } else {
-                finalTP = entryPrice - (risk * 2);
-            }
+            if (signal === 'BUY') finalTP = entryPrice + (risk * 2);
+            else finalTP = entryPrice - (risk * 2);
         }
         
         return {
@@ -1651,6 +1486,7 @@
     // ==================== MAIN ANALYSIS ====================
 
     async function analyzeTimeframe(tf) {
+        // Always get fresh data for current asset
         const data = await fetchTradingViewData(tf.interval);
         const prices = data.prices;
         
@@ -1667,7 +1503,6 @@
         const prevEMA = emaOnRsi[emaOnRsi.length - 2];
         const prevLWMA = lwmaOnRsi[lwmaOnRsi.length - 2];
         
-        // Calculate additional indicators
         const macd = calculateMACD(prices);
         const bb = calculateBollingerBands(prices);
         const stochastic = calculateStochastic(data.high, data.low, prices);
@@ -1697,51 +1532,35 @@
             }
         }
         
+        // Use the LAST price from generated data as current market price
+        // This ensures consistency between price display and analysis
         const currentMarketPrice = prices[prices.length - 1];
         const atr = calculateATR(data.high, data.low, prices, 14);
         
-        // Prepare indicators object for confluence scoring
         const indicators = {
-            rsi: currentRSI,
-            ema: currentEMA,
-            lwma: currentLWMA,
+            rsi: currentRSI, ema: currentEMA, lwma: currentLWMA,
             isCross: emaCrossAbove || emaCrossBelow,
-            macdHistogram: macd.histogram,
-            bb: bb,
-            stochastic: stochastic,
-            adx: adx,
-            cci: cci,
-            volumeProfile: volumeProfile,
+            macdHistogram: macd.histogram, bb: bb, stochastic: stochastic,
+            adx: adx, cci: cci, volumeProfile: volumeProfile,
             currentPrice: currentMarketPrice
         };
         
         const confluence = calculateConfluenceScore(indicators, signal);
-        
-        // Calculate smart entry points
         const entryData = calculateSmartEntry(signal, currentMarketPrice, prices, rsiValues, atr, data.high, data.low, confluence);
         
-        // Calculate TP/SL for each entry type
         const marketTPSL = calculateAdvancedTPSL(signal, entryData.marketEntry, 'MARKET', prices, rsiValues, atr, data.high, data.low);
         const limitTPSL = calculateAdvancedTPSL(signal, entryData.limitEntry, 'LIMIT', prices, rsiValues, atr, data.high, data.low);
         const stopTPSL = calculateAdvancedTPSL(signal, entryData.stopEntry, 'STOP', prices, rsiValues, atr, data.high, data.low);
         
         return {
             timeframe: tf.label,
-            rsi: currentRSI.toFixed(2),
-            ema: currentEMA.toFixed(2),
-            lwma: currentLWMA.toFixed(2),
+            rsi: currentRSI.toFixed(2), ema: currentEMA.toFixed(2), lwma: currentLWMA.toFixed(2),
             macd: macd.histogram[macd.histogram.length - 1].toFixed(4),
             stoch: stochastic.k[stochastic.k.length - 1].toFixed(2),
-            adxValue: adx.adx.toFixed(2),
-            cci: cci[cci.length - 1].toFixed(2),
-            signal: signal,
-            signalStrength: signalStrength,
-            confluence: confluence,
-            currentPrice: currentMarketPrice.toFixed(2),
-            entryData: entryData,
-            marketTPSL: marketTPSL,
-            limitTPSL: limitTPSL,
-            stopTPSL: stopTPSL,
+            adxValue: adx.adx.toFixed(2), cci: cci[cci.length - 1].toFixed(2),
+            signal: signal, signalStrength: signalStrength, confluence: confluence,
+            currentPrice: currentMarketPrice.toFixed(assetConfig[currentAsset].priceDecimals),
+            entryData: entryData, marketTPSL: marketTPSL, limitTPSL: limitTPSL, stopTPSL: stopTPSL,
             isCross: emaCrossAbove || emaCrossBelow
         };
     }
@@ -1750,6 +1569,9 @@
         document.getElementById('loadingIndicator').style.display = 'block';
         document.getElementById('analysisGrid').innerHTML = '';
         document.getElementById('summarySection').style.display = 'none';
+        
+        // Log which asset we're analyzing
+        console.log(`🔍 Analyzing ${currentAsset} at price: $${currentPrice.toFixed(2)}`);
         
         const results = [];
         
@@ -1764,8 +1586,7 @@
         displaySummary(results);
         
         document.getElementById('loadingIndicator').style.display = 'none';
-        document.getElementById('lastUpdate').textContent = 
-            `Phân tích lần cuối: ${new Date().toLocaleString('vi-VN')}`;
+        document.getElementById('lastUpdate').textContent = `Phân tích lần cuối: ${new Date().toLocaleString('vi-VN')}`;
     }
 
     function displayTimeframeAnalysis(analysis) {
@@ -1774,17 +1595,12 @@
         card.className = 'timeframe-card';
         
         const signalClass = analysis.signal.toLowerCase();
-        const signalIcon = analysis.signal === 'BUY' ? '📈' : 
-                          analysis.signal === 'SELL' ? '📉' : '➖';
+        const signalIcon = analysis.signal === 'BUY' ? '📈' : analysis.signal === 'SELL' ? '📉' : '➖';
         const crossIndicator = analysis.isCross ? ' 🔥 (CẮT NHAU!)' : '';
         
-        const currentPrice = parseFloat(analysis.currentPrice);
-        
         const confluence = analysis.confluence;
-        const strengthClass = confluence.percentage >= 60 ? 'strong' : 
-                             confluence.percentage >= 45 ? 'medium' : 'weak';
+        const strengthClass = confluence.percentage >= 60 ? 'strong' : confluence.percentage >= 45 ? 'medium' : 'weak';
         
-        // Get recommended entry
         const recommendedEntry = analysis.entryData.recommendedType;
         let recommendedTPSL, otherEntries;
         
@@ -1808,140 +1624,84 @@
             ];
         }
         
-        const recommendedEntryPrice = recommendedEntry === 'MARKET' ? analysis.entryData.marketEntry :
-                                     recommendedEntry === 'LIMIT' ? analysis.entryData.limitEntry :
-                                     analysis.entryData.stopEntry;
+        const decimals = assetConfig[currentAsset].priceDecimals;
+        const recommendedEntryPrice = recommendedEntry === 'MARKET' ? analysis.entryData.marketEntry : recommendedEntry === 'LIMIT' ? analysis.entryData.limitEntry : analysis.entryData.stopEntry;
         
         const tp = parseFloat(recommendedTPSL.tp);
         const sl = parseFloat(recommendedTPSL.sl);
-        const tpPips = Math.abs(tp - recommendedEntryPrice).toFixed(2);
-        const slPips = Math.abs(sl - recommendedEntryPrice).toFixed(2);
+        const tpPips = Math.abs(tp - recommendedEntryPrice).toFixed(decimals);
+        const slPips = Math.abs(sl - recommendedEntryPrice).toFixed(decimals);
         const tpPercent = ((Math.abs(tp - recommendedEntryPrice) / recommendedEntryPrice) * 100).toFixed(2);
         const slPercent = ((Math.abs(sl - recommendedEntryPrice) / recommendedEntryPrice) * 100).toFixed(2);
         
         card.innerHTML = `
             <div class="timeframe-header">${analysis.timeframe}</div>
-            
             <div class="confluence-score">
                 <div style="font-size: 0.9em; opacity: 0.9;">Confluence Score</div>
                 <div class="score-value">${confluence.percentage}%</div>
                 <div style="font-size: 1.1em; margin-top: 5px;">${confluence.quality}</div>
                 <div class="confluence-details">${confluence.score}/${confluence.maxScore} points</div>
             </div>
-            
             <div class="indicator-values">
-                <div class="indicator-row">
-                    <span class="indicator-label">RSI(14):</span>
-                    <span class="indicator-value">${analysis.rsi}</span>
-                </div>
-                <div class="indicator-row">
-                    <span class="indicator-label">EMA(9) on RSI:</span>
-                    <span class="indicator-value">${analysis.ema}</span>
-                </div>
-                <div class="indicator-row">
-                    <span class="indicator-label">LWMA(45) on RSI:</span>
-                    <span class="indicator-value">${analysis.lwma}</span>
-                </div>
-                <div class="indicator-row">
-                    <span class="indicator-label">MACD Histogram:</span>
-                    <span class="indicator-value">${analysis.macd}</span>
-                </div>
-                <div class="indicator-row">
-                    <span class="indicator-label">Stochastic:</span>
-                    <span class="indicator-value">${analysis.stoch}</span>
-                </div>
-                <div class="indicator-row">
-                    <span class="indicator-label">ADX:</span>
-                    <span class="indicator-value">${analysis.adxValue}</span>
-                </div>
-                <div class="indicator-row">
-                    <span class="indicator-label">CCI:</span>
-                    <span class="indicator-value">${analysis.cci}</span>
-                </div>
+                <div class="indicator-row"><span class="indicator-label">RSI(14):</span><span class="indicator-value">${analysis.rsi}</span></div>
+                <div class="indicator-row"><span class="indicator-label">EMA(9) on RSI:</span><span class="indicator-value">${analysis.ema}</span></div>
+                <div class="indicator-row"><span class="indicator-label">LWMA(45) on RSI:</span><span class="indicator-value">${analysis.lwma}</span></div>
+                <div class="indicator-row"><span class="indicator-label">MACD Histogram:</span><span class="indicator-value">${analysis.macd}</span></div>
+                <div class="indicator-row"><span class="indicator-label">Stochastic:</span><span class="indicator-value">${analysis.stoch}</span></div>
+                <div class="indicator-row"><span class="indicator-label">ADX:</span><span class="indicator-value">${analysis.adxValue}</span></div>
+                <div class="indicator-row"><span class="indicator-label">CCI:</span><span class="indicator-value">${analysis.cci}</span></div>
             </div>
-            
             <div class="signal-strength-bar">
                 <div class="strength-label">Signal Strength:</div>
                 <div class="strength-bar">
-                    <div class="strength-fill ${strengthClass}" style="width: ${confluence.percentage}%">
-                        ${confluence.percentage}%
-                    </div>
+                    <div class="strength-fill ${strengthClass}" style="width: ${confluence.percentage}%">${confluence.percentage}%</div>
                 </div>
             </div>
-            
-            <div class="signal ${signalClass}">
-                ${signalIcon} ${analysis.signal}${crossIndicator}
-            </div>
-            
+            <div class="signal ${signalClass}">${signalIcon} ${analysis.signal}${crossIndicator}</div>
             <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-radius: 8px; font-size: 0.85em;">
                 <strong>✓ Indicators Aligned:</strong>
-                <div style="margin-top: 8px; line-height: 1.6;">
-                    ${confluence.details.map(d => `<div>${d}</div>`).join('')}
-                </div>
+                <div style="margin-top: 8px; line-height: 1.6;">${confluence.details.map(d => `<div>${d}</div>`).join('')}</div>
             </div>
-            
             <div class="trade-levels">
-                <div class="level-row current">
-                    <span>💰 Giá hiện tại:</span>
-                    <span>$${analysis.currentPrice}</span>
-                </div>
-                
+                <div class="level-row current"><span>💰 Giá hiện tại:</span><span>$${analysis.currentPrice}</span></div>
                 <div class="level-row entry-${recommendedEntry.toLowerCase()}" style="background: #fffbea; border-left: 4px solid #f39c12;">
-                    <span>📍 Entry Đề Xuất:
-                        <span class="entry-type-badge badge-${recommendedEntry.toLowerCase()}">${recommendedEntry}</span>
-                    </span>
-                    <span>$${recommendedEntryPrice.toFixed(2)}</span>
+                    <span>📍 Entry Đề Xuất: <span class="entry-type-badge badge-${recommendedEntry.toLowerCase()}">${recommendedEntry}</span></span>
+                    <span>$${recommendedEntryPrice.toFixed(decimals)}</span>
                 </div>
-                
-                <div class="entry-explanation">
-                    <strong>💡 ${analysis.entryData.explanation}</strong>
-                </div>
-                
-                <div class="level-row tp">
-                    <span>🎯 TP (${recommendedEntry}):</span>
-                    <span>$${tp.toFixed(2)} (+${tpPips} / ${tpPercent}%)</span>
-                </div>
-                <div class="level-row sl">
-                    <span>🛑 SL (${recommendedEntry}):</span>
-                    <span>$${sl.toFixed(2)} (-${slPips} / ${slPercent}%)</span>
-                </div>
+                <div class="entry-explanation"><strong>💡 ${analysis.entryData.explanation}</strong></div>
+                <div class="level-row tp"><span>🎯 TP (${recommendedEntry}):</span><span>$${tp.toFixed(decimals)} (+${tpPips} / ${tpPercent}%)</span></div>
+                <div class="level-row sl"><span>🛑 SL (${recommendedEntry}):</span><span>$${sl.toFixed(decimals)} (-${slPips} / ${slPercent}%)</span></div>
                 <div class="indicator-row" style="margin-top: 10px; background: #fff3cd; border-left: 4px solid #ffc107;">
                     <span class="indicator-label">⚖️ R:R Ratio:</span>
                     <span class="indicator-value" style="color: #856404; font-size: 1.1em;">1:${recommendedTPSL.rrRatio}</span>
                 </div>
             </div>
-            
             <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.8em;">
                 <strong>📌 Entry Alternatives:</strong>
                 ${otherEntries.map(alt => {
                     const altTP = parseFloat(alt.tpsl.tp);
                     const altSL = parseFloat(alt.tpsl.sl);
                     const altEntryPrice = parseFloat(alt.entry);
-                    const altTPPips = Math.abs(altTP - altEntryPrice).toFixed(2);
-                    const altSLPips = Math.abs(altSL - altEntryPrice).toFixed(2);
-                    return `
-                        <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 6px; border-left: 3px solid #dee2e6;">
-                            <div style="font-weight: 600; margin-bottom: 5px;">
-                                <span class="entry-type-badge badge-${alt.type.toLowerCase()}">${alt.type}</span>
-                                Entry: $${altEntryPrice.toFixed(2)}
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                                <span>TP: $${altTP.toFixed(2)} (+${altTPPips})</span>
-                                <span>SL: $${altSL.toFixed(2)} (-${altSLPips})</span>
-                                <span>R:R 1:${alt.tpsl.rrRatio}</span>
-                            </div>
+                    const altTPPips = Math.abs(altTP - altEntryPrice).toFixed(decimals);
+                    const altSLPips = Math.abs(altSL - altEntryPrice).toFixed(decimals);
+                    return `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 6px; border-left: 3px solid #dee2e6;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">
+                            <span class="entry-type-badge badge-${alt.type.toLowerCase()}">${alt.type}</span>
+                            Entry: $${altEntryPrice.toFixed(decimals)}
                         </div>
-                    `;
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
+                            <span>TP: $${altTP.toFixed(decimals)} (+${altTPPips})</span>
+                            <span>SL: $${altSL.toFixed(decimals)} (-${altSLPips})</span>
+                            <span>R:R 1:${alt.tpsl.rrRatio}</span>
+                        </div>
+                    </div>`;
                 }).join('')}
             </div>
-            
             <div style="margin-top: 15px; padding: 12px; background: #e7f3ff; border-radius: 8px; font-size: 0.85em;">
-                <div style="margin-bottom: 8px;">
-                    <strong>🎯 TP Methods (${recommendedTPSL.tpCount}):</strong>
+                <div style="margin-bottom: 8px;"><strong>🎯 TP Methods (${recommendedTPSL.tpCount}):</strong>
                     <div style="color: #0066cc; margin-top: 4px;">${recommendedTPSL.tpMethods || 'ATR-based'}</div>
                 </div>
-                <div>
-                    <strong>🛑 SL Methods (${recommendedTPSL.slCount}):</strong>
+                <div><strong>🛑 SL Methods (${recommendedTPSL.slCount}):</strong>
                     <div style="color: #cc0000; margin-top: 4px;">${recommendedTPSL.slMethods || 'ATR-based'}</div>
                 </div>
             </div>
@@ -1964,15 +1724,14 @@
         
         const summaryContent = document.getElementById('summaryContent');
         summaryContent.innerHTML = `
+            <p><strong>Asset:</strong> ${assetConfig[currentAsset].symbol} (${assetConfig[currentAsset].name})</p>
             <p><strong>Tổng số khung phân tích:</strong> ${results.length}</p>
             <p><strong>📈 Tín hiệu BUY:</strong> ${buyCount} khung</p>
             <p><strong>📉 Tín hiệu SELL:</strong> ${sellCount} khung</p>
             <p><strong>➖ Tín hiệu NEUTRAL:</strong> ${neutralCount} khung</p>
             <p><strong>💪 Tín hiệu mạnh (≥60%):</strong> ${strongSignals} khung</p>
             <p><strong>📊 Độ chính xác trung bình:</strong> ${avgConfluence.toFixed(1)}%</p>
-            <p style="margin-top: 15px; font-size: 1.2em;">
-                <strong>🎯 Xu hướng chung: ${overallSignal}</strong>
-            </p>
+            <p style="margin-top: 15px; font-size: 1.2em;"><strong>🎯 Xu hướng chung: ${overallSignal}</strong></p>
             <p style="margin-top: 10px; font-size: 0.95em; opacity: 0.9;">
                 ${overallSignal === 'BUY' ? '✅ Đa số khung thời gian đang có xu hướng tăng' :
                   overallSignal === 'SELL' ? '⚠️ Đa số khung thời gian đang có xu hướng giảm' :
