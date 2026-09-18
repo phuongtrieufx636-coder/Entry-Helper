@@ -464,37 +464,73 @@ sendBtn.addEventListener('click', async ()=>{
 {"entry":"vùng giá entry, ví dụ 2015-2018","stop_loss":"mức giá SL","tp1":"mức giá TP1","tp2":"mức giá TP2","confidence":"Thấp / Trung bình / Cao","reasoning":"giải thích ngắn gọn 2-4 câu bằng tiếng Việt về price action, vùng cung cầu, và lý do đưa ra vùng entry/SL/TP này"}
 Nếu không đủ dữ liệu để xác định mức giá cụ thể, hãy trả về "—" cho trường đó nhưng vẫn giải thích lý do trong "reasoning". Không thêm lời khuyên đầu tư trực tiếp, chỉ mô tả phân tích kỹ thuật.`;
 
-  try{
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${key}`
-      },
-      body: JSON.stringify({
-        model: model,
-        max_tokens: 700,
-        temperature: 0.3,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: [
-              { type: 'text', text: `Cặp giao dịch: ${currentSymbol}. Khung thời gian: ${currentTfLabel}. Yêu cầu: ${userPrompt}` },
-              { type: 'image_url', image_url: { url: pendingImageDataUrl } }
-          ]}
-        ]
-      })
-    });
+  // Nếu model đang chọn bị lỗi "model_not_found" (tài khoản/key chưa có quyền dùng),
+  // tự động thử lần lượt các model vision khác đang có trong danh sách chọn,
+  // thay vì báo lỗi ngay và bắt người dùng tự đổi.
+  const allModels = Array.from(document.getElementById('modelSelect').options).map(o => o.value);
+  const candidates = [model, ...allModels.filter(m => m !== model)];
 
-    const data = await resp.json();
-    if(!resp.ok){
-      throw new Error(data?.error?.message || `Lỗi HTTP ${resp.status}`);
+  let lastErr = null;
+  let usedModel = null;
+  let data = null;
+
+  try{
+    for(const candidateModel of candidates){
+      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          model: candidateModel,
+          max_tokens: 700,
+          temperature: 0.3,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: [
+                { type: 'text', text: `Cặp giao dịch: ${currentSymbol}. Khung thời gian: ${currentTfLabel}. Yêu cầu: ${userPrompt}` },
+                { type: 'image_url', image_url: { url: pendingImageDataUrl } }
+            ]}
+          ]
+        })
+      });
+
+      const respData = await resp.json();
+      if(resp.ok){
+        data = respData;
+        usedModel = candidateModel;
+        break;
+      }
+
+      const code = respData?.error?.code;
+      const msg = respData?.error?.message || `Lỗi HTTP ${resp.status}`;
+      lastErr = new Error(msg);
+      // Chỉ tự động thử model tiếp theo nếu lỗi là "model không tồn tại / không có quyền".
+      // Các lỗi khác (sai key, hết quota, ảnh quá lớn...) dừng lại ngay và báo luôn.
+      if(code !== 'model_not_found' && !/does not exist|do not have access/i.test(msg)){
+        throw lastErr;
+      }
     }
+
+    if(!data){
+      throw new Error(
+        (lastErr ? lastErr.message : 'Không có model nào khả dụng.') +
+        ' — Key của bạn có thể chưa được cấp quyền dùng các model vision này. ' +
+        'Vào console.groq.com/playground, chọn đúng model đó và thử bằng key này; ' +
+        'nếu playground cũng báo lỗi, cần kiểm tra lại quyền/gói của tài khoản Groq (mục Billing/Limits).'
+      );
+    }
+
     const text = data?.choices?.[0]?.message?.content || '';
     const parsed = tryParseJson(text);
     if(parsed){
       fillResult(parsed, text);
     }else{
       fillResult({}, text || 'Không nhận được nội dung phản hồi.');
+    }
+    if(usedModel !== model){
+      document.getElementById('resultSub').textContent = `${currentSymbol.split(':')[1]||currentSymbol} · ${currentTfLabel} · ${usedModel.split('/')[1]} (tự chuyển vì model đã chọn không khả dụng)`;
     }
     document.getElementById('engineStatus').textContent = 'Đã kết nối';
   }catch(err){
